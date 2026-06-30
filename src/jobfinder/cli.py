@@ -87,12 +87,10 @@ def run(config_path: Path, fixture: Path | None, dry_run: bool) -> int:
         and not item.score.rejection_reason
         and item.score.overall >= top_floor
     ]
-    generated_report = latest_path.read_text(encoding="utf-8")
     send_discord_notification(
         len(jobs),
         alert_candidates,
         urgent_threshold,
-        generated_report,
     )
     urgent = [
         item

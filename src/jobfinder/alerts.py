@@ -68,7 +68,7 @@ def build_discord_message(
 
 
 def send_discord_webhook(message: str) -> bool:
-    url = os.environ.get("DISCORD_WEBHOOK_URL")
+    url = os.getenv("DISCORD_WEBHOOK_URL")
     if not url:
         return False
 
@@ -80,7 +80,10 @@ def send_discord_webhook(message: str) -> bool:
     )
     try:
         with urlopen(request, timeout=15) as response:
-            return 200 <= response.status < 300
+            if 200 <= response.status < 300:
+                print("Discord notification sent.")
+                return True
+            print(f"Discord notification failed with status {response.status}.")
     except HTTPError as exc:
         print(f"Discord notification failed with status {exc.code}.")
     except (URLError, TimeoutError) as exc:
@@ -92,10 +95,12 @@ def send_discord_notification(
     reviewed_count: int,
     candidates: list[ScoredJob],
     urgent_threshold: float,
-    generated_report: str,
 ) -> bool:
     """Send the ranked daily summary when the report has relevant jobs."""
-    if not candidates or "## A. Top Opportunities" not in generated_report:
+    urgent_jobs = [
+        item for item in candidates if item.score.overall >= urgent_threshold
+    ]
+    if not candidates and not urgent_jobs:
         return False
 
     ranked = sorted(
@@ -104,11 +109,11 @@ def send_discord_notification(
         reverse=True,
     )
     top_jobs = ranked[:5]
-    urgent_jobs = [
-        item for item in ranked if item.score.overall >= urgent_threshold
-    ]
-    if not top_jobs and not urgent_jobs:
-        return False
+    urgent_jobs = sorted(
+        urgent_jobs,
+        key=lambda item: item.score.overall,
+        reverse=True,
+    )
 
     message = build_discord_message(reviewed_count, top_jobs, urgent_jobs)
     return send_discord_webhook(message)

@@ -1,5 +1,6 @@
 import json
 import os
+import tempfile
 import unittest
 from dataclasses import replace
 from pathlib import Path
@@ -90,7 +91,6 @@ class DiscordAlertTests(unittest.TestCase):
                 401,
                 [self.item],
                 8.5,
-                "# Report\n\n## A. Top Opportunities\n",
             )
         )
         message = webhook.call_args.args[0]
@@ -108,7 +108,6 @@ class DiscordAlertTests(unittest.TestCase):
                 401,
                 [non_urgent],
                 8.5,
-                "# Report\n\n## A. Top Opportunities\n",
             )
         )
         message = webhook.call_args.args[0]
@@ -122,10 +121,34 @@ class DiscordAlertTests(unittest.TestCase):
                 401,
                 [],
                 8.5,
-                "# Report\n\n## A. Top Opportunities\n",
             )
         )
         webhook.assert_not_called()
+
+    def test_main_pipeline_invokes_discord_after_report_generation(self):
+        from jobfinder.cli import run
+
+        config = ROOT / "config/profile.json"
+        fixture = ROOT / "tests/fixtures/jobs.json"
+        with tempfile.TemporaryDirectory() as directory:
+            run_root = Path(directory)
+
+            def verify_report_exists(*_args):
+                self.assertTrue((run_root / "reports/latest.md").exists())
+                return True
+
+            with patch("jobfinder.cli.ROOT", run_root):
+                with patch(
+                    "jobfinder.cli.send_discord_notification",
+                    side_effect=verify_report_exists,
+                ) as notification:
+                    self.assertEqual(run(config, fixture, dry_run=False), 0)
+
+        notification.assert_called_once()
+        reviewed_count, candidates, threshold = notification.call_args.args
+        self.assertEqual(reviewed_count, 3)
+        self.assertTrue(candidates)
+        self.assertEqual(threshold, 8.5)
 
 
 if __name__ == "__main__":
