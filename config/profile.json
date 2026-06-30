@@ -1,0 +1,77 @@
+{
+  "candidate": {
+    "name": "Bobby Chen",
+    "positioning": "Math-heavy ML/data science candidate aiming for research and applied ML, data science, and quantitative roles.",
+    "education": "B.S. Mathematics, Economics minor, Georgia Tech",
+    "skills": [
+      "Python",
+      "MATLAB",
+      "R",
+      "Java",
+      "SQL",
+      "probability",
+      "linear algebra",
+      "real analysis",
+      "differential equations",
+      "optimization",
+      "machine learning"
+    ],
+    "evidence": [
+      "120+ neural-network pruning experiments",
+      "gradient-flow ODE simulations across 72 independent trials",
+      "Stable Diffusion image style transfer experiments",
+      "mathematical modeling team leadership"
+    ],
+    "languages": ["English", "Mandarin Chinese"]
+  },
+  "scope": {
+    "companies": ["ByteDance"],
+    "start_date": "2027-01-01",
+    "end_date": "2027-06-30",
+    "timeline_flexible": true,
+    "regions": {
+      "United States": [],
+      "China": [
+        "Beijing",
+        "Shanghai",
+        "Shenzhen",
+        "Hangzhou",
+        "Guangzhou",
+        "Hong Kong"
+      ],
+      "Europe": [
+        "London",
+        "Zurich",
+        "Berlin",
+        "Amsterdam",
+        "Paris"
+      ]
+    }
+  },
+  "search": {
+    "keywords": [
+      "machine learning",
+      "data scientist",
+      "data science",
+      "research intern",
+      "research engineer",
+      "algorithm intern",
+      "quantitative",
+      "optimization",
+      "analytics graduate",
+      "applied scientist",
+      "机器学习",
+      "算法实习生",
+      "数据科学"
+    ],
+    "page_size": 20,
+    "max_pages_per_keyword": 4
+  },
+  "thresholds": {
+    "top_opportunity": 6.2,
+    "urgent_apply": 8.5,
+    "interesting_reject": 4.5,
+    "max_top": 5,
+    "max_rejected": 5
+  }
+}

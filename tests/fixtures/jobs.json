@@ -1,0 +1,48 @@
+[
+  {
+    "id": "ml-intern-1",
+    "title": "Machine Learning Research Intern - 2027 Start",
+    "description": "Run experiments on recommendation models and optimization methods using large-scale data.",
+    "requirement": "Current undergraduate or graduate student. Strong Python, probability, linear algebra, and PyTorch preferred.",
+    "recruit_type": {"en_name": "Intern"},
+    "job_category": {"en_name": "R&D"},
+    "city_info": {
+      "en_name": "San Jose",
+      "parent": {
+        "en_name": "California",
+        "parent": {"en_name": "United States of America"}
+      }
+    },
+    "job_subject": {"en_name": "Early Careers"},
+    "job_post_info": {}
+  },
+  {
+    "id": "senior-1",
+    "title": "Senior Research Scientist - Machine Learning",
+    "description": "Lead large language model research and distributed training.",
+    "requirement": "PhD required and at least 5 years of industry research experience.",
+    "recruit_type": {"en_name": "Regular"},
+    "job_category": {"en_name": "R&D"},
+    "city_info": {
+      "en_name": "London",
+      "parent": {"en_name": "United Kingdom"}
+    },
+    "job_subject": null,
+    "job_post_info": {}
+  },
+  {
+    "id": "marketing-1",
+    "title": "Marketing Analytics Manager",
+    "description": "Own sales dashboards and marketing campaign operations.",
+    "requirement": "Five years of marketing experience.",
+    "recruit_type": {"en_name": "Regular"},
+    "job_category": {"en_name": "Marketing"},
+    "city_info": {
+      "en_name": "New York",
+      "parent": {"en_name": "United States of America"}
+    },
+    "job_subject": null,
+    "job_post_info": {}
+  }
+]
+

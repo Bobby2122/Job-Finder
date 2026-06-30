@@ -1,0 +1,39 @@
+name: Daily ByteDance opportunity tracker
+
+on:
+  schedule:
+    - cron: "0 1 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  track:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Restore seen-job state
+        uses: actions/cache@v4
+        with:
+          path: data/state.json
+          key: bytedance-seen-jobs-${{ github.run_id }}
+          restore-keys: |
+            bytedance-seen-jobs-
+      - name: Run opportunity agent
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          PYTHONPATH: src
+        run: python -m jobfinder run
+      - name: Upload report and state
+        uses: actions/upload-artifact@v4
+        with:
+          name: bytedance-opportunity-report-${{ github.run_id }}
+          path: |
+            reports/
+            data/state.json
+          retention-days: 30
