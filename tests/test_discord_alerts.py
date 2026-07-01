@@ -150,6 +150,23 @@ class DiscordAlertTests(unittest.TestCase):
         self.assertTrue(candidates)
         self.assertEqual(threshold, 8.5)
 
+    def test_rejection_reason_does_not_exclude_alert_candidate(self):
+        from jobfinder.cli import _select_alert_candidates
+
+        candidate_with_note = replace(
+            self.item,
+            score=replace(
+                self.item.score,
+                relevant=True,
+                overall=8.8,
+                rejection_reason="Timeline mismatch noted for the report",
+            ),
+        )
+
+        selected = _select_alert_candidates([candidate_with_note], top_floor=6.2)
+
+        self.assertEqual(selected, [candidate_with_note])
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -17,6 +17,18 @@ from .state import load_state, save_state
 ROOT = Path(__file__).resolve().parents[2]
 
 
+def _select_alert_candidates(
+    scored: list[ScoredJob],
+    top_floor: float,
+) -> list[ScoredJob]:
+    """Keep alert selection inclusive; rejection notes are report context only."""
+    return [
+        item
+        for item in scored
+        if item.score.relevant and item.score.overall >= top_floor
+    ]
+
+
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="job-finder",
@@ -80,13 +92,8 @@ def run(config_path: Path, fixture: Path | None, dry_run: bool) -> int:
 
     urgent_threshold = float(thresholds["urgent_apply"])
     top_floor = float(thresholds["top_opportunity"])
-    alert_candidates = [
-        item
-        for item in scored
-        if item.score.relevant
-        and not item.score.rejection_reason
-        and item.score.overall >= top_floor
-    ]
+    alert_candidates = _select_alert_candidates(scored, top_floor)
+    print(f"[DEBUG] alert_candidates count = {len(alert_candidates)}")
     send_discord_notification(
         len(jobs),
         alert_candidates,

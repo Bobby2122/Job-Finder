@@ -100,7 +100,7 @@ def send_discord_notification(
     urgent_jobs = [
         item for item in candidates if item.score.overall >= urgent_threshold
     ]
-    if not candidates and not urgent_jobs:
+    if not candidates:
         return False
 
     ranked = sorted(
