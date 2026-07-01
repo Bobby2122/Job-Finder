@@ -7,3 +7,5 @@ tmp/
 data/state.json
 
 *.zip
+reports/*.md
+!reports/latest.md

@@ -25,28 +25,35 @@
     "languages": ["English", "Mandarin Chinese"]
   },
   "scope": {
-    "companies": ["ByteDance"],
+    "graduation_date": "2026-12-15",
+    "graduate_school_start": "2027-09-01",
     "start_date": "2027-01-01",
     "end_date": "2027-06-30",
     "timeline_flexible": true,
+    "summer_2027_allowed_if_before_grad_school": true,
+    "primary_country": "United States",
+    "excluded_countries": ["China", "Hong Kong"],
+    "remote_hybrid_allowed": true,
     "regions": {
-      "United States": [],
-      "China": [
-        "Beijing",
-        "Shanghai",
-        "Shenzhen",
-        "Hangzhou",
-        "Guangzhou",
-        "Hong Kong"
-      ],
-      "Europe": [
-        "London",
-        "Zurich",
-        "Berlin",
-        "Amsterdam",
-        "Paris"
+      "United States": [
+        "Remote",
+        "Hybrid"
       ]
-    }
+    },
+    "safe_livable_cities": [
+      "Atlanta",
+      "Austin",
+      "Boston",
+      "Chicago",
+      "Denver",
+      "Minneapolis",
+      "New York",
+      "Raleigh",
+      "Research Triangle",
+      "San Diego",
+      "Seattle",
+      "Washington, DC"
+    ]
   },
   "search": {
     "keywords": [
@@ -60,18 +67,21 @@
       "optimization",
       "analytics graduate",
       "applied scientist",
-      "机器学习",
-      "算法实习生",
-      "数据科学"
+      "risk analyst",
+      "operations research",
+      "forecasting",
+      "actuarial",
+      "product analyst",
+      "business analyst"
     ],
     "page_size": 20,
-    "max_pages_per_keyword": 4
+    "max_pages_per_keyword": 2
   },
   "thresholds": {
-    "top_opportunity": 6.2,
+    "top_opportunity": 5.8,
     "urgent_apply": 8.5,
     "interesting_reject": 4.5,
-    "max_top": 5,
-    "max_rejected": 5
+    "max_per_bucket": 5,
+    "max_rejected": 8
   }
 }

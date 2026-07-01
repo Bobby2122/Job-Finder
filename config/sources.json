@@ -1,0 +1,464 @@
+{
+  "keywords": [
+    "machine learning",
+    "data science",
+    "data scientist",
+    "data analyst",
+    "analytics",
+    "quantitative",
+    "risk analyst",
+    "actuarial",
+    "operations research",
+    "optimization",
+    "forecasting",
+    "research intern",
+    "research assistant",
+    "applied scientist",
+    "decision science",
+    "product analyst",
+    "business analyst",
+    "data platform",
+    "ML platform",
+    "supply chain analytics"
+  ],
+  "sources": [
+    {
+      "company": "ByteDance / TikTok",
+      "adapter": "bytedance",
+      "company_size_category": "Big tech / famous lab",
+      "source_category": "Big tech / AI labs",
+      "page_size": 20,
+      "max_pages_per_keyword": 2
+    },
+    {
+      "company": "OpenAI",
+      "adapter": "greenhouse",
+      "identifier": "openai",
+      "company_size_category": "Big tech / famous lab",
+      "source_category": "Big tech / AI labs"
+    },
+    {
+      "company": "Anthropic",
+      "adapter": "ashby",
+      "identifier": "anthropic",
+      "company_size_category": "Big tech / famous lab",
+      "source_category": "Big tech / AI labs"
+    },
+    {
+      "company": "Scale AI",
+      "adapter": "greenhouse",
+      "identifier": "scaleai",
+      "company_size_category": "Mid-size tech",
+      "source_category": "SaaS / data infrastructure / ML platform startups"
+    },
+    {
+      "company": "Anduril",
+      "adapter": "greenhouse",
+      "identifier": "andurilindustries",
+      "company_size_category": "Mid-size tech",
+      "source_category": "Government contractors / research labs / policy analytics"
+    },
+    {
+      "company": "Shield AI",
+      "adapter": "greenhouse",
+      "identifier": "shieldai",
+      "company_size_category": "Startup",
+      "source_category": "Government contractors / research labs / policy analytics"
+    },
+    {
+      "company": "Applied Intuition",
+      "adapter": "greenhouse",
+      "identifier": "appliedintuition",
+      "company_size_category": "Mid-size tech",
+      "source_category": "Climate / energy / transportation analytics"
+    },
+    {
+      "company": "Zipline",
+      "adapter": "greenhouse",
+      "identifier": "flyzipline",
+      "company_size_category": "Startup",
+      "source_category": "Climate / energy / transportation analytics"
+    },
+    {
+      "company": "Samsara",
+      "adapter": "greenhouse",
+      "identifier": "samsara",
+      "company_size_category": "Mid-size tech",
+      "source_category": "Logistics / operations research / supply chain analytics"
+    },
+    {
+      "company": "Flexport",
+      "adapter": "greenhouse",
+      "identifier": "flexport",
+      "company_size_category": "Mid-size tech",
+      "source_category": "Logistics / operations research / supply chain analytics"
+    },
+    {
+      "company": "Flock Safety",
+      "adapter": "greenhouse",
+      "identifier": "flocksafety",
+      "company_size_category": "Startup",
+      "source_category": "Smaller startups with ML/data/optimization roles"
+    },
+    {
+      "company": "Verkada",
+      "adapter": "greenhouse",
+      "identifier": "verkada",
+      "company_size_category": "Mid-size tech",
+      "source_category": "Smaller startups with ML/data/optimization roles"
+    },
+    {
+      "company": "Ramp",
+      "adapter": "ashby",
+      "identifier": "ramp",
+      "company_size_category": "Startup",
+      "source_category": "Quant finance / trading"
+    },
+    {
+      "company": "Mercury",
+      "adapter": "ashby",
+      "identifier": "mercury",
+      "company_size_category": "Startup",
+      "source_category": "Quant finance / trading"
+    },
+    {
+      "company": "Brex",
+      "adapter": "greenhouse",
+      "identifier": "brex",
+      "company_size_category": "Mid-size tech",
+      "source_category": "Quant finance / trading"
+    },
+    {
+      "company": "Datadog",
+      "adapter": "greenhouse",
+      "identifier": "datadog",
+      "company_size_category": "Mid-size tech",
+      "source_category": "SaaS / data infrastructure / ML platform startups"
+    },
+    {
+      "company": "MongoDB",
+      "adapter": "greenhouse",
+      "identifier": "mongodb",
+      "company_size_category": "Mid-size tech",
+      "source_category": "SaaS / data infrastructure / ML platform startups"
+    },
+    {
+      "company": "Confluent",
+      "adapter": "greenhouse",
+      "identifier": "confluent",
+      "company_size_category": "Mid-size tech",
+      "source_category": "SaaS / data infrastructure / ML platform startups"
+    },
+    {
+      "company": "dbt Labs",
+      "adapter": "greenhouse",
+      "identifier": "dbtlabsinc",
+      "company_size_category": "Mid-size tech",
+      "source_category": "SaaS / data infrastructure / ML platform startups"
+    },
+    {
+      "company": "Databricks",
+      "adapter": "greenhouse",
+      "identifier": "databricks",
+      "company_size_category": "Big tech / famous lab",
+      "source_category": "SaaS / data infrastructure / ML platform startups"
+    },
+    {
+      "company": "Snowflake",
+      "adapter": "greenhouse",
+      "identifier": "snowflake",
+      "company_size_category": "Big tech / famous lab",
+      "source_category": "SaaS / data infrastructure / ML platform startups"
+    },
+    {
+      "company": "Figma",
+      "adapter": "greenhouse",
+      "identifier": "figma",
+      "company_size_category": "Mid-size tech",
+      "source_category": "SaaS / data infrastructure / ML platform startups"
+    },
+    {
+      "company": "Notion",
+      "adapter": "ashby",
+      "identifier": "notion",
+      "company_size_category": "Mid-size tech",
+      "source_category": "SaaS / data infrastructure / ML platform startups"
+    },
+    {
+      "company": "Asana",
+      "adapter": "greenhouse",
+      "identifier": "asana",
+      "company_size_category": "Mid-size tech",
+      "source_category": "SaaS / data infrastructure / ML platform startups"
+    },
+    {
+      "company": "Airtable",
+      "adapter": "greenhouse",
+      "identifier": "airtable",
+      "company_size_category": "Mid-size tech",
+      "source_category": "SaaS / data infrastructure / ML platform startups"
+    },
+    {
+      "company": "Plaid",
+      "adapter": "greenhouse",
+      "identifier": "plaid",
+      "company_size_category": "Mid-size tech",
+      "source_category": "Quant finance / trading"
+    },
+    {
+      "company": "Chime",
+      "adapter": "greenhouse",
+      "identifier": "chime",
+      "company_size_category": "Mid-size tech",
+      "source_category": "Quant finance / trading"
+    },
+    {
+      "company": "Affirm",
+      "adapter": "greenhouse",
+      "identifier": "affirm",
+      "company_size_category": "Mid-size tech",
+      "source_category": "Quant finance / trading"
+    },
+    {
+      "company": "Oscar Health",
+      "adapter": "greenhouse",
+      "identifier": "oscar",
+      "company_size_category": "Healthcare analytics",
+      "source_category": "Healthcare analytics / biotech data"
+    },
+    {
+      "company": "Flatiron Health",
+      "adapter": "greenhouse",
+      "identifier": "flatironhealth",
+      "company_size_category": "Healthcare analytics",
+      "source_category": "Healthcare analytics / biotech data"
+    },
+    {
+      "company": "Tempus",
+      "adapter": "greenhouse",
+      "identifier": "tempus",
+      "company_size_category": "Healthcare analytics",
+      "source_category": "Healthcare analytics / biotech data"
+    },
+    {
+      "company": "Komodo Health",
+      "adapter": "greenhouse",
+      "identifier": "komodohealth",
+      "company_size_category": "Healthcare analytics",
+      "source_category": "Healthcare analytics / biotech data"
+    },
+    {
+      "company": "Datavant",
+      "adapter": "greenhouse",
+      "identifier": "datavant",
+      "company_size_category": "Healthcare analytics",
+      "source_category": "Healthcare analytics / biotech data"
+    },
+    {
+      "company": "Zocdoc",
+      "adapter": "greenhouse",
+      "identifier": "zocdoc",
+      "company_size_category": "Healthcare analytics",
+      "source_category": "Healthcare analytics / biotech data"
+    },
+    {
+      "company": "The Trade Desk",
+      "adapter": "greenhouse",
+      "identifier": "thetradedesk",
+      "company_size_category": "Mid-size tech",
+      "source_category": "Smaller startups with ML/data/optimization roles"
+    },
+    {
+      "company": "Ibotta",
+      "adapter": "greenhouse",
+      "identifier": "ibotta",
+      "company_size_category": "Mid-size tech",
+      "source_category": "Smaller startups with ML/data/optimization roles"
+    },
+    {
+      "company": "Faire",
+      "adapter": "greenhouse",
+      "identifier": "faire",
+      "company_size_category": "Startup",
+      "source_category": "Smaller startups with ML/data/optimization roles"
+    },
+    {
+      "company": "Toast",
+      "adapter": "greenhouse",
+      "identifier": "toast",
+      "company_size_category": "Mid-size tech",
+      "source_category": "Smaller startups with ML/data/optimization roles"
+    },
+    {
+      "company": "project44",
+      "adapter": "greenhouse",
+      "identifier": "project44",
+      "company_size_category": "Logistics/OR",
+      "source_category": "Logistics / operations research / supply chain analytics"
+    },
+    {
+      "company": "FourKites",
+      "adapter": "greenhouse",
+      "identifier": "fourkites",
+      "company_size_category": "Logistics/OR",
+      "source_category": "Logistics / operations research / supply chain analytics"
+    },
+    {
+      "company": "Palantir",
+      "adapter": "lever",
+      "identifier": "palantir",
+      "company_size_category": "Big tech / famous lab",
+      "source_category": "Government contractors / research labs / policy analytics"
+    },
+    {
+      "company": "Instacart",
+      "adapter": "greenhouse",
+      "identifier": "instacart",
+      "company_size_category": "Mid-size tech",
+      "source_category": "Logistics / operations research / supply chain analytics"
+    },
+    {
+      "company": "DoorDash",
+      "adapter": "greenhouse",
+      "identifier": "doordashusa",
+      "company_size_category": "Big tech / famous lab",
+      "source_category": "Logistics / operations research / supply chain analytics"
+    },
+    {
+      "company": "Roblox",
+      "adapter": "greenhouse",
+      "identifier": "roblox",
+      "company_size_category": "Big tech / famous lab",
+      "source_category": "Big tech / AI labs"
+    },
+    {
+      "company": "Stripe",
+      "adapter": "greenhouse",
+      "identifier": "stripe",
+      "company_size_category": "Big tech / famous lab",
+      "source_category": "Quant finance / trading"
+    },
+    {
+      "company": "Travelers",
+      "adapter": "workday",
+      "endpoint": "https://travelers.wd5.myworkdayjobs.com/wday/cxs/travelers/External/jobs",
+      "keyword_limit": 8,
+      "keywords": [
+        "intern",
+        "data analytics",
+        "risk analyst",
+        "actuarial",
+        "quantitative",
+        "business analyst",
+        "data science",
+        "operations"
+      ],
+      "company_size_category": "Insurance/risk",
+      "source_category": "Insurance / reinsurance / risk analytics"
+    },
+    {
+      "company": "Chubb",
+      "adapter": "workday",
+      "endpoint": "https://chubb.wd1.myworkdayjobs.com/wday/cxs/chubb/External/jobs",
+      "keyword_limit": 8,
+      "keywords": [
+        "intern",
+        "data analytics",
+        "risk analyst",
+        "actuarial",
+        "quantitative",
+        "business analyst",
+        "data science",
+        "operations"
+      ],
+      "company_size_category": "Insurance/risk",
+      "source_category": "Insurance / reinsurance / risk analytics"
+    },
+    {
+      "company": "Liberty Mutual",
+      "adapter": "workday",
+      "endpoint": "https://libertymutual.wd5.myworkdayjobs.com/wday/cxs/libertymutual/Liberty_Mutual_Careers/jobs",
+      "keyword_limit": 8,
+      "keywords": [
+        "intern",
+        "data analytics",
+        "risk analyst",
+        "actuarial",
+        "quantitative",
+        "business analyst",
+        "data science",
+        "operations"
+      ],
+      "company_size_category": "Insurance/risk",
+      "source_category": "Insurance / reinsurance / risk analytics"
+    },
+    {
+      "company": "The Hartford",
+      "adapter": "workday",
+      "endpoint": "https://thehartford.wd5.myworkdayjobs.com/wday/cxs/thehartford/Careers_External/jobs",
+      "keyword_limit": 8,
+      "keywords": [
+        "intern",
+        "data analytics",
+        "risk analyst",
+        "actuarial",
+        "quantitative",
+        "business analyst",
+        "data science",
+        "operations"
+      ],
+      "company_size_category": "Insurance/risk",
+      "source_category": "Insurance / reinsurance / risk analytics"
+    }
+  ],
+  "watchlist_without_public_adapter": [
+    "Google",
+    "Meta",
+    "Amazon",
+    "Microsoft",
+    "Apple",
+    "NVIDIA",
+    "Jane Street",
+    "Citadel",
+    "Two Sigma",
+    "SIG",
+    "IMC",
+    "Optiver",
+    "JPMorgan Chase",
+    "Goldman Sachs",
+    "Morgan Stanley",
+    "Capital One",
+    "Bloomberg",
+    "Uber",
+    "Airbnb",
+    "Waymo",
+    "Tesla",
+    "Disney",
+    "Netflix",
+    "Walmart Global Tech",
+    "CVS Health / Aetna",
+    "UnitedHealth / Optum",
+    "Geico",
+    "Progressive",
+    "Swiss Re",
+    "Munich Re",
+    "PartnerRe",
+    "Verisk",
+    "Milliman",
+    "Moody's Analytics",
+    "S&P Global",
+    "Morningstar",
+    "FactSet",
+    "Numerix",
+    "Kensho",
+    "RAND",
+    "MITRE",
+    "IDA",
+    "CNA",
+    "Aerospace Corporation",
+    "Sandia National Laboratories",
+    "Oak Ridge National Laboratory",
+    "Argonne National Laboratory",
+    "Lawrence Berkeley National Laboratory"
+  ]
+}

@@ -7,10 +7,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from .alerts import send_discord_notification
-from .client import ByteDanceClient, ByteDanceClientError, load_fixture
+from .client import load_fixture
 from .models import ScoredJob
-from .reporting import build_report
+from .reporting import ReportStats, build_report
 from .scoring import score_job
+from .sources import MultiCompanyClient, load_sources_config
 from .state import load_state, save_state
 
 
@@ -32,7 +33,7 @@ def _select_alert_candidates(
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="job-finder",
-        description="Run Bobby's ByteDance opportunity intelligence agent.",
+        description="Run Bobby's multi-company opportunity intelligence agent.",
     )
     sub = parser.add_subparsers(dest="command", required=True)
     run = sub.add_parser("run", help="Fetch, score, and report opportunities")
@@ -41,24 +42,45 @@ def _parser() -> argparse.ArgumentParser:
         type=Path,
         default=ROOT / "config" / "profile.json",
     )
+    run.add_argument(
+        "--sources",
+        type=Path,
+        default=ROOT / "config" / "sources.json",
+    )
     run.add_argument("--fixture", type=Path)
     run.add_argument("--dry-run", action="store_true")
     return parser
 
 
-def run(config_path: Path, fixture: Path | None, dry_run: bool) -> int:
+def run(
+    config_path: Path,
+    fixture: Path | None,
+    dry_run: bool,
+    sources_path: Path | None = None,
+) -> int:
     profile = json.loads(config_path.read_text(encoding="utf-8"))
-    search = profile["search"]
     try:
         if fixture:
             jobs = load_fixture(fixture)
-        else:
-            jobs = ByteDanceClient().search(
-                search["keywords"],
-                int(search["page_size"]),
-                int(search["max_pages_per_keyword"]),
+            companies = {job.company for job in jobs}
+            stats = ReportStats(
+                companies_searched=len(companies),
+                companies_succeeded=len(companies),
+                raw_roles_found=len(jobs),
             )
-    except (ByteDanceClientError, OSError, ValueError) as exc:
+        else:
+            sources_config = load_sources_config(
+                sources_path or ROOT / "config" / "sources.json"
+            )
+            result = MultiCompanyClient().search(sources_config)
+            jobs = result.roles
+            stats = ReportStats(
+                companies_searched=result.companies_attempted,
+                companies_succeeded=result.companies_succeeded,
+                raw_roles_found=result.raw_roles_found,
+                source_failures=result.failures,
+            )
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
         print(f"ERROR: {exc}")
         return 1
 
@@ -70,7 +92,7 @@ def run(config_path: Path, fixture: Path | None, dry_run: bool) -> int:
         for job in jobs
     ]
     now = datetime.now(timezone.utc)
-    report = build_report(scored, profile, now)
+    report = build_report(scored, profile, now, stats)
     thresholds = profile["thresholds"]
 
     if dry_run:
@@ -99,7 +121,7 @@ def run(config_path: Path, fixture: Path | None, dry_run: bool) -> int:
         alert_candidates,
         urgent_threshold,
     )
-    if not discord_sent:
+    if os.getenv("DISCORD_WEBHOOK_URL") and not discord_sent:
         print("WARNING: Discord notification was not sent. Check DISCORD_WEBHOOK_URL and alert candidate count.")
     urgent = [
         item
@@ -119,7 +141,7 @@ def run(config_path: Path, fixture: Path | None, dry_run: bool) -> int:
 def main() -> None:
     args = _parser().parse_args()
     if args.command == "run":
-        raise SystemExit(run(args.config, args.fixture, args.dry_run))
+        raise SystemExit(run(args.config, args.fixture, args.dry_run, args.sources))
 
 
 if __name__ == "__main__":

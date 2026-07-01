@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+import re
 from typing import Any
 
 
@@ -16,8 +17,49 @@ def _location_path(city: dict[str, Any] | None) -> tuple[str, ...]:
     return tuple(names)
 
 
+def _infer_country(location: str) -> str:
+    lowered = location.lower()
+    if any(term in lowered for term in ("china", "beijing", "shanghai", "shenzhen")):
+        return "China"
+    if any(
+        term in lowered
+        for term in (
+            "united states",
+            " usa",
+            "u.s.",
+            "remote - us",
+            "remote, us",
+        )
+    ):
+        return "United States"
+    if re.search(
+        r",\s*(?:AL|AK|AZ|AR|CA|CO|CT|DE|FL|GA|HI|ID|IL|IN|IA|KS|KY|LA|ME|"
+        r"MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|OH|OK|OR|PA|RI|SC|"
+        r"SD|TN|TX|UT|VT|VA|WA|WV|WI|WY|DC)\b",
+        location,
+        re.IGNORECASE,
+    ):
+        return "United States"
+    return ""
+
+
+def _start_period(title: str, description: str = "") -> str:
+    text = f"{title} {description}".lower()
+    year_match = re.search(r"\b(20\d{2})\b", text)
+    season = next(
+        (
+            name.title()
+            for name in ("winter", "spring", "summer", "fall")
+            if name in text
+        ),
+        "",
+    )
+    year = year_match.group(1) if year_match else ""
+    return " ".join(part for part in (season, year) if part) or "Flexible/unspecified"
+
+
 @dataclass(frozen=True)
-class Job:
+class Role:
     id: str
     title: str
     description: str
@@ -30,6 +72,12 @@ class Job:
     subject: str
     expiry_time: int | None = None
     company: str = "ByteDance"
+    external_url: str = ""
+    source: str = "ByteDance Careers"
+    posted_date: str | None = None
+    role_family: str = ""
+    company_size_category: str = "Big tech / famous lab"
+    source_category: str = "Big tech / AI labs"
 
     @property
     def text(self) -> str:
@@ -51,7 +99,21 @@ class Job:
 
     @property
     def url(self) -> str:
-        return f"https://jobs.bytedance.com/en/position/{self.id}/detail"
+        return self.external_url or (
+            f"https://jobs.bytedance.com/en/position/{self.id}/detail"
+        )
+
+    @property
+    def employment_type(self) -> str:
+        return self.recruitment_type
+
+    @property
+    def requirements(self) -> str:
+        return self.requirement
+
+    @property
+    def start_year_or_season(self) -> str:
+        return _start_period(self.title, self.description)
 
     @property
     def expires_at(self) -> datetime | None:
@@ -106,6 +168,54 @@ class Job:
             expiry_time=post_info.get("expiry_time"),
         )
 
+    @classmethod
+    def normalized(
+        cls,
+        *,
+        id: str,
+        company: str,
+        title: str,
+        location: str,
+        employment_type: str,
+        url: str,
+        source: str,
+        description: str = "",
+        requirements: str = "",
+        posted_date: str | None = None,
+        role_family: str = "",
+        company_size_category: str = "Mid-size tech",
+        source_category: str = "Mid-size tech",
+    ) -> "Role":
+        country = _infer_country(location)
+        path = tuple(
+            part.strip() for part in location.split(",") if part.strip()
+        )
+        if country and country.lower() not in {part.lower() for part in path}:
+            path = (*path, country)
+        return cls(
+            id=id,
+            title=title.strip() or "Untitled role",
+            description=description.strip(),
+            requirement=requirements.strip(),
+            city=location.strip(),
+            country=country,
+            location_path=path,
+            recruitment_type=employment_type.strip(),
+            category=role_family.strip(),
+            subject="",
+            company=company,
+            external_url=url,
+            source=source,
+            posted_date=posted_date,
+            role_family=role_family,
+            company_size_category=company_size_category,
+            source_category=source_category,
+        )
+
+
+# Backward-compatible name used by the original ByteDance client.
+Job = Role
+
 
 @dataclass(frozen=True)
 class Score:
@@ -119,6 +229,10 @@ class Score:
     concerns: tuple[str, ...] = field(default_factory=tuple)
     rejection_reason: str = ""
     competitiveness: str = "Medium"
+    timing_fit: float = 5.0
+    location_fit: float = 5.0
+    career_value: float = 5.0
+    bucket: str = "Target"
 
 
 @dataclass(frozen=True)
@@ -126,4 +240,3 @@ class ScoredJob:
     job: Job
     score: Score
     is_new: bool = False
-

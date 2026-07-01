@@ -74,10 +74,79 @@ class ScoringTests(unittest.TestCase):
             for job in self.jobs.values()
         ]
         report = build_report(scored, self.profile, datetime.now(timezone.utc))
-        self.assertIn("## A. Top Opportunities", report)
-        self.assertIn("## B. Rejected But Interesting", report)
-        self.assertIn("## C. Strategy Advice", report)
-        self.assertIn("Why it might not be a good idea", report)
+        self.assertIn("# Multi-Company Opportunity Intelligence Report", report)
+        self.assertIn("## A. Reach Roles", report)
+        self.assertIn("## B. Target Roles", report)
+        self.assertIn("## C. Safe Roles", report)
+        self.assertIn("## D. Rejected But Interesting", report)
+        self.assertIn("## E. Strategy Advice", report)
+
+    def test_china_role_is_excluded(self):
+        from dataclasses import replace
+
+        china_job = replace(
+            self.jobs["ml-intern-1"],
+            id="china-role",
+            city="Beijing",
+            country="China",
+            location_path=("Beijing", "China"),
+        )
+        score = score_job(china_job, self.profile)
+        self.assertFalse(score.geography_ok)
+        self.assertFalse(score.relevant)
+
+    def test_2026_start_is_rejected_even_if_description_mentions_2027(self):
+        from dataclasses import replace
+
+        old_timing = replace(
+            self.jobs["ml-intern-1"],
+            id="old-timing",
+            title="Data Science Internship",
+            description=(
+                "This internship starts in Spring 2026. Program materials were "
+                "updated for the 2027 recruiting calendar."
+            ),
+        )
+        score = score_job(old_timing, self.profile)
+        self.assertEqual(score.timing_fit, 2.0)
+        self.assertIn("2026", score.rejection_reason)
+
+    def test_entry_level_analyst_title_can_be_safe_without_intern_label(self):
+        from dataclasses import replace
+
+        analyst = replace(
+            self.jobs["ml-intern-1"],
+            id="risk-analyst",
+            title="Risk Data Analyst",
+            recruitment_type="Full time",
+            description=(
+                "Use Python, SQL, statistics, and forecasting to analyze insurance "
+                "risk. Bachelor's degree required."
+            ),
+            requirement="Bachelor's degree required. Experience preferred.",
+            company="Travelers",
+            company_size_category="Insurance/risk",
+            source_category="Insurance / reinsurance / risk analytics",
+            role_family="Quant / Risk",
+        )
+        score = score_job(analyst, self.profile)
+        self.assertTrue(score.relevant)
+        self.assertFalse(score.rejection_reason)
+        self.assertEqual(score.bucket, "Safe")
+
+    def test_engineer_two_is_not_misread_as_entry_level_engineer_one(self):
+        from dataclasses import replace
+
+        engineer_two = replace(
+            self.jobs["ml-intern-1"],
+            id="engineer-two",
+            title="Machine Learning Engineer II",
+            recruitment_type="Regular",
+            description="Build machine learning models and production data systems.",
+            requirement="Production engineering experience required.",
+        )
+        score = score_job(engineer_two, self.profile)
+        self.assertIn("new-grad accessibility", score.rejection_reason)
 
 
 if __name__ == "__main__":
