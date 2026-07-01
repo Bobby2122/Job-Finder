@@ -46,7 +46,7 @@ class DiscordAlertTests(unittest.TestCase):
 
     @patch.dict(
         os.environ,
-        {"DISCORD_WEBHOOK_URL": "https://discord.example/webhook"},
+        {"DISCORD_WEBHOOK_URL": "https://discord.com/api/webhooks/123/token"},
         clear=False,
     )
     @patch("jobfinder.alerts.urlopen")
@@ -60,21 +60,23 @@ class DiscordAlertTests(unittest.TestCase):
         request = urlopen.call_args.args[0]
         payload = json.loads(request.data.decode("utf-8"))
         self.assertEqual(payload, {"content": "Hello Discord"})
-        self.assertEqual(request.full_url, "https://discord.example/webhook")
+        self.assertEqual(request.full_url, "https://discord.com/api/webhooks/123/token")
         self.assertEqual(request.get_header("Content-type"), "application/json")
         self.assertEqual(urlopen.call_args.kwargs["timeout"], 15)
 
     @patch.dict(os.environ, {}, clear=True)
     @patch("jobfinder.alerts.urlopen")
-    def test_missing_webhook_skips_silently(self, urlopen):
+    def test_missing_webhook_logs_clear_warning(self, urlopen):
         with patch("builtins.print") as logged:
             self.assertFalse(send_discord_webhook("Hello Discord"))
         urlopen.assert_not_called()
-        logged.assert_not_called()
+        logged.assert_called_once_with(
+            "Discord notification skipped: DISCORD_WEBHOOK_URL is not set."
+        )
 
     @patch.dict(
         os.environ,
-        {"DISCORD_WEBHOOK_URL": "https://discord.example/webhook"},
+        {"DISCORD_WEBHOOK_URL": "https://discord.com/api/webhooks/123/token"},
         clear=False,
     )
     @patch("jobfinder.alerts.urlopen", side_effect=URLError("offline"))

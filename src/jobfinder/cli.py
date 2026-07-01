@@ -94,11 +94,13 @@ def run(config_path: Path, fixture: Path | None, dry_run: bool) -> int:
     top_floor = float(thresholds["top_opportunity"])
     alert_candidates = _select_alert_candidates(scored, top_floor)
     print(f"[DEBUG] alert_candidates count = {len(alert_candidates)}")
-    send_discord_notification(
+    discord_sent = send_discord_notification(
         len(jobs),
         alert_candidates,
         urgent_threshold,
     )
+    if not discord_sent:
+        print("WARNING: Discord notification was not sent. Check DISCORD_WEBHOOK_URL and alert candidate count.")
     urgent = [
         item
         for item in alert_candidates

@@ -70,6 +70,12 @@ def build_discord_message(
 def send_discord_webhook(message: str) -> bool:
     url = os.getenv("DISCORD_WEBHOOK_URL")
     if not url:
+        print("Discord notification skipped: DISCORD_WEBHOOK_URL is not set.")
+        return False
+    if not url.startswith("https://discord.com/api/webhooks/") and not url.startswith(
+        "https://discordapp.com/api/webhooks/"
+    ):
+        print("Discord notification skipped: DISCORD_WEBHOOK_URL does not look like a Discord webhook URL.")
         return False
 
     request = Request(
@@ -85,7 +91,11 @@ def send_discord_webhook(message: str) -> bool:
                 return True
             print(f"Discord notification failed with status {response.status}.")
     except HTTPError as exc:
-        print(f"Discord notification failed with status {exc.code}.")
+        try:
+            detail = exc.read().decode("utf-8", errors="replace")
+        except Exception:
+            detail = ""
+        print(f"Discord notification failed with status {exc.code}: {detail[:300]}")
     except (URLError, TimeoutError) as exc:
         print(f"Discord notification failed: {type(exc).__name__}")
     return False
