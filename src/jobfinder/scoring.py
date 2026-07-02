@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import re
-from datetime import datetime, timezone
 from typing import Any, Iterable
 
 from .models import Job, Score
@@ -16,473 +15,455 @@ def _clamp(value: float) -> float:
 
 
 def _years_required(text: str) -> int:
-    patterns = (
+    matches: list[int] = []
+    for pattern in (
         r"(\d+)\+?\s+years?",
         r"minimum of\s+(\d+)\s+years?",
         r"at least\s+(\d+)\s+years?",
-    )
-    matches: list[int] = []
-    for pattern in patterns:
+    ):
         matches.extend(int(value) for value in re.findall(pattern, text))
     return max(matches, default=0)
 
 
-def _location_assessment(job: Job, profile: dict[str, Any]) -> tuple[bool, float]:
+def company_size_group(job: Job) -> str:
+    if job.company_size_category == "Big tech / famous lab":
+        return "Large"
+    if job.company_size_category == "Startup":
+        return "Small"
+    return "Mid"
+
+
+def is_us_location(job: Job) -> bool:
     location = " ".join((*job.location_path, job.location)).lower()
-    excluded = [
-        str(country).lower()
-        for country in profile["scope"].get("excluded_countries", [])
-    ]
-    china_terms = ("china", "beijing", "shanghai", "shenzhen", "hong kong")
-    if any(term in location for term in (*excluded, *china_terms)):
-        return False, 0.0
-    if _contains(location, ("remote us", "remote - us", "us-remote", "united states")):
-        return True, 9.2
-    if _contains(location, ("united states", " usa", "u.s.")) or re.search(
-        r",\s*(?:AL|AK|AZ|AR|CA|CO|CT|DE|FL|GA|HI|ID|IL|IN|IA|KS|KY|LA|ME|"
-        r"MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|OH|OK|OR|PA|RI|SC|"
-        r"SD|TN|TX|UT|VT|VA|WA|WV|WI|WY|DC)\b",
-        job.location,
-        re.IGNORECASE,
+    if job.country.lower() in {"united states", "united states of america", "usa"}:
+        return True
+    if _contains(
+        location,
+        (
+            "united states",
+            " usa",
+            "u.s.",
+            "us-remote",
+            "remote us",
+            "remote - us",
+            "u.s. remote",
+        ),
     ):
-        safe_cities = [
-            str(city).lower()
-            for city in profile["scope"].get("safe_livable_cities", [])
-        ]
-        return True, 9.0 if any(city in location for city in safe_cities) else 8.0
-    if _contains(location, ("remote", "hybrid")):
-        return True, 7.0
-    if not location.strip():
-        return True, 5.0
-    return True, 5.5
+        return True
+    if _contains(
+        location,
+        (
+            "canada",
+            "china",
+            "hong kong",
+            "singapore",
+            "india",
+            "united kingdom",
+            "london",
+            "france",
+            "germany",
+            "australia",
+            "korea",
+            "qatar",
+        ),
+    ):
+        return False
+    return bool(
+        re.search(
+            r",\s*(?:AL|AK|AZ|AR|CA|CO|CT|DE|FL|GA|HI|ID|IL|IN|IA|KS|KY|LA|"
+            r"ME|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|OH|OK|OR|PA|"
+            r"RI|SC|SD|TN|TX|UT|VT|VA|WA|WV|WI|WY|DC)\b",
+            job.location,
+            re.IGNORECASE,
+        )
+        or re.search(
+            r"\bUS\s+(?:AL|AK|AZ|AR|CA|CO|CT|DE|FL|GA|HI|ID|IL|IN|IA|KS|"
+            r"KY|LA|ME|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|OH|"
+            r"OK|OR|PA|RI|SC|SD|TN|TX|UT|VT|VA|WA|WV|WI|WY|DC)\b",
+            job.location,
+            re.IGNORECASE,
+        )
+        or re.search(
+            r",\s*(?:Alabama|Alaska|Arizona|Arkansas|California|Colorado|"
+            r"Connecticut|Delaware|Florida|Georgia|Hawaii|Idaho|Illinois|Indiana|"
+            r"Iowa|Kansas|Kentucky|Louisiana|Maine|Maryland|Massachusetts|Michigan|"
+            r"Minnesota|Mississippi|Missouri|Montana|Nebraska|Nevada|New Hampshire|"
+            r"New Jersey|New Mexico|New York|North Carolina|North Dakota|Ohio|"
+            r"Oklahoma|Oregon|Pennsylvania|Rhode Island|South Carolina|South Dakota|"
+            r"Tennessee|Texas|Utah|Vermont|Virginia|Washington|West Virginia|"
+            r"Wisconsin|Wyoming|District of Columbia)\b",
+            job.location,
+            re.IGNORECASE,
+        )
+    )
+
+
+def _internship_clarity(job: Job) -> float:
+    title = job.title.lower()
+    employment = job.employment_type.lower().strip()
+    title_explicit = bool(re.search(r"\b(intern|internship)\b", title))
+    type_explicit = bool(re.search(r"\b(intern|internship)\b", employment))
+    if title_explicit and type_explicit:
+        return 10.0
+    if title_explicit:
+        return 9.5
+    if type_explicit:
+        return 9.0
+    return 0.0
+
+
+def is_internship_role(job: Job) -> bool:
+    title = job.title.lower()
+    employment = job.employment_type.lower().strip()
+    if _contains(title, ("new grad", "new graduate", "graduate role")):
+        return False
+    if _contains(employment, ("full time", "full-time", "fulltime", "regular")):
+        return False
+    if "return offer" in title and not re.search(r"\b(intern|internship)\b", title):
+        return False
+    return _internship_clarity(job) > 0
+
+
+def is_us_internship(job: Job) -> bool:
+    return is_us_location(job) and is_internship_role(job)
 
 
 def geography_allowed(job: Job, profile: dict[str, Any]) -> bool:
-    return _location_assessment(job, profile)[0]
+    return is_us_location(job)
 
 
-def _timing_score(job: Job, profile: dict[str, Any]) -> tuple[float, str]:
+def _timing_fit(job: Job, profile: dict[str, Any]) -> tuple[float, str]:
+    period = job.start_year_or_season.lower()
+    years = set(re.findall(r"\b20\d{2}\b", period))
+    if years and "2027" not in years:
+        return 1.0, f"Advertised for {'/'.join(sorted(years))}, not 2027"
+    if "fall 2027" in period or "autumn 2027" in period:
+        return 2.0, "Starts when graduate school begins"
+    if "2027" in years and "summer" in period:
+        return 7.5, "Confirm Summer 2027 ends before graduate school"
+    if "2027" in years:
+        return 10.0, ""
+    return 7.0, "Start date is not stated; verify Jan-Jun 2027"
+
+
+def _relevance(job: Job) -> tuple[float, list[str]]:
+    text = job.text
     title = job.title.lower()
-    text = f"{job.title} {job.description}".lower()
-    normalized_period = job.start_year_or_season.lower()
-    period_years = set(re.findall(r"\b20\d{2}\b", normalized_period))
-    title_years = set(re.findall(r"\b20\d{2}\b", title))
-    contextual_years = set(
-        re.findall(
-            r"(?:start|summer|spring|winter|fall|internship|co-op)[^\n.]{0,24}\b(20\d{2})\b",
-            text,
-        )
-    )
-    years = title_years or period_years or contextual_years
-    target_year = str(profile["scope"]["start_date"])[:4]
-    if years and target_year not in years:
-        return 2.0, f"Advertised for {'/'.join(sorted(years))}, not the 2027 window"
-    if target_year in years:
-        if _contains(text, ("fall 2027", "autumn 2027", "september 2027")):
-            return 3.0, "Starts at or after graduate school begins"
-        if _contains(text, ("summer", "july", "august")):
-            return 7.5, "Summer 2027; confirm it ends before graduate school"
-        if _contains(
-            text,
-            (
-                "winter",
-                "spring",
-                "january",
-                "february",
-                "march",
-                "april",
-                "may",
-                "june",
-                "co-op",
-                "fixed-term",
-            ),
-        ):
-            return 10.0, ""
-        return 8.5, ""
-    early = _contains(
-        f"{job.title} {job.employment_type}".lower(),
-        ("intern", "co-op", "fixed-term", "contract", "graduate", "new grad"),
-    )
-    return (7.5, "Start date is not stated; verify Jan-Jun 2027") if early else (
-        5.0,
-        "Start date and term are not stated",
-    )
-
-
-def _career_value(job: Job, text: str) -> float:
-    values = {
-        "Big tech / famous lab": 8.2,
-        "Mid-size tech": 7.8,
-        "Startup": 7.4,
-        "Insurance/risk": 7.3,
-        "Healthcare analytics": 7.5,
-        "Research/policy": 7.8,
-        "Finance/market data": 7.6,
-        "Logistics/OR": 7.5,
-    }
-    value = values.get(job.company_size_category, 7.0)
-    if _contains(text, ("mentor", "mentorship", "paired with", "research team")):
-        value += 0.8
-    if _contains(text, ("own a project", "project ownership", "end-to-end")):
-        value += 0.6
-    return _clamp(value)
-
-
-def _bucket_for(
-    job: Job,
-    text: str,
-    accessibility: float,
-    competitiveness: str,
-) -> str:
-    advanced = job.role_family in {
-        "Machine Learning / AI",
-        "Research",
-        "Quant / Risk",
-        "Data Infrastructure",
-    } and _contains(
+    score = 1.5
+    reasons: list[str] = []
+    if _contains(
         text,
         (
-            "foundation model",
-            "large language model",
-            "llm",
-            "research scientist",
-            "quantitative researcher",
-            "distributed training",
-            "ml infrastructure",
-            "cuda",
+            "analytics",
+            "data analyst",
+            "business analyst",
+            "product analyst",
+            "decision science",
+            "sql",
+            "python",
         ),
-    )
-    technical_family = job.role_family in {
-        "Machine Learning / AI",
-        "Research",
-        "Quant / Risk",
-        "Data Infrastructure",
-    } or _contains(
+    ):
+        score += 3.0
+        reasons.append("Uses Python, SQL, analytics, or data-driven decision making")
+    if _contains(
+        text,
+        (
+            "statistics",
+            "probability",
+            "forecasting",
+            "risk",
+            "quantitative",
+            "economics",
+            "finance",
+            "actuarial",
+        ),
+    ):
+        score += 2.5
+        reasons.append("Aligns with Bobby's math, economics, statistics, or risk background")
+    if _contains(
+        text,
+        (
+            "operations research",
+            "operations",
+            "optimization",
+            "supply chain",
+            "simulation",
+            "experimentation",
+            "a/b test",
+        ),
+    ):
+        score += 2.0
+        reasons.append("Offers modeling, optimization, or experimentation work")
+    if _contains(
         text,
         (
             "machine learning",
-            "data scientist",
-            "quantitative",
-            "research",
-            "optimization",
+            "data science",
+            "algorithm",
+        ),
+    ):
+        score += 1.5
+        reasons.append("Builds technical ML, data science, or software experience")
+    if _contains(
+        title,
+        (
+            "software engineer",
+            "software developer",
+            "data engineer",
+        ),
+    ):
+        score += 2.5
+        reasons.append("Builds technical ML, data science, or software experience")
+    if _contains(
+        title,
+        (
+            "operations",
+            "supply chain",
+            "logistics",
+        ),
+    ):
+        score += 1.0
+        reasons.append("Offers modeling, optimization, or experimentation work")
+    return _clamp(score), reasons
+
+
+def _competition_ease(job: Job, text: str) -> tuple[float, float]:
+    size = company_size_group(job)
+    ease = {"Large": 3.5, "Mid": 7.0, "Small": 9.0}[size]
+    popularity_penalty = {"Large": 1.2, "Mid": 0.35, "Small": 0.0}[size]
+    if _contains(
+        text,
+        (
+            "foundation model",
+            "research scientist",
+            "quantitative researcher",
+            "publication",
+            "top-tier conference",
+            "distributed training",
+            "cuda",
+        ),
+    ):
+        ease -= 2.0
+        popularity_penalty += 0.6
+    if _contains(job.title.lower(), ("software engineer", "machine learning intern")):
+        ease -= 0.8
+        popularity_penalty += 0.3
+    return _clamp(ease), round(popularity_penalty, 2)
+
+
+def _requirement_ease(job: Job, text: str) -> tuple[float, list[str], bool]:
+    ease = 9.0
+    concerns: list[str] = []
+    phd_mentioned = bool(re.search(r"\bph\.?d\b", text)) or "doctoral" in text
+    phd_in_title = bool(
+        re.search(r"\bph\.?d\b", job.title, re.IGNORECASE)
+        or "doctoral" in job.title.lower()
+    )
+    undergraduate_path = _contains(
+        text,
+        (
+            "bachelor",
+            "undergraduate",
+            "undergrad",
+            "bs/ms",
+            "b.s.",
+            "pursuing a degree",
+            "currently enrolled",
         ),
     )
-    famous_and_technical = (
-        job.company_size_category == "Big tech / famous lab"
-        and technical_family
+    phd_only = phd_in_title or (
+        phd_mentioned
+        and not undergraduate_path
+        and _contains(
+            text,
+            (
+                "research scientist",
+                "doctoral candidate",
+                "phd student",
+                "ph.d. student",
+                "pursuing a phd",
+                "pursuing a ph.d",
+            ),
+        )
+    ) or _contains(
+        text,
+        ("publication record required", "top-tier publications required"),
     )
-    if advanced or famous_and_technical or (
-        competitiveness == "High" and accessibility < 7.5
+    if phd_only:
+        ease -= 6.0
+        concerns.append("PhD or publication-heavy expectations sharply reduce accessibility")
+    elif phd_mentioned:
+        ease -= 0.5
+    years = _years_required(text)
+    if years >= 5:
+        ease -= 6.0
+        concerns.append(f"Requires roughly {years}+ years of experience")
+    elif years >= 3:
+        ease -= 4.0
+        concerns.append(f"Requires roughly {years}+ years of experience")
+    elif years >= 1:
+        ease -= 1.2
+    if _contains(
+        text,
+        ("distributed systems", "cuda", "production ml", "large-scale systems"),
     ):
-        return "Reach"
-    accessible_family = job.role_family in {
-        "Analytics",
-        "Quant / Risk",
-        "Optimization / OR",
-    }
-    accessible_title = _contains(
+        ease -= 1.5
+        concerns.append("Advanced production or systems experience may be a gap")
+    return _clamp(ease), concerns, phd_only
+
+
+def _practical_value(job: Job, text: str) -> float:
+    value = 6.0
+    if _contains(
+        text,
+        (
+            "python",
+            "sql",
+            "modeling",
+            "forecasting",
+            "experimentation",
+            "optimization",
+            "risk",
+        ),
+    ):
+        value += 2.0
+    if _contains(text, ("mentor", "mentorship", "project ownership", "end-to-end")):
+        value += 1.0
+    return _clamp(value)
+
+
+def _bucket(
+    job: Job,
+    text: str,
+    competition_ease: float,
+    requirement_ease: float,
+) -> str:
+    ease_biased = _contains(
         job.title.lower(),
         (
+            "analytics",
             "data analyst",
             "business analyst",
-            "risk analyst",
-            "operations analyst",
             "product analyst",
-            "research assistant",
+            "risk",
+            "finance",
+            "operations",
             "actuarial",
         ),
     )
-    if accessibility >= 7.0 and (accessible_family or accessible_title):
+    hard_research = _contains(
+        text,
+        (
+            "foundation model",
+            "research scientist",
+            "publication",
+            "quantitative researcher",
+        ),
+    )
+    if hard_research or competition_ease <= 4.0 or requirement_ease <= 4.0:
+        return "Reach"
+    if ease_biased and competition_ease >= 6.0 and requirement_ease >= 6.0:
         return "Safe"
     return "Target"
 
 
 def score_job(job: Job, profile: dict[str, Any]) -> Score:
     text = job.text
-    title = job.title.lower()
-    fit = 1.5
-    learning = 1.5
-    access = 2.0
-    matches: list[str] = []
-    concerns: list[str] = []
-
-    ml_terms = (
-        "machine learning",
-        "deep learning",
-        "neural network",
-        "artificial intelligence",
-        " ai ",
-        "llm",
-        "recommendation",
-        "ranking",
-        "nlp",
-        "computer vision",
-    )
-    math_terms = (
-        "statistics",
-        "probability",
-        "linear algebra",
-        "mathematical",
-        "optimization",
-        "inference",
-        "causal",
-        "modeling",
-        "modelling",
-        "quantitative",
-        "operations research",
-        "forecasting",
-        "actuarial",
-        "risk analytics",
-    )
-    experiment_terms = (
-        "experiment",
-        "a/b test",
-        "hypothesis",
-        "evaluation",
-        "simulation",
-        "research",
-    )
-    data_terms = (
-        "data science",
-        "data scientist",
-        "data analyst",
-        "data mining",
-        "sql",
-        "python",
-        "analytics",
-        "data pipeline",
-        "large-scale data",
-        "business analyst",
-        "product analyst",
-    )
-    senior = _contains(
-        title,
-        (
-            "senior",
-            "sr.",
-            "sr ",
-            "staff",
-            "principal",
-            "lead ",
-            "manager",
-            "director",
-            "head of",
-            "expert",
-        ),
-    )
-
-    if _contains(text, ml_terms):
-        fit += 2.4
-        learning += 2.4
-        matches.append("Direct ML/algorithmic work matches Bobby's research direction")
-    if _contains(text, math_terms):
-        fit += 2.0
-        learning += 1.7
-        matches.append("Uses mathematical modeling, statistics, risk, or optimization")
-    if _contains(text, experiment_terms):
-        fit += 1.4
-        learning += 1.8
-        matches.append("Offers experimentation or research exposure")
-    if _contains(text, data_terms):
-        fit += 1.5
-        learning += 1.2
-        matches.append("Builds on Python, SQL, and data-analysis experience")
-    if "python" in text:
-        fit += 0.8
-    if _contains(text, ("pytorch", "tensorflow", "jax")):
-        learning += 0.8
-        concerns.append("Deep-learning framework evidence should be clearer")
-    if _contains(text, ("distributed", "production", "data pipeline", "large-scale")):
-        learning += 1.0
-        concerns.append("Production-scale systems experience may be a gap")
-
-    early = _contains(
-        f"{title} {job.employment_type}".lower(),
-        (
-            "intern",
-            "graduate",
-            "new grad",
-            "early career",
-            "co-op",
-            "fixed-term",
-            "contract",
-            "student",
-        ),
-    )
-    if early:
-        access += 4.5
-        matches.append("Explicitly structured as a student or early-career role")
-    accessible_title = _contains(
-        title,
-        (
-            "analyst",
-            "associate ",
-            "junior",
-            "entry level",
-            "entry-level",
-            "research assistant",
-        ),
-    ) or bool(re.search(r"\bengineer i\b", title))
-    if accessible_title and not senior:
-        access += 3.2
-        matches.append("The title signals an accessible analyst or associate level")
-    if _contains(text, ("bachelor", "undergraduate", "b.s.", "bs degree")):
-        access += 1.5
-    if "preferred" in job.requirement.lower():
-        access += 0.4
-
-    if senior:
-        access -= 5.0
-        concerns.append("The title signals a senior-level hiring bar")
-
-    years = _years_required(text)
-    if years >= 5:
-        access -= 5.0
-        concerns.append(f"Requires roughly {years}+ years of experience")
-    elif years >= 3:
-        access -= 3.0
-        concerns.append(f"Requires roughly {years}+ years of experience")
-    elif years >= 1:
-        access -= 0.8
-
-    phd_only = bool(re.search(r"\bph\.?d\b", title)) or _contains(
-        text,
-        (
-            "phd required",
-            "ph.d. required",
-            "doctoral degree required",
-            "final year or recent phd",
-            "current phd",
-            "phd student",
-            "ph.d. student",
-        ),
-    )
-    if phd_only:
-        access -= 6.0
-        concerns.append("The role is PhD-targeted")
+    clarity = _internship_clarity(job)
+    us_eligible = is_us_location(job)
+    internship_eligible = is_internship_role(job)
+    timing_fit, timing_concern = _timing_fit(job, profile)
+    relevance, matches = _relevance(job)
+    competition_ease, popularity_penalty = _competition_ease(job, text)
+    requirement_ease, concerns, phd_only = _requirement_ease(job, text)
+    stability = 9.0 if "remote" in job.location.lower() else 10.0
+    practical = _practical_value(job, text)
 
     low_value = _contains(
-        text,
+        job.title.lower(),
         (
-            "data entry",
-            "dashboard maintenance",
-            "account executive",
-            "sales representative",
-            "marketing manager",
-            "human resources",
+            "marketing",
+            "sales",
             "recruiter",
-            "administrative assistant",
+            "human resources",
+            "administrative",
         ),
-    ) or (
-        _contains(title, ("marketing", "sales", "recruiter"))
-        and not _contains(
-            title,
-            (
-                "data scientist",
-                "data analyst",
-                "machine learning",
-                "quantitative",
-            ),
-        )
     )
-    if low_value:
-        fit -= 4.5
-        learning -= 3.5
-        concerns.append("The work is outside the target ML/data/quant path")
-
-    geo_ok, location_fit = _location_assessment(job, profile)
-    if not geo_ok:
-        access -= 4.0
-        concerns.append("China-based roles are excluded for now")
-
-    timing_fit, timing_concern = _timing_score(job, profile)
-    if timing_concern:
-        concerns.append(timing_concern)
-    if timing_fit <= 3.0:
-        access -= 1.5
-
-    expires = job.expires_at
-    if expires:
-        days_left = (expires - datetime.now(timezone.utc)).days
-        if days_left < 0:
-            access = 0
-            concerns.append("The listed expiry date has passed")
-        elif days_left <= 7:
-            concerns.append(f"Closing soon ({max(days_left, 0)} days remaining)")
-
-    skill_fit = _clamp(fit)
-    learning_value = _clamp(learning)
-    accessibility = _clamp(access)
-    career_value = _career_value(job, text)
+    graduate_only = _contains(
+        job.title.lower(),
+        (
+            "mba intern",
+            "mba internship",
+            "phd intern",
+            "ph.d. intern",
+            "doctoral intern",
+        ),
+    )
     overall = round(
-        0.30 * skill_fit
-        + 0.25 * learning_value
-        + 0.20 * accessibility
-        + 0.15 * timing_fit
-        + 0.05 * location_fit
-        + 0.05 * career_value,
+        0.30 * relevance
+        + 0.20 * clarity
+        + 0.20 * competition_ease
+        + 0.15 * requirement_ease
+        + 0.10 * stability
+        + 0.05 * practical
+        - popularity_penalty,
         2,
     )
+    overall = _clamp(overall)
 
-    target_signal = _contains(text, ml_terms + math_terms + data_terms)
-    relevant = bool(target_signal and not low_value and geo_ok)
-    if not relevant:
-        if not geo_ok:
-            reason = "China-based role excluded by current search constraints"
-        elif low_value:
-            reason = "Low relevance to ML, data science, applied math, or quant work"
-        else:
-            reason = "Insufficient ML, data, mathematical, or quantitative content"
-    elif phd_only:
-        reason = "Interesting research content, but the role is PhD-targeted"
-    elif senior or years >= 5:
-        reason = "Relevant content, but the hiring level is not realistic now"
-    elif timing_fit <= 3.0:
-        reason = timing_concern
-    elif accessibility < 5.0:
-        reason = (
-            "Relevant content, but the posting does not signal realistic "
-            "intern or new-grad accessibility"
-        )
+    if not us_eligible:
+        reason = "Not a clearly U.S.-based role"
+    elif not internship_eligible:
+        reason = "Not an explicit internship or is marked full-time/new-grad"
+    elif graduate_only:
+        reason = "Internship is restricted to MBA or doctoral candidates"
+    elif low_value:
+        reason = "Role is outside the target analytical/technical path"
+    elif relevance < 4.0:
+        reason = "Insufficient relevance to math, economics, data, OR, SWE, or analytics"
+    elif phd_only and requirement_ease <= 3.0:
+        reason = "Internship is too PhD/publication-heavy for the current profile"
     else:
         reason = ""
 
-    if access <= 3.0 or phd_only or senior:
-        competition = "High"
-    elif _contains(
-        text,
-        (
-            "research scientist",
-            "foundation model",
-            "llm",
-            "quantitative researcher",
-        ),
-    ):
-        competition = "High"
-    elif access >= 8.0 and job.company_size_category != "Big tech / famous lab":
-        competition = "Low"
-    else:
-        competition = "Medium"
-
-    bucket = _bucket_for(job, text, accessibility, competition)
-    if not matches:
-        matches.append("Some adjacent analytical content, but the fit is limited")
+    relevant = not reason
+    if timing_concern:
+        concerns.append(timing_concern)
     if not concerns:
-        concerns.append("Interview preparation and evidence of applied work are still needed")
+        concerns.append("Confirm project scope, mentorship, and interview expectations")
+    if not matches:
+        matches.append("Provides adjacent analytical or technical internship experience")
 
+    if competition_ease <= 4.0:
+        competitiveness = "High"
+    elif competition_ease >= 7.5:
+        competitiveness = "Low"
+    else:
+        competitiveness = "Medium"
+    bucket = _bucket(job, text, competition_ease, requirement_ease)
+
+    accessibility = _clamp(
+        0.40 * competition_ease + 0.35 * requirement_ease + 0.25 * clarity
+    )
     return Score(
-        skill_fit=skill_fit,
-        learning_value=learning_value,
+        skill_fit=relevance,
+        learning_value=practical,
         accessibility=accessibility,
         overall=overall,
         relevant=relevant,
-        geography_ok=geo_ok,
+        geography_ok=us_eligible,
         why_match=tuple(dict.fromkeys(matches))[:3],
         concerns=tuple(dict.fromkeys(concerns))[:3],
         rejection_reason=reason,
-        competitiveness=competition,
-        timing_fit=_clamp(timing_fit),
-        location_fit=_clamp(location_fit),
-        career_value=career_value,
+        competitiveness=competitiveness,
+        timing_fit=timing_fit,
+        location_fit=stability if us_eligible else 0.0,
+        career_value=practical,
         bucket=bucket,
+        internship_clarity=clarity,
+        competition_ease=competition_ease,
+        requirement_ease=requirement_ease,
+        us_stability=stability if us_eligible else 0.0,
+        practical_value=practical,
+        popularity_penalty=popularity_penalty,
     )

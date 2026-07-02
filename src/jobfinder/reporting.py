@@ -7,6 +7,7 @@ from typing import Iterable
 from zoneinfo import ZoneInfo
 
 from .models import ScoredJob
+from .scoring import company_size_group, is_us_internship
 
 
 BUCKETS = ("Reach", "Target", "Safe")
@@ -28,7 +29,7 @@ class BucketSelection:
 
 def _eligible(item: ScoredJob, floor: float) -> bool:
     title = item.job.title.lower()
-    senior = any(
+    senior_only = any(
         term in title
         for term in (
             "senior",
@@ -42,11 +43,11 @@ def _eligible(item: ScoredJob, floor: float) -> bool:
         )
     )
     return bool(
-        item.score.relevant
+        is_us_internship(item.job)
+        and item.score.relevant
         and item.score.geography_ok
-        and item.score.location_fit >= 7.0
         and not item.score.rejection_reason
-        and not senior
+        and not senior_only
         and item.score.overall >= floor
     )
 
@@ -75,95 +76,80 @@ def select_buckets(
 ) -> dict[str, BucketSelection]:
     ranked = sorted(scored, key=lambda item: item.score.overall, reverse=True)
     eligible = [item for item in ranked if _eligible(item, floor)]
-    natural: dict[str, list[ScoredJob]] = {
-        bucket: [item for item in eligible if item.score.bucket == bucket]
-        for bucket in BUCKETS
-    }
-    selected: dict[str, list[ScoredJob]] = {
-        bucket: _take_diverse(natural[bucket], per_bucket) for bucket in BUCKETS
-    }
-    used = {item.job.id for roles in selected.values() for item in roles}
-    remaining = [item for item in eligible if item.job.id not in used]
+    selected: dict[str, list[ScoredJob]] = {bucket: [] for bucket in BUCKETS}
+    used: set[str] = set()
+    company_counts: Counter[str] = Counter()
+    size_counts: Counter[str] = Counter()
     notes: dict[str, str] = {bucket: "" for bucket in BUCKETS}
-    preferences = {
-        "Reach": ("Target", "Safe"),
-        "Target": ("Safe", "Reach"),
-        "Safe": ("Target", "Reach"),
+    size_plan = {
+        "Reach": {"Large": 2, "Mid": 2, "Small": 1},
+        "Target": {"Large": 2, "Mid": 2, "Small": 1},
+        "Safe": {"Large": 1, "Mid": 1, "Small": 3},
     }
 
+    bucket_distance = {
+        "Reach": {"Reach": 0, "Target": 1, "Safe": 2},
+        "Target": {"Target": 0, "Safe": 1, "Reach": 1},
+        "Safe": {"Safe": 0, "Target": 1, "Reach": 2},
+    }
+
+    def choose(bucket: str, size: str | None = None) -> ScoredJob | None:
+        candidates = [
+            item
+            for item in eligible
+            if item.job.id not in used
+            and company_counts[item.job.company] < 2
+            and (size is None or company_size_group(item.job) == size)
+        ]
+        if not candidates:
+            return None
+
+        def rank(item: ScoredJob) -> tuple[float, float, float]:
+            repetition_penalty = 1.25 * company_counts[item.job.company]
+            affinity_penalty = 0.65 * bucket_distance[bucket][item.score.bucket]
+            adjusted = item.score.overall - repetition_penalty - affinity_penalty
+            return (
+                adjusted,
+                item.score.competition_ease,
+                item.score.requirement_ease,
+            )
+
+        return max(candidates, key=rank)
+
     for bucket in BUCKETS:
-        needed = per_bucket - len(selected[bucket])
-        if not needed:
-            continue
-        fillers: list[ScoredJob] = []
-        for source_bucket in preferences[bucket]:
-            for item in list(remaining):
-                if item.score.bucket == source_bucket and len(fillers) < needed:
-                    fillers.append(item)
-                    remaining.remove(item)
-            if len(fillers) == needed:
+        for size, count in size_plan[bucket].items():
+            for _ in range(count):
+                item = choose(bucket, size)
+                if item is None:
+                    notes[bucket] = (
+                        f"{notes[bucket]} Could not fill the planned {size} slot "
+                        "without violating U.S.-internship or company-cap rules."
+                    ).strip()
+                    continue
+                selected[bucket].append(item)
+                used.add(item.job.id)
+                company_counts[item.job.company] += 1
+                size_counts[size] += 1
+
+    for bucket in BUCKETS:
+        while len(selected[bucket]) < per_bucket:
+            item = choose(bucket)
+            if item is None:
                 break
-        if fillers:
-            selected[bucket].extend(fillers)
-            source_names = sorted({item.score.bucket for item in fillers})
+            selected[bucket].append(item)
+            used.add(item.job.id)
+            company_counts[item.job.company] += 1
+            size_counts[company_size_group(item.job)] += 1
             notes[bucket] = (
-                f"Filled {len(fillers)} slot(s) from "
-                f"{'/'.join(source_names)} because fewer natural {bucket} roles "
-                "were available."
-            )
-        if len(selected[bucket]) < per_bucket:
-            shortage = per_bucket - len(selected[bucket])
-            extra = remaining[:shortage]
-            selected[bucket].extend(extra)
-            remaining = remaining[shortage:]
-            if extra:
-                notes[bucket] = (
-                    f"Filled {len(extra)} slot(s) from the closest remaining "
-                    "bucket because this category was short."
-                )
+                f"{notes[bucket]} Filled a missing size slot with the strongest "
+                "remaining diverse U.S. internship."
+            ).strip()
         if len(selected[bucket]) < per_bucket:
             notes[bucket] = (
-                f"Only {len(selected[bucket])} qualifying roles were available; "
-                f"{per_bucket - len(selected[bucket])} slot(s) remain unfilled."
-            )
-
-    # Avoid letting one famous company dominate when other qualifying roles exist.
-    selected_ids = {
-        item.job.id for roles in selected.values() for item in roles
-    }
-    pool = [item for item in eligible if item.job.id not in selected_ids]
-    company_counts = Counter(
-        item.job.company for roles in selected.values() for item in roles
-    )
-    for bucket in BUCKETS:
-        for index, item in enumerate(list(selected[bucket])):
-            if company_counts[item.job.company] <= 2:
-                continue
-            candidates = [
-                candidate
-                for candidate in pool
-                if company_counts[candidate.job.company] < 2
-            ]
-            if not candidates:
-                continue
-            candidates.sort(
-                key=lambda candidate: (
-                    candidate.score.bucket == bucket,
-                    candidate.score.overall,
-                ),
-                reverse=True,
-            )
-            replacement = candidates[0]
-            selected[bucket][index] = replacement
-            pool.remove(replacement)
-            pool.append(item)
-            company_counts[item.job.company] -= 1
-            company_counts[replacement.job.company] += 1
-            note = (
-                f"Included {replacement.job.company} to preserve company/source "
-                "diversity instead of over-concentrating famous firms."
-            )
-            notes[bucket] = f"{notes[bucket]} {note}".strip()
+                f"{notes[bucket]} Only {len(selected[bucket])} qualifying roles "
+                f"were available; {per_bucket - len(selected[bucket])} slot(s) "
+                "remain unfilled rather than violating hard filters."
+            ).strip()
 
     return {
         bucket: BucketSelection(tuple(selected[bucket]), notes[bucket])
@@ -174,27 +160,28 @@ def select_buckets(
 def _score_line(item: ScoredJob) -> str:
     score = item.score
     return (
-        f"**Overall {score.overall:.2f}/10** - "
-        f"Skill {score.skill_fit:.1f} | Learning {score.learning_value:.1f} | "
-        f"Accessibility {score.accessibility:.1f} | Timing {score.timing_fit:.1f} | "
-        f"Location {score.location_fit:.1f}"
+        f"**Ease-adjusted score {score.overall:.2f}/10** - "
+        f"Relevance {score.skill_fit:.1f} | Internship clarity "
+        f"{score.internship_clarity:.1f} | Competition ease "
+        f"{score.competition_ease:.1f} | Requirement ease "
+        f"{score.requirement_ease:.1f} | U.S. stability {score.us_stability:.1f}"
     )
 
 
 def _bucket_reason(item: ScoredJob, bucket: str) -> str:
     if bucket == "Reach":
         return (
-            "The technical content is unusually valuable, but the research, "
-            "systems, quant, or company-level competition makes admission difficult."
+            "The role is relevant but carries higher popularity, research depth, "
+            "or technical competition."
         )
     if bucket == "Safe":
         return (
-            "The role has a lower stated experience barrier while retaining useful "
-            "Python, SQL, statistics, risk, or operations exposure."
+            "The internship has a clearer, lower-complexity path to interview while "
+            "retaining useful analytics, risk, operations, or data experience."
         )
     return (
-        "The role is a strong applied fit with a plausible undergraduate hiring "
-        "bar after focused preparation."
+        "The internship balances strong relevance with a realistic undergraduate "
+        "hiring bar."
     )
 
 
@@ -211,6 +198,7 @@ def _job_block(item: ScoredJob, bucket: str, urgent_threshold: float) -> list[st
         "",
         f"- **Company:** {job.company}",
         f"- **Company size/category:** {job.company_size_category}",
+        f"- **Size group:** {company_size_group(job)}",
         f"- **Source category:** {job.source_category}",
         f"- **Location:** {job.location}",
         f"- **Employment type:** {job.employment_type or 'Not listed'}",
@@ -281,6 +269,7 @@ def build_report(
         item for bucket in BUCKETS for item in buckets[bucket].roles
     ]
     selected_ids = {item.job.id for item in selected}
+    size_distribution = Counter(company_size_group(item.job) for item in selected)
     ranked = sorted(scored, key=lambda item: item.score.overall, reverse=True)
     rejected = [
         item
@@ -303,6 +292,12 @@ def build_report(
         f"- **Companies successfully read:** {stats.companies_succeeded}",
         f"- **Unique relevant roles found:** {len(scored)}",
         f"- **Roles selected:** {len(selected)}",
+        (
+            "- **Selected company-size mix:** "
+            f"Large {size_distribution['Large']} | "
+            f"Mid {size_distribution['Mid']} | "
+            f"Small/startup {size_distribution['Small']}"
+        ),
         "",
     ]
 
@@ -369,9 +364,10 @@ def build_report(
         [
             "## Method",
             "",
-            "Overall score = skill fit 30% + learning value 25% + accessibility "
-            "20% + timing 15% + location 5% + company/career value 5%. Company "
-            "brand is deliberately a small factor.",
+            "Ease-adjusted score = relevance 30% + internship clarity 20% + "
+            "competition ease 20% + requirement ease 15% + U.S. stability 10% "
+            "+ practical value 5%, minus popularity penalties. Final selection "
+            "then applies a two-role company cap and large/mid/startup mix targets.",
             "",
         ]
     )

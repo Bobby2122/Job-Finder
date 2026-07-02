@@ -7,6 +7,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from difflib import SequenceMatcher
+from http.client import IncompleteRead, RemoteDisconnected
 from pathlib import Path
 from typing import Any, Iterable
 from urllib.error import HTTPError, URLError
@@ -68,7 +69,14 @@ def _request_json(
         try:
             with urlopen(request, timeout=timeout) as response:
                 return json.load(response)
-        except (HTTPError, URLError, TimeoutError, json.JSONDecodeError) as exc:
+        except (
+            HTTPError,
+            URLError,
+            TimeoutError,
+            IncompleteRead,
+            RemoteDisconnected,
+            json.JSONDecodeError,
+        ) as exc:
             last_error = exc
             if attempt < retries:
                 time.sleep(0.4 * (2**attempt))
@@ -141,7 +149,11 @@ class GreenhouseAdapter(SourceAdapter):
     def fetch(self, keywords: list[str]) -> list[Role]:
         token = self.config["identifier"]
         url = f"https://boards-api.greenhouse.io/v1/boards/{token}/jobs?content=true"
-        data = _request_json(url)
+        data = _request_json(
+            url,
+            timeout=float(self.config.get("timeout", 30)),
+            retries=int(self.config.get("retries", 2)),
+        )
         jobs = data.get("jobs", []) if isinstance(data, dict) else []
         roles: list[Role] = []
         for raw in jobs:
@@ -184,7 +196,11 @@ class LeverAdapter(SourceAdapter):
         site = self.config["identifier"]
         region = "api.eu.lever.co" if self.config.get("region") == "eu" else "api.lever.co"
         url = f"https://{region}/v0/postings/{site}?mode=json"
-        data = _request_json(url)
+        data = _request_json(
+            url,
+            timeout=float(self.config.get("timeout", 30)),
+            retries=int(self.config.get("retries", 2)),
+        )
         jobs = data if isinstance(data, list) else []
         roles: list[Role] = []
         for raw in jobs:
@@ -226,7 +242,11 @@ class AshbyAdapter(SourceAdapter):
     def fetch(self, keywords: list[str]) -> list[Role]:
         board = self.config["identifier"]
         url = f"https://api.ashbyhq.com/posting-api/job-board/{board}"
-        data = _request_json(url)
+        data = _request_json(
+            url,
+            timeout=float(self.config.get("timeout", 30)),
+            retries=int(self.config.get("retries", 2)),
+        )
         jobs = data.get("jobs", []) if isinstance(data, dict) else []
         roles: list[Role] = []
         for raw in jobs:
@@ -372,7 +392,7 @@ ADAPTERS: dict[str, type[SourceAdapter]] = {
 
 def _employment_type(title: str, text: str) -> str:
     value = f"{title} {text}".lower()
-    if "intern" in value:
+    if re.search(r"\b(intern|internship)\b", value):
         return "Internship"
     if "co-op" in value or "coop" in value:
         return "Co-op"

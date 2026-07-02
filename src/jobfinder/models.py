@@ -19,8 +19,6 @@ def _location_path(city: dict[str, Any] | None) -> tuple[str, ...]:
 
 def _infer_country(location: str) -> str:
     lowered = location.lower()
-    if any(term in lowered for term in ("china", "beijing", "shanghai", "shenzhen")):
-        return "China"
     if any(
         term in lowered
         for term in (
@@ -33,6 +31,19 @@ def _infer_country(location: str) -> str:
     ):
         return "United States"
     if re.search(
+        r",\s*(?:Alabama|Alaska|Arizona|Arkansas|California|Colorado|Connecticut|"
+        r"Delaware|Florida|Georgia|Hawaii|Idaho|Illinois|Indiana|Iowa|Kansas|"
+        r"Kentucky|Louisiana|Maine|Maryland|Massachusetts|Michigan|Minnesota|"
+        r"Mississippi|Missouri|Montana|Nebraska|Nevada|New Hampshire|New Jersey|"
+        r"New Mexico|New York|North Carolina|North Dakota|Ohio|Oklahoma|Oregon|"
+        r"Pennsylvania|Rhode Island|South Carolina|South Dakota|Tennessee|Texas|"
+        r"Utah|Vermont|Virginia|Washington|West Virginia|Wisconsin|Wyoming|"
+        r"District of Columbia)\b",
+        location,
+        re.IGNORECASE,
+    ):
+        return "United States"
+    if re.search(
         r",\s*(?:AL|AK|AZ|AR|CA|CO|CT|DE|FL|GA|HI|ID|IL|IN|IA|KS|KY|LA|ME|"
         r"MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|OH|OK|OR|PA|RI|SC|"
         r"SD|TN|TX|UT|VT|VA|WA|WV|WI|WY|DC)\b",
@@ -40,6 +51,16 @@ def _infer_country(location: str) -> str:
         re.IGNORECASE,
     ):
         return "United States"
+    if re.search(
+        r"\bUS\s+(?:AL|AK|AZ|AR|CA|CO|CT|DE|FL|GA|HI|ID|IL|IN|IA|KS|KY|"
+        r"LA|ME|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|OH|OK|OR|"
+        r"PA|RI|SC|SD|TN|TX|UT|VT|VA|WA|WV|WI|WY|DC)\b",
+        location,
+        re.IGNORECASE,
+    ):
+        return "United States"
+    if any(term in lowered for term in ("china", "beijing", "shanghai", "shenzhen")):
+        return "China"
     return ""
 
 
@@ -233,6 +254,12 @@ class Score:
     location_fit: float = 5.0
     career_value: float = 5.0
     bucket: str = "Target"
+    internship_clarity: float = 0.0
+    competition_ease: float = 5.0
+    requirement_ease: float = 5.0
+    us_stability: float = 5.0
+    practical_value: float = 5.0
+    popularity_penalty: float = 0.0
 
 
 @dataclass(frozen=True)

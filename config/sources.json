@@ -1,5 +1,7 @@
 {
   "keywords": [
+    "intern",
+    "internship",
     "machine learning",
     "data science",
     "data scientist",
@@ -17,6 +19,11 @@
     "decision science",
     "product analyst",
     "business analyst",
+    "software engineer",
+    "finance",
+    "business operations",
+    "operations intern",
+    "supply chain",
     "data platform",
     "ML platform",
     "supply chain analytics"
@@ -27,6 +34,8 @@
       "adapter": "bytedance",
       "company_size_category": "Big tech / famous lab",
       "source_category": "Big tech / AI labs",
+      "timeout": 40,
+      "retries": 2,
       "page_size": 20,
       "max_pages_per_keyword": 2
     },
@@ -48,15 +57,17 @@
       "company": "Scale AI",
       "adapter": "greenhouse",
       "identifier": "scaleai",
-      "company_size_category": "Mid-size tech",
+      "company_size_category": "Big tech / famous lab",
       "source_category": "SaaS / data infrastructure / ML platform startups"
     },
     {
       "company": "Anduril",
       "adapter": "greenhouse",
       "identifier": "andurilindustries",
-      "company_size_category": "Mid-size tech",
-      "source_category": "Government contractors / research labs / policy analytics"
+      "company_size_category": "Big tech / famous lab",
+      "source_category": "Government contractors / research labs / policy analytics",
+      "timeout": 45,
+      "retries": 2
     },
     {
       "company": "Shield AI",
@@ -69,7 +80,7 @@
       "company": "Applied Intuition",
       "adapter": "greenhouse",
       "identifier": "appliedintuition",
-      "company_size_category": "Mid-size tech",
+      "company_size_category": "Startup",
       "source_category": "Climate / energy / transportation analytics"
     },
     {
@@ -293,14 +304,14 @@
       "company": "project44",
       "adapter": "greenhouse",
       "identifier": "project44",
-      "company_size_category": "Logistics/OR",
+      "company_size_category": "Startup",
       "source_category": "Logistics / operations research / supply chain analytics"
     },
     {
       "company": "FourKites",
       "adapter": "greenhouse",
       "identifier": "fourkites",
-      "company_size_category": "Logistics/OR",
+      "company_size_category": "Startup",
       "source_category": "Logistics / operations research / supply chain analytics"
     },
     {
@@ -308,7 +319,9 @@
       "adapter": "lever",
       "identifier": "palantir",
       "company_size_category": "Big tech / famous lab",
-      "source_category": "Government contractors / research labs / policy analytics"
+      "source_category": "Government contractors / research labs / policy analytics",
+      "timeout": 45,
+      "retries": 2
     },
     {
       "company": "Instacart",
@@ -336,6 +349,62 @@
       "adapter": "greenhouse",
       "identifier": "stripe",
       "company_size_category": "Big tech / famous lab",
+      "source_category": "Quant finance / trading"
+    },
+    {
+      "company": "Aledade",
+      "adapter": "lever",
+      "identifier": "aledade",
+      "company_size_category": "Healthcare analytics",
+      "source_category": "Healthcare analytics / biotech data"
+    },
+    {
+      "company": "Crest Industries",
+      "adapter": "lever",
+      "identifier": "crestoperations",
+      "company_size_category": "Mid-size tech",
+      "source_category": "Finance / risk analytics"
+    },
+    {
+      "company": "EV Realty",
+      "adapter": "lever",
+      "identifier": "evrealty-us",
+      "company_size_category": "Startup",
+      "source_category": "Climate / energy / transportation analytics"
+    },
+    {
+      "company": "Zettabyte",
+      "adapter": "ashby",
+      "identifier": "zettabyte-space",
+      "company_size_category": "Startup",
+      "source_category": "SaaS / data infrastructure / ML platform startups"
+    },
+    {
+      "company": "Cohere",
+      "adapter": "ashby",
+      "identifier": "cohere",
+      "company_size_category": "Big tech / famous lab",
+      "source_category": "Big tech / AI labs"
+    },
+    {
+      "company": "Skydio",
+      "adapter": "ashby",
+      "identifier": "skydio",
+      "company_size_category": "Mid-size tech",
+      "source_category": "Climate / energy / transportation analytics"
+    },
+    {
+      "company": "Age of Learning",
+      "adapter": "lever",
+      "identifier": "aofl",
+      "company_size_category": "Mid-size tech",
+      "source_category": "SaaS / data infrastructure / ML platform startups"
+    },
+    {
+      "company": "OnePay",
+      "adapter": "ashby",
+      "identifier": "oneapp",
+      "company_size_category": "Mid-size tech",
       "source_category": "Quant finance / trading"
     },
     {

@@ -1,11 +1,13 @@
 # Bobby's Multi-Company Opportunity Intelligence Agent
 
 A deterministic personal recruiter that reads official company career sources,
-normalizes and deduplicates roles, and ranks opportunities for Bobby Chen's
-January-June 2027 window. China-based roles are currently excluded.
+normalizes and deduplicates roles, and ranks U.S.-based internships for Bobby
+Chen. Full-time, new-grad, uncertain-employment, and non-U.S. roles are excluded
+before scoring.
 
-The goal is quality rather than application volume. Company brand is a small
-factor; technical learning, timing, fit, and realistic access matter more.
+The goal is realistic interview opportunities rather than prestige alone.
+Analytics, operations research, data, risk, finance, product analytics, and
+accessible SWE internships receive an explicit ease bias.
 
 ## Quick start
 
@@ -13,9 +15,11 @@ factor; technical learning, timing, fit, and realistic access matter more.
 PYTHONPATH=src python3 -m jobfinder run
 ```
 
-The latest GitHub-readable report is written to `reports/latest.md`. It selects
-up to 15 roles: five Reach, five Target, and five Safe. The first run creates
-local state in `data/state.json`; subsequent runs mark newly discovered roles.
+The latest GitHub-readable report is written to `reports/latest.md`. When the
+source pool contains enough qualifying companies, it selects exactly 15 roles:
+five Reach, five Target, and five Safe. A company can appear at most twice. The
+first run creates local state in `data/state.json`; subsequent runs mark newly
+discovered roles.
 
 Useful commands:
 
@@ -44,19 +48,27 @@ analytics, finance/market data, logistics/OR, and research-oriented companies.
 
 ## Scoring and buckets
 
-Roles receive 0-10 scores for:
+Hard filters run before ranking in this order:
 
-- Skill fit: 30%
-- Learning value: 25%
-- Accessibility: 20%
-- Timing fit: 15%
-- Location fit: 5%
-- Company/career value: 5%
+- explicit U.S. location, including U.S.-remote roles
+- explicit internship employment or title
+- no full-time, new-grad, or ambiguous employment
+- no senior-only or irrelevant marketing/sales roles
 
-The rules favor Python, ML, experimentation, statistics, optimization,
-forecasting, risk, modeling, research, and data infrastructure. Senior,
-PhD-only, 2026-only, marketing/sales, and China-based roles cannot enter the
-selected buckets.
+Eligible roles receive an ease-adjusted score:
+
+- relevance: 30%
+- internship clarity: 20%
+- competition ease: 20%
+- requirement ease: 15%
+- U.S. stability: 10%
+- practical learning value: 5%
+- minus large-company/popularity penalties
+
+Selection then enforces a two-role company cap and targets a 5/5/5
+large/mid-size/startup mix. Repeated companies are dynamically down-ranked.
+PhD-only research is excluded; postings that merely list a PhD alongside an
+undergraduate path are not incorrectly rejected.
 
 - Reach: highly competitive research, quant, foundation-model, or deep systems.
 - Target: strong applied roles with plausible undergraduate preparation paths.

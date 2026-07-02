@@ -78,7 +78,7 @@
     "max_pages_per_keyword": 2
   },
   "thresholds": {
-    "top_opportunity": 5.8,
+    "top_opportunity": 4.5,
     "urgent_apply": 8.5,
     "interesting_reject": 4.5,
     "max_per_bucket": 5,

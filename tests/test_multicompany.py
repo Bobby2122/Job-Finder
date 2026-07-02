@@ -8,13 +8,27 @@ from pathlib import Path
 
 from jobfinder.models import Role, Score, ScoredJob
 from jobfinder.reporting import build_report, select_buckets
+from jobfinder.scoring import company_size_group
 from jobfinder.sources import deduplicate_roles
 
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def make_role(index: int, bucket: str, title: str | None = None) -> ScoredJob:
+def make_role(
+    index: int,
+    bucket: str,
+    title: str | None = None,
+    size_group: str | None = None,
+) -> ScoredJob:
+    size_group = size_group or (
+        "Large" if bucket == "Reach" else "Mid"
+    )
+    category = {
+        "Large": "Big tech / famous lab",
+        "Mid": "Mid-size tech",
+        "Small": "Startup",
+    }[size_group]
     role = Role.normalized(
         id=f"{bucket.lower()}-{index}",
         company=f"{bucket} Company {index}",
@@ -33,13 +47,7 @@ def make_role(index: int, bucket: str, title: str | None = None) -> ScoredJob:
             if bucket == "Target"
             else "Analytics"
         ),
-        company_size_category=(
-            "Big tech / famous lab"
-            if bucket == "Reach"
-            else "Mid-size tech"
-            if bucket == "Target"
-            else "Insurance/risk"
-        ),
+        company_size_category=category,
         source_category="Test source category",
     )
     score = Score(
@@ -56,8 +64,28 @@ def make_role(index: int, bucket: str, title: str | None = None) -> ScoredJob:
         concerns=("Prepare one stronger applied project",),
         competitiveness="High" if bucket == "Reach" else "Medium",
         bucket=bucket,
+        internship_clarity=10.0,
+        competition_ease={"Large": 3.5, "Mid": 7.0, "Small": 9.0}[size_group],
+        requirement_ease=9.0,
+        us_stability=10.0,
     )
     return ScoredJob(role, score, is_new=True)
+
+
+def balanced_roles() -> list[ScoredJob]:
+    plan = {
+        "Reach": {"Large": 2, "Mid": 2, "Small": 1},
+        "Target": {"Large": 2, "Mid": 2, "Small": 1},
+        "Safe": {"Large": 1, "Mid": 1, "Small": 3},
+    }
+    roles: list[ScoredJob] = []
+    index = 0
+    for bucket, sizes in plan.items():
+        for size, count in sizes.items():
+            for _ in range(count):
+                roles.append(make_role(index, bucket, size_group=size))
+                index += 1
+    return roles
 
 
 class MultiCompanyTests(unittest.TestCase):
@@ -99,24 +127,28 @@ class MultiCompanyTests(unittest.TestCase):
         self.assertEqual(unique[0].id, "duplicate")
 
     def test_reach_target_safe_classification_selection(self):
-        scored = [
-            make_role(index, bucket)
-            for bucket in ("Reach", "Target", "Safe")
-            for index in range(5)
-        ]
+        scored = balanced_roles()
         buckets = select_buckets(scored, floor=5.8, per_bucket=5)
         for bucket in ("Reach", "Target", "Safe"):
             self.assertEqual(len(buckets[bucket].roles), 5)
             self.assertTrue(
                 all(item.score.bucket == bucket for item in buckets[bucket].roles)
             )
+            self.assertEqual(
+                {company_size_group(item.job) for item in buckets[bucket].roles},
+                {"Large", "Mid", "Small"},
+            )
+        selected = [
+            item for selection in buckets.values() for item in selection.roles
+        ]
+        size_counts = {
+            size: sum(company_size_group(item.job) == size for item in selected)
+            for size in ("Large", "Mid", "Small")
+        }
+        self.assertEqual(size_counts, {"Large": 5, "Mid": 5, "Small": 5})
 
     def test_report_contains_exactly_five_roles_per_bucket(self):
-        scored = [
-            make_role(index, bucket)
-            for bucket in ("Reach", "Target", "Safe")
-            for index in range(5)
-        ]
+        scored = balanced_roles()
         report = build_report(
             scored,
             self.profile,
@@ -129,11 +161,7 @@ class MultiCompanyTests(unittest.TestCase):
         self.assertEqual(report.count("### ["), 15)
 
     def test_senior_role_is_never_selected(self):
-        scored = [
-            make_role(index, bucket)
-            for bucket in ("Reach", "Target", "Safe")
-            for index in range(5)
-        ]
+        scored = balanced_roles()
         senior = make_role(99, "Target", title="Sr. Data Scientist")
         buckets = select_buckets([senior, *scored], floor=5.8, per_bucket=5)
         selected_titles = {
@@ -146,21 +174,16 @@ class MultiCompanyTests(unittest.TestCase):
     def test_company_diversity_caps_dominant_company_when_alternatives_exist(self):
         dominant = [
             replace(
-                make_role(index, "Target"),
-                job=replace(make_role(index, "Target").job, company="Famous Co"),
+                make_role(index + 100, "Target", size_group="Mid"),
+                job=replace(
+                    make_role(index + 100, "Target", size_group="Mid").job,
+                    company="Famous Co",
+                ),
             )
             for index in range(5)
         ]
-        alternatives = [
-            make_role(index + 10, "Target") for index in range(5)
-        ]
-        other_buckets = [
-            make_role(index, bucket)
-            for bucket in ("Reach", "Safe")
-            for index in range(5)
-        ]
         buckets = select_buckets(
-            [*dominant, *alternatives, *other_buckets],
+            [*dominant, *balanced_roles()],
             floor=5.8,
             per_bucket=5,
         )

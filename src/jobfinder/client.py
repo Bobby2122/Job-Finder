@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import time
+from http.client import IncompleteRead, RemoteDisconnected
 from pathlib import Path
 from typing import Any, Iterable
 from urllib.error import HTTPError, URLError
@@ -69,7 +70,14 @@ class ByteDanceClient:
                         "ByteDance API response did not contain a data object"
                     )
                 return result
-            except (HTTPError, URLError, TimeoutError, json.JSONDecodeError) as exc:
+            except (
+                HTTPError,
+                URLError,
+                TimeoutError,
+                IncompleteRead,
+                RemoteDisconnected,
+                json.JSONDecodeError,
+            ) as exc:
                 last_error = exc
                 if attempt < self.retries:
                     time.sleep(0.5 * (2**attempt))
@@ -86,11 +94,16 @@ class ByteDanceClient:
     ) -> list[Job]:
         jobs: dict[str, Job] = {}
         successful_queries = 0
+        query_errors: list[ByteDanceClientError] = []
         for keyword in keywords:
             for page in range(max_pages_per_keyword):
-                result = self._post(
-                    self._payload(keyword, page_size, page * page_size)
-                )
+                try:
+                    result = self._post(
+                        self._payload(keyword, page_size, page * page_size)
+                    )
+                except ByteDanceClientError as exc:
+                    query_errors.append(exc)
+                    break
                 data = result["data"]
                 raw_jobs = data.get("job_post_list")
                 if not isinstance(raw_jobs, list):
@@ -107,6 +120,8 @@ class ByteDanceClient:
                 total = int(data.get("count") or len(raw_jobs))
                 if not raw_jobs or (page + 1) * page_size >= total:
                     break
+        if not successful_queries and query_errors:
+            raise query_errors[-1]
         if successful_queries and not jobs:
             raise ByteDanceClientError(
                 "All ByteDance searches returned zero jobs; refusing to produce "
@@ -122,4 +137,3 @@ def load_fixture(path: Path) -> list[Job]:
     if not isinstance(raw, list):
         raise ValueError("Fixture must be a job list or an API response object")
     return [Job.from_api(item) for item in raw]
-

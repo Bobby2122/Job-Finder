@@ -88,10 +88,14 @@ class DiscordAlertTests(unittest.TestCase):
     @patch("jobfinder.alerts.send_discord_webhook")
     def test_notification_uses_urgent_format(self, webhook):
         webhook.return_value = True
+        urgent_item = replace(
+            self.item,
+            score=replace(self.item.score, overall=9.0),
+        )
         self.assertTrue(
             send_discord_notification(
                 401,
-                [self.item],
+                [urgent_item],
                 8.5,
             )
         )
@@ -148,11 +152,11 @@ class DiscordAlertTests(unittest.TestCase):
 
         notification.assert_called_once()
         reviewed_count, candidates, threshold = notification.call_args.args
-        self.assertEqual(reviewed_count, 3)
+        self.assertEqual(reviewed_count, 1)
         self.assertTrue(candidates)
         self.assertEqual(threshold, 8.5)
 
-    def test_rejection_reason_does_not_exclude_alert_candidate(self):
+    def test_rejected_candidate_is_excluded_from_balanced_alerts(self):
         from jobfinder.cli import _select_alert_candidates
 
         candidate_with_note = replace(
@@ -167,7 +171,7 @@ class DiscordAlertTests(unittest.TestCase):
 
         selected = _select_alert_candidates([candidate_with_note], top_floor=6.2)
 
-        self.assertEqual(selected, [candidate_with_note])
+        self.assertEqual(selected, [])
 
 
 if __name__ == "__main__":
