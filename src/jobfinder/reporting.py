@@ -74,7 +74,21 @@ def select_buckets(
     floor: float,
     per_bucket: int = 5,
 ) -> dict[str, BucketSelection]:
-    ranked = sorted(scored, key=lambda item: item.score.overall, reverse=True)
+    status_penalties = {
+        "Viewed": 0.8,
+        "Started": 0.25,
+        "Applied": 1.5,
+        "Rejected": 1.5,
+        "Not Interested": 1.5,
+    }
+    ranked = sorted(
+        scored,
+        key=lambda item: (
+            item.score.overall
+            - status_penalties.get(item.tracking_status, 0.0)
+        ),
+        reverse=True,
+    )
     eligible = [item for item in ranked if _eligible(item, floor)]
     selected: dict[str, list[ScoredJob]] = {bucket: [] for bucket in BUCKETS}
     used: set[str] = set()
@@ -107,7 +121,13 @@ def select_buckets(
         def rank(item: ScoredJob) -> tuple[float, float, float]:
             repetition_penalty = 1.25 * company_counts[item.job.company]
             affinity_penalty = 0.65 * bucket_distance[bucket][item.score.bucket]
-            adjusted = item.score.overall - repetition_penalty - affinity_penalty
+            history_penalty = status_penalties.get(item.tracking_status, 0.0)
+            adjusted = (
+                item.score.overall
+                - repetition_penalty
+                - affinity_penalty
+                - history_penalty
+            )
             return (
                 adjusted,
                 item.score.competition_ease,
@@ -188,8 +208,10 @@ def _bucket_reason(item: ScoredJob, bucket: str) -> str:
 def _job_block(item: ScoredJob, bucket: str, urgent_threshold: float) -> list[str]:
     job, score = item.job, item.score
     badges: list[str] = []
-    if item.is_new:
+    if item.tracking_status == "New":
         badges.append("NEW")
+    elif item.tracking_status != "New":
+        badges.append(item.tracking_status.upper())
     if score.overall >= urgent_threshold:
         badges.append("URGENT APPLY")
     suffix = f" - {' / '.join(badges)}" if badges else ""
@@ -200,6 +222,8 @@ def _job_block(item: ScoredJob, bucket: str, urgent_threshold: float) -> list[st
         f"- **Company size/category:** {job.company_size_category}",
         f"- **Size group:** {company_size_group(job)}",
         f"- **Source category:** {job.source_category}",
+        f"- **Application status:** {item.tracking_status}",
+        f"- **Tracker ID:** `{job.tracking_id}`",
         f"- **Location:** {job.location}",
         f"- **Employment type:** {job.employment_type or 'Not listed'}",
         f"- **Start timing:** {job.start_year_or_season}",
@@ -253,6 +277,7 @@ def build_report(
     profile: dict,
     generated_at: datetime,
     stats: ReportStats | None = None,
+    bucket_selections: dict[str, BucketSelection] | None = None,
 ) -> str:
     stats = stats or ReportStats(
         companies_searched=len({item.job.company for item in scored}),
@@ -264,7 +289,7 @@ def build_report(
     floor = float(thresholds["top_opportunity"])
     rejected_floor = float(thresholds["interesting_reject"])
     per_bucket = int(thresholds.get("max_per_bucket", 5))
-    buckets = select_buckets(scored, floor, per_bucket)
+    buckets = bucket_selections or select_buckets(scored, floor, per_bucket)
     selected = [
         item for bucket in BUCKETS for item in buckets[bucket].roles
     ]

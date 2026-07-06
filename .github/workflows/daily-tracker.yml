@@ -17,13 +17,15 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Restore seen-job state
+      - name: Restore job and application state
         uses: actions/cache@v4
         with:
-          path: data/state.json
-          key: bytedance-seen-jobs-${{ github.run_id }}
+          path: |
+            data/state.json
+            data/applications.json
+          key: jobfinder-state-${{ github.run_id }}
           restore-keys: |
-            bytedance-seen-jobs-
+            jobfinder-state-
       - name: Run opportunity agent
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
@@ -36,4 +38,5 @@ jobs:
           path: |
             reports/
             data/state.json
+            data/applications.json
           retention-days: 30

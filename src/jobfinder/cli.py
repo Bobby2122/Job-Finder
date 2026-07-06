@@ -14,6 +14,7 @@ from .reporting import ReportStats, build_report, select_buckets
 from .scoring import is_us_internship, score_job
 from .sources import MultiCompanyClient, load_sources_config
 from .state import load_state, save_state
+from .tracker import ApplicationTracker, SUPPRESSED_STATUSES
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -51,6 +52,22 @@ def _parser() -> argparse.ArgumentParser:
     )
     run.add_argument("--fixture", type=Path)
     run.add_argument("--dry-run", action="store_true")
+    run.add_argument(
+        "--show-history",
+        action="store_true",
+        help="Allow Applied, Rejected, and Not Interested jobs into recommendations",
+    )
+    tracker = sub.add_parser(
+        "tracker",
+        help="Open the persistent local application tracker",
+    )
+    tracker.add_argument("--host", default="127.0.0.1")
+    tracker.add_argument("--port", type=int, default=8765)
+    tracker.add_argument(
+        "--data",
+        type=Path,
+        default=ROOT / "data" / "applications.json",
+    )
     return parser
 
 
@@ -59,6 +76,7 @@ def run(
     fixture: Path | None,
     dry_run: bool,
     sources_path: Path | None = None,
+    show_history: bool = False,
 ) -> int:
     profile = json.loads(config_path.read_text(encoding="utf-8"))
     try:
@@ -93,12 +111,31 @@ def run(
     )
 
     state_path = ROOT / "data" / "state.json"
+    tracker_path = ROOT / "data" / "applications.json"
+    tracker = ApplicationTracker(tracker_path)
     state = load_state(state_path)
     seen = set(str(value) for value in state["seen_ids"])
-    scored = [
-        ScoredJob(job, score_job(job, profile), is_new=job.id not in seen)
-        for job in hard_filtered_jobs
-    ]
+    tracked_statuses = tracker.status_map()
+    scored: list[ScoredJob] = []
+    suppressed = 0
+    for job in hard_filtered_jobs:
+        status = tracked_statuses.get(job.tracking_id, "New")
+        if not show_history and status in SUPPRESSED_STATUSES:
+            suppressed += 1
+            continue
+        scored.append(
+            ScoredJob(
+                job,
+                score_job(job, profile),
+                is_new=status == "New" and job.tracking_id not in seen,
+                tracking_status=status,
+            )
+        )
+    if suppressed:
+        print(
+            f"[HISTORY] Suppressed {suppressed} Applied, Rejected, or "
+            "Not Interested job(s). Use --show-history to include them."
+        )
     top_floor = float(profile["thresholds"]["top_opportunity"])
     qualifying_counts = Counter(
         item.job.company
@@ -117,8 +154,16 @@ def run(
         )
     )
     now = datetime.now(timezone.utc)
-    report = build_report(scored, profile, now, stats)
     thresholds = profile["thresholds"]
+    per_bucket = int(thresholds.get("max_per_bucket", 5))
+    buckets = select_buckets(scored, top_floor, per_bucket=per_bucket)
+    report = build_report(
+        scored,
+        profile,
+        now,
+        stats,
+        bucket_selections=buckets,
+    )
 
     if dry_run:
         print(report)
@@ -130,7 +175,17 @@ def run(
     latest_path = report_dir / "latest.md"
     dated_path.write_text(report, encoding="utf-8")
     latest_path.write_text(report, encoding="utf-8")
-    save_state(state_path, seen | {job.id for job in hard_filtered_jobs})
+    save_state(
+        state_path,
+        seen | {job.tracking_id for job in hard_filtered_jobs},
+    )
+
+    tracked_recommendations = [
+        (item, bucket)
+        for bucket in ("Reach", "Target", "Safe")
+        for item in buckets[bucket].roles
+    ]
+    tracker.upsert_recommendations(tracked_recommendations)
 
     summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
     if summary_path:
@@ -138,7 +193,7 @@ def run(
             handle.write(report)
 
     urgent_threshold = float(thresholds["urgent_apply"])
-    alert_candidates = _select_alert_candidates(scored, top_floor)
+    alert_candidates = [item for item, _bucket in tracked_recommendations]
     print(f"[DEBUG] alert_candidates count = {len(alert_candidates)}")
     discord_sent = send_discord_notification(
         len(hard_filtered_jobs),
@@ -165,7 +220,19 @@ def run(
 def main() -> None:
     args = _parser().parse_args()
     if args.command == "run":
-        raise SystemExit(run(args.config, args.fixture, args.dry_run, args.sources))
+        raise SystemExit(
+            run(
+                args.config,
+                args.fixture,
+                args.dry_run,
+                args.sources,
+                args.show_history,
+            )
+        )
+    if args.command == "tracker":
+        from .web import serve_tracker
+
+        serve_tracker(args.data, args.host, args.port)
 
 
 if __name__ == "__main__":

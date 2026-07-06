@@ -2,8 +2,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+import hashlib
 import re
 from typing import Any
+from urllib.parse import urlsplit, urlunsplit
 
 
 def _location_path(city: dict[str, Any] | None) -> tuple[str, ...]:
@@ -79,6 +81,34 @@ def _start_period(title: str, description: str = "") -> str:
     return " ".join(part for part in (season, year) if part) or "Flexible/unspecified"
 
 
+def _tracking_value(value: str) -> str:
+    return re.sub(r"\s+", " ", value).strip().casefold()
+
+
+def stable_job_id(
+    company: str,
+    title: str,
+    location: str,
+    application_url: str,
+) -> str:
+    """Create a stable identifier from the user-visible application identity."""
+    parts = urlsplit(application_url.strip())
+    normalized_url = urlunsplit(
+        (
+            parts.scheme.casefold(),
+            parts.netloc.casefold(),
+            parts.path.rstrip("/"),
+            "",
+            "",
+        )
+    )
+    identity = "\x1f".join(
+        _tracking_value(value)
+        for value in (company, title, location, normalized_url)
+    )
+    return "job_" + hashlib.sha256(identity.encode("utf-8")).hexdigest()[:24]
+
+
 @dataclass(frozen=True)
 class Role:
     id: str
@@ -127,6 +157,15 @@ class Role:
     @property
     def employment_type(self) -> str:
         return self.recruitment_type
+
+    @property
+    def tracking_id(self) -> str:
+        return stable_job_id(
+            self.company,
+            self.title,
+            self.location,
+            self.url,
+        )
 
     @property
     def requirements(self) -> str:
@@ -267,3 +306,4 @@ class ScoredJob:
     job: Job
     score: Score
     is_new: bool = False
+    tracking_status: str = "New"

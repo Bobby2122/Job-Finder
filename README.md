@@ -26,6 +26,7 @@ Useful commands:
 ```bash
 PYTHONPATH=src python3 -m jobfinder run --dry-run
 PYTHONPATH=src python3 -m jobfinder run --fixture tests/fixtures/jobs.json
+PYTHONPATH=src python3 -m jobfinder tracker
 PYTHONPATH=src python3 -m unittest discover -s tests -v
 ```
 
@@ -76,6 +77,32 @@ undergraduate path are not incorrectly rejected.
   assistant roles that still compound toward Bobby's goals.
 
 Profile constraints and tie-breakers live in `config/profile.json`.
+
+## Application tracker
+
+Each selected recommendation is persisted in `data/applications.json` using a
+stable hash of company, title, location, and normalized application URL. Start
+the local tracker after running the recommendation agent:
+
+```bash
+PYTHONPATH=src python3 -m jobfinder run
+PYTHONPATH=src python3 -m jobfinder tracker
+```
+
+Then open `http://127.0.0.1:8765`. The tracker provides status badges, status
+filters, a dedicated Saved view, and persistent notes. Supported statuses are
+New, Viewed, Started, Applied, Rejected, Saved, and Not Interested.
+
+The application button routes through the local tracker and changes only New
+to Viewed. It never infers Started or Applied. Those outcomes remain manual.
+Applied, Rejected, and Not Interested roles are excluded from later
+recommendations; pass `--show-history` to `jobfinder run` to include them.
+Viewed jobs remain eligible with a ranking penalty.
+
+The JSON store survives local restarts and is included in GitHub Actions cache
+and artifacts. Local tracker edits must be copied or committed to whatever
+environment runs the daily job if the tracker and crawler run on different
+machines.
 
 ## Discord
 

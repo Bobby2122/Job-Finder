@@ -195,6 +195,29 @@ class MultiCompanyTests(unittest.TestCase):
             2,
         )
 
+    def test_viewed_role_is_downranked_below_fresh_alternative(self):
+        scored = balanced_roles()
+        viewed = replace(
+            scored[0],
+            score=replace(scored[0].score, overall=8.5),
+            tracking_status="Viewed",
+        )
+        fresh = make_role(200, "Reach", size_group="Large")
+        fresh = replace(
+            fresh,
+            score=replace(fresh.score, overall=8.0),
+            tracking_status="New",
+        )
+        buckets = select_buckets(
+            [viewed, fresh, *scored[1:]],
+            floor=5.8,
+            per_bucket=5,
+        )
+        reach_ids = {item.job.id for item in buckets["Reach"].roles}
+
+        self.assertIn(fresh.job.id, reach_ids)
+        self.assertNotIn(viewed.job.id, reach_ids)
+
 
 if __name__ == "__main__":
     unittest.main()
