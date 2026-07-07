@@ -10,8 +10,8 @@ from pathlib import Path
 from .alerts import send_discord_notification
 from .client import load_fixture
 from .models import ScoredJob
-from .reporting import ReportStats, build_report, select_buckets
-from .scoring import is_us_internship, score_job
+from .reporting import CorrectionLog, ReportStats, build_report, select_buckets
+from .scoring import is_internship_role, is_us_internship, is_us_location, score_job
 from .sources import MultiCompanyClient, load_sources_config
 from .state import load_state, save_state
 from .tracker import ApplicationTracker, SUPPRESSED_STATUSES
@@ -104,6 +104,10 @@ def run(
         print(f"ERROR: {exc}")
         return 1
 
+    non_us_excluded = sum(1 for job in jobs if not is_us_location(job))
+    full_time_excluded = sum(
+        1 for job in jobs if is_us_location(job) and not is_internship_role(job)
+    )
     hard_filtered_jobs = [job for job in jobs if is_us_internship(job)]
     print(
         f"[FILTER] {len(hard_filtered_jobs)} explicit U.S. internships retained "
@@ -118,15 +122,30 @@ def run(
     tracked_statuses = tracker.status_map()
     scored: list[ScoredJob] = []
     suppressed = 0
+    duplicate_suppressed = 0
+    pure_swe_excluded = 0
     for job in hard_filtered_jobs:
+        score = score_job(job, profile)
+        if (
+            score.rejection_reason
+            == "Pure SWE/backend/frontend/mobile/infrastructure role without clear AI-agentic scope"
+        ):
+            pure_swe_excluded += 1
+        suppressing_record = tracker.suppression_match(job)
         status = tracked_statuses.get(job.tracking_id, "New")
-        if not show_history and status in SUPPRESSED_STATUSES:
+        if suppressing_record:
+            status = str(suppressing_record.get("status", status))
+        if not show_history and (
+            status in SUPPRESSED_STATUSES or suppressing_record is not None
+        ):
             suppressed += 1
+            if suppressing_record and suppressing_record.get("id") != job.tracking_id:
+                duplicate_suppressed += 1
             continue
         scored.append(
             ScoredJob(
                 job,
-                score_job(job, profile),
+                score,
                 is_new=status == "New" and job.tracking_id not in seen,
                 tracking_status=status,
             )
@@ -156,6 +175,41 @@ def run(
     now = datetime.now(timezone.utc)
     thresholds = profile["thresholds"]
     per_bucket = int(thresholds.get("max_per_bucket", 5))
+    tracked_reasons = [
+        " - ".join(
+            part
+            for part in (
+                str(record.get("reason_category", "")).strip(),
+                str(record.get("manual_reason", "")).strip(),
+            )
+            if part
+        )
+        for status in ("Rejected", "Not Interested")
+        for record in tracker.list_jobs(status)
+    ]
+    tracked_reasons = [reason for reason in tracked_reasons if reason]
+    reason_counts = Counter(tracked_reasons)
+    suggestions: list[str] = []
+    reason_text = " ".join(tracked_reasons).lower()
+    if "too pure swe" in reason_text:
+        suggestions.append("Increase penalties for backend/frontend/mobile-only titles unless AI keywords are present.")
+    if "not ai/agentic enough" in reason_text:
+        suggestions.append("Require stronger LLM, agent, RAG, automation, evaluation, or AI-product evidence before selection.")
+    if "too competitive" in reason_text:
+        suggestions.append("Shift more Target/Safe slots toward smaller companies, applied AI tools, and analytics-adjacent AI roles.")
+    if "bad location" in reason_text:
+        suggestions.append("Down-rank repeated locations the user rejects unless the role is remote U.S.")
+    correction_log = CorrectionLog(
+        history_excluded=suppressed,
+        duplicate_history_excluded=duplicate_suppressed,
+        pure_swe_excluded=pure_swe_excluded,
+        full_time_excluded=full_time_excluded,
+        non_us_excluded=non_us_excluded,
+        rejection_reasons=tuple(
+            f"{reason} ({count})" for reason, count in reason_counts.most_common(8)
+        ),
+        suggestions=tuple(suggestions),
+    )
     buckets = select_buckets(scored, top_floor, per_bucket=per_bucket)
     report = build_report(
         scored,
@@ -163,6 +217,7 @@ def run(
         now,
         stats,
         bucket_selections=buckets,
+        correction_log=correction_log,
     )
 
     if dry_run:

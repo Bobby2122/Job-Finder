@@ -5,9 +5,11 @@ normalizes and deduplicates roles, and ranks U.S.-based internships for Bobby
 Chen. Full-time, new-grad, uncertain-employment, and non-U.S. roles are excluded
 before scoring.
 
-The goal is realistic interview opportunities rather than prestige alone.
-Analytics, operations research, data, risk, finance, product analytics, and
-accessible SWE internships receive an explicit ease bias.
+The goal is realistic interview opportunities rather than prestige alone, with
+the current ranking tilted toward AI Engineer / agentic AI internships. LLM,
+RAG, AI agents, workflow automation, prompt/tool calling, model evaluation, and
+AI-product roles receive the strongest boost. Pure SWE roles are rejected unless
+the posting clearly involves applied AI systems.
 
 ## Quick start
 
@@ -16,10 +18,11 @@ PYTHONPATH=src python3 -m jobfinder run
 ```
 
 The latest GitHub-readable report is written to `reports/latest.md`. When the
-source pool contains enough qualifying companies, it selects exactly 15 roles:
-five Reach, five Target, and five Safe. A company can appear at most twice. The
-first run creates local state in `data/state.json`; subsequent runs mark newly
-discovered roles.
+source pool contains enough qualifying companies, it can select up to 15 roles:
+five Reach, five Target, and five Safe. If quality is low, slots remain empty
+instead of being filled with weak, duplicate, non-U.S., or already-dismissed
+jobs. A company can appear at most twice. The first run creates local state in
+`data/state.json`; subsequent runs mark newly discovered roles.
 
 Useful commands:
 
@@ -54,15 +57,17 @@ Hard filters run before ranking in this order:
 - explicit U.S. location, including U.S.-remote roles
 - explicit internship employment or title
 - no full-time, new-grad, or ambiguous employment
-- no senior-only or irrelevant marketing/sales roles
+- no senior-only, irrelevant marketing/sales, or pure SWE roles without AI scope
+- no Applied, Rejected, Not Interested, dismissed, or likely duplicate inactive
+  jobs from `data/applications.json`
 
 Eligible roles receive an ease-adjusted score:
 
-- relevance: 30%
+- AI/agentic relevance: 34%
 - internship clarity: 20%
 - competition ease: 20%
-- requirement ease: 15%
-- U.S. stability: 10%
+- requirement ease: 13%
+- U.S. stability: 8%
 - practical learning value: 5%
 - minus large-company/popularity penalties
 
@@ -81,8 +86,10 @@ Profile constraints and tie-breakers live in `config/profile.json`.
 ## Application tracker
 
 Each selected recommendation is persisted in `data/applications.json` using a
-stable hash of company, title, location, and normalized application URL. Start
-the local tracker after running the recommendation agent:
+stable hash of normalized company, title, location, and application URL. URLs
+drop tracking parameters, and future runs also suppress likely duplicate
+inactive records using normalized identity plus similar title matching. Start the
+local tracker after running the recommendation agent:
 
 ```bash
 PYTHONPATH=src python3 -m jobfinder run
@@ -90,14 +97,25 @@ PYTHONPATH=src python3 -m jobfinder tracker
 ```
 
 Then open `http://127.0.0.1:8765`. The tracker provides status badges, status
-filters, a dedicated Saved view, and persistent notes. Supported statuses are
-New, Viewed, Started, Applied, Rejected, Saved, and Not Interested.
+filters, a dedicated Saved view, persistent notes, manual add/update, and reason
+fields for Rejected / Not Interested decisions. Supported statuses are New,
+Viewed, Started, Applied, Rejected, Saved, and Not Interested. The UI also
+shows the recommendation tier, score, employment classification, source,
+AI/agentic relevance, matched keywords, reasons, and concerns stored with each
+recommendation.
 
 The application button routes through the local tracker and changes only New
 to Viewed. It never infers Started or Applied. Those outcomes remain manual.
 Applied, Rejected, and Not Interested roles are excluded from later
 recommendations; pass `--show-history` to `jobfinder run` to include them.
 Viewed jobs remain eligible with a ranking penalty.
+
+Manual entries are respected the same way as crawler-discovered roles. Add a
+job as Applied, Rejected, or Not Interested if you handled it elsewhere; future
+runs will suppress matching or likely duplicate postings. Rejection reasons such
+as "too pure SWE", "not AI/agentic enough", "too competitive", and "bad
+location" are stored and summarized in the report's Daily Self-Improvement Log
+with a copyable "Prompt for Codex improvement" section.
 
 The JSON store survives local restarts and is included in GitHub Actions cache
 and artifacts. Local tracker edits must be copied or committed to whatever

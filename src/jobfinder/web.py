@@ -6,7 +6,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, quote, unquote, urlsplit
 
-from .tracker import ApplicationTracker, STATUSES
+from .tracker import ApplicationTracker, REJECTION_REASONS, STATUSES
 
 
 TRACKER_HTML = """<!doctype html>
@@ -48,6 +48,16 @@ TRACKER_HTML = """<!doctype html>
     .stat strong { display: block; font: 700 27px/1 Georgia, serif; }
     .stat span { color: var(--muted); font-size: 13px; }
     .toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 22px; }
+    .manual {
+      background: rgba(255,253,247,.82); border: 1px solid var(--line);
+      border-radius: 18px; padding: 16px; margin: 20px 0 22px;
+    }
+    .manual h2 { font-size: 18px; margin-bottom: 10px; }
+    .manual-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 9px; }
+    .manual-grid input, .manual-grid select {
+      width: 100%; border: 1px solid var(--line); border-radius: 10px;
+      background: var(--card); padding: 9px 10px; font: inherit;
+    }
     input[type=search] {
       min-width: min(330px, 100%); flex: 1; border: 1px solid var(--line);
       border-radius: 12px; background: var(--card); padding: 11px 13px; font: inherit;
@@ -69,6 +79,9 @@ TRACKER_HTML = """<!doctype html>
     .meta { display: flex; flex-wrap: wrap; gap: 7px; color: var(--muted); font-size: 13px; }
     .meta span { border-right: 1px solid var(--line); padding-right: 7px; }
     .meta span:last-child { border: 0; }
+    .details { display: grid; gap: 7px; color: #2b3931; font-size: 13px; }
+    .details p { margin: 0; }
+    .details strong { color: var(--ink); }
     .badge { white-space: nowrap; border-radius: 99px; padding: 5px 9px; font-size: 12px; font-weight: 850; }
     .status-New { background: var(--green-soft); color: var(--green); }
     .status-Viewed { background: #e6edf4; color: var(--blue); }
@@ -83,11 +96,14 @@ TRACKER_HTML = """<!doctype html>
       border-radius: 11px; background: #fff; padding: 10px; font: inherit;
     }
     .note-row { display: flex; align-items: center; gap: 8px; }
+    .reason-row { display: grid; grid-template-columns: 190px 1fr auto; gap: 8px; align-items: center; }
+    .reason-row input { border: 1px solid var(--line); border-radius: 10px; padding: 9px 10px; font: inherit; }
     .saved { color: var(--green); font-size: 12px; min-height: 18px; }
     .empty { grid-column: 1/-1; text-align: center; padding: 64px 16px; color: var(--muted); }
     @media (max-width: 760px) {
       .summary { grid-template-columns: repeat(2, 1fr); }
       .grid { grid-template-columns: 1fr; }
+      .manual-grid, .reason-row { grid-template-columns: 1fr; }
       main { width: min(100% - 20px, 1180px); padding-top: 24px; }
     }
   </style>
@@ -98,6 +114,20 @@ TRACKER_HTML = """<!doctype html>
   <h1>Application Tracker</h1>
   <p class="lede">Opening an application marks it Viewed—never Applied. Application outcomes stay manual and honest.</p>
   <section class="summary" id="summary"></section>
+  <section class="manual">
+    <h2>Manually add an application-state record</h2>
+    <form class="manual-grid" id="manualForm">
+      <input name="company" placeholder="Company" required>
+      <input name="title" placeholder="Role title" required>
+      <input name="location" placeholder="Location">
+      <input name="url" placeholder="Application URL" required>
+      <select name="status" aria-label="Manual status"></select>
+      <select name="reason_category" aria-label="Reason category"></select>
+      <input name="manual_reason" placeholder="Optional reason / notes">
+      <button type="submit">Add / update</button>
+      <span class="saved" id="manualSaved"></span>
+    </form>
+  </section>
   <div class="toolbar">
     <input id="search" type="search" placeholder="Search company, title, location, or notes">
     <div class="filters" id="filters"></div>
@@ -106,6 +136,7 @@ TRACKER_HTML = """<!doctype html>
 </main>
 <script>
 const statuses = __STATUSES__;
+const rejectionReasons = __REJECTION_REASONS__;
 let jobs = [];
 let active = "All";
 const escClass = value => value.replaceAll(" ", "-");
@@ -140,6 +171,17 @@ function makeFilters() {
   }
 }
 
+function fillSelect(select, values, selected="") {
+  select.replaceChildren();
+  for (const value of values) {
+    const option = document.createElement("option");
+    option.value = value;
+    option.textContent = value || "No reason";
+    option.selected = value === selected;
+    select.append(option);
+  }
+}
+
 function card(job) {
   const article = document.createElement("article");
   article.className = "card";
@@ -159,7 +201,13 @@ function card(job) {
 
   const meta = document.createElement("div");
   meta.className = "meta";
-  for (const value of [job.bucket, job.company_size, job.location, `Score ${Number(job.score).toFixed(1)}`]) {
+  for (const value of [
+    job.bucket || job.recommendation_tier,
+    job.company_size,
+    job.location,
+    job.employment_type || "Employment not listed",
+    `Score ${Number(job.score || 0).toFixed(1)}`
+  ]) {
     const span = document.createElement("span");
     span.textContent = value;
     meta.append(span);
@@ -199,6 +247,51 @@ function card(job) {
   };
   actions.append(open, select);
 
+  const details = document.createElement("div");
+  details.className = "details";
+  const keywordText = Array.isArray(job.matched_keywords) && job.matched_keywords.length
+    ? job.matched_keywords.join(", ")
+    : "None explicit; verify scope.";
+  const concerns = Array.isArray(job.concerns) ? job.concerns.join("; ") : String(job.concerns || "");
+  for (const [label, value] of [
+    ["Why recommended", job.why_recommended || "Manual entry or no recommendation text stored yet."],
+    ["AI/agentic relevance", job.ai_relevance || "Not recorded"],
+    ["Matched keywords", keywordText],
+    ["Concerns", concerns || "None recorded"],
+    ["Pure SWE vs AI-focused", job.pure_swe_signal ? "Potential pure SWE concern" : (job.ai_relevance || "Not recorded")],
+    ["Source", job.source || "Unknown"]
+  ]) {
+    const p = document.createElement("p");
+    p.innerHTML = `<strong>${label}:</strong> `;
+    p.append(document.createTextNode(value));
+    details.append(p);
+  }
+
+  const reasonRow = document.createElement("div");
+  reasonRow.className = "reason-row";
+  const reasonSelect = document.createElement("select");
+  fillSelect(reasonSelect, ["", ...rejectionReasons], job.reason_category || "");
+  const reasonInput = document.createElement("input");
+  reasonInput.placeholder = "Optional rejection / not-interested reason";
+  reasonInput.value = job.manual_reason || "";
+  const reasonSave = document.createElement("button");
+  reasonSave.textContent = "Save reason";
+  reasonSave.onclick = async () => {
+    try {
+      const updated = await api(`/api/jobs/${encodeURIComponent(job.id)}/reason`, {
+        method: "POST",
+        body: JSON.stringify({
+          reason_category: reasonSelect.value,
+          manual_reason: reasonInput.value
+        })
+      });
+      Object.assign(job, updated.job);
+      saved.textContent = "Reason saved";
+      setTimeout(() => saved.textContent = "", 1500);
+    } catch (error) { saved.textContent = error.message; }
+  };
+  reasonRow.append(reasonSelect, reasonInput, reasonSave);
+
   const notes = document.createElement("textarea");
   notes.placeholder = "Notes — cover letter, sponsorship question, application details…";
   notes.value = job.notes || "";
@@ -219,7 +312,7 @@ function card(job) {
     } catch (error) { saved.textContent = error.message; }
   };
   noteRow.append(save, saved);
-  article.append(head, meta, actions, notes, noteRow);
+  article.append(head, meta, actions, details, reasonRow, notes, noteRow);
   return article;
 }
 
@@ -249,13 +342,37 @@ async function load() {
   counts(); makeFilters(); render();
 }
 document.getElementById("search").addEventListener("input", render);
+const manualForm = document.getElementById("manualForm");
+fillSelect(manualForm.elements.status, statuses, "Applied");
+fillSelect(manualForm.elements.reason_category, ["", ...rejectionReasons], "");
+manualForm.addEventListener("submit", async event => {
+  event.preventDefault();
+  const payload = Object.fromEntries(new FormData(manualForm).entries());
+  const target = document.getElementById("manualSaved");
+  try {
+    const updated = await api("/api/jobs", {
+      method: "POST",
+      body: JSON.stringify(payload)
+    });
+    jobs = [updated.job, ...jobs.filter(job => job.id !== updated.job.id)];
+    target.textContent = "Saved";
+    manualForm.reset();
+    fillSelect(manualForm.elements.status, statuses, "Applied");
+    fillSelect(manualForm.elements.reason_category, ["", ...rejectionReasons], "");
+    counts(); makeFilters(); render();
+    setTimeout(() => target.textContent = "", 1500);
+  } catch (error) { target.textContent = error.message; }
+});
 load().catch(error => {
   document.getElementById("jobs").innerHTML = `<div class="empty">${error.message}</div>`;
 });
 </script>
 </body>
 </html>
-""".replace("__STATUSES__", json.dumps(STATUSES))
+""".replace("__STATUSES__", json.dumps(STATUSES)).replace(
+    "__REJECTION_REASONS__",
+    json.dumps(REJECTION_REASONS),
+)
 
 
 def _handler(tracker: ApplicationTracker) -> type[BaseHTTPRequestHandler]:
@@ -333,6 +450,24 @@ def _handler(tracker: ApplicationTracker) -> type[BaseHTTPRequestHandler]:
         def do_POST(self) -> None:
             parsed = urlsplit(self.path)
             parts = [unquote(part) for part in parsed.path.split("/") if part]
+            if parts == ["api", "jobs"]:
+                try:
+                    payload = self._body()
+                    job = tracker.add_manual_job(
+                        company=str(payload.get("company", "")),
+                        title=str(payload.get("title", "")),
+                        location=str(payload.get("location", "")),
+                        url=str(payload.get("url", "")),
+                        status=str(payload.get("status", "Applied")),
+                        reason_category=str(payload.get("reason_category", "")),
+                        manual_reason=str(payload.get("manual_reason", "")),
+                        notes=str(payload.get("notes", "")),
+                    )
+                except ValueError as exc:
+                    self._json({"error": str(exc)}, HTTPStatus.BAD_REQUEST)
+                    return
+                self._json({"job": job}, HTTPStatus.CREATED)
+                return
             if len(parts) != 4 or parts[:2] != ["api", "jobs"]:
                 self._json({"error": "Not found"}, HTTPStatus.NOT_FOUND)
                 return
@@ -343,11 +478,19 @@ def _handler(tracker: ApplicationTracker) -> type[BaseHTTPRequestHandler]:
                     job = tracker.update_status(
                         tracking_id,
                         str(payload.get("status", "")),
+                        str(payload.get("reason_category", "")),
+                        str(payload.get("manual_reason", "")),
                     )
                 elif action == "notes":
                     job = tracker.update_notes(
                         tracking_id,
                         str(payload.get("notes", "")),
+                    )
+                elif action == "reason":
+                    job = tracker.update_reason(
+                        tracking_id,
+                        str(payload.get("reason_category", "")),
+                        str(payload.get("manual_reason", "")),
                     )
                 else:
                     self._json({"error": "Not found"}, HTTPStatus.NOT_FOUND)

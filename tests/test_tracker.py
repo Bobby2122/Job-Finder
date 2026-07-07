@@ -141,6 +141,40 @@ class TrackerTests(unittest.TestCase):
         self.assertEqual(record["status"], "Viewed")
         self.assertEqual(record["bucket"], "Reach")
 
+    def test_manual_applied_similar_job_suppresses_future_recommendation(self):
+        with tempfile.TemporaryDirectory() as directory:
+            tracker = ApplicationTracker(Path(directory) / "applications.json")
+            record = tracker.add_manual_job(
+                company=self.job.company,
+                title="Machine Learning Research Internship",
+                location=self.job.location,
+                url=f"{self.job.url}?utm_source=manual",
+                status="Applied",
+                reason_category="already applied",
+                manual_reason="Applied from company site.",
+            )
+
+            match = tracker.suppression_match(self.job)
+
+        self.assertIsNotNone(match)
+        self.assertEqual(match["id"], record["id"])
+        self.assertEqual(match["status"], "Applied")
+        self.assertEqual(match["reason_category"], "already applied")
+
+    def test_dismissed_alias_is_stored_as_not_interested(self):
+        with tempfile.TemporaryDirectory() as directory:
+            tracker = ApplicationTracker(Path(directory) / "applications.json")
+            record = tracker.add_manual_job(
+                company="Example AI",
+                title="AI Automation Intern",
+                location="Remote, United States",
+                url="https://example.com/jobs/ai-automation",
+                status="dismissed",
+                reason_category="not AI/agentic enough",
+            )
+
+        self.assertEqual(record["status"], "Not Interested")
+
 
 if __name__ == "__main__":
     unittest.main()

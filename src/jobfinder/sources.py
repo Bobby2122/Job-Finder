@@ -11,10 +11,15 @@ from http.client import IncompleteRead, RemoteDisconnected
 from pathlib import Path
 from typing import Any, Iterable
 from urllib.error import HTTPError, URLError
-from urllib.parse import urlsplit, urlunsplit
 from urllib.request import Request, urlopen
 
-from .models import Role
+from .models import (
+    Role,
+    normalize_application_url,
+    normalize_company_name,
+    normalize_job_title,
+    normalize_location_name,
+)
 
 
 class SourceError(RuntimeError):
@@ -31,6 +36,7 @@ def _plain_text(value: str | None) -> str:
 def _role_family(title: str, text: str = "") -> str:
     value = f"{title} {text}".lower()
     families = (
+        ("AI Engineer / Agentic AI", ("ai engineer", "agentic", "ai agent", "llm", "generative ai", "rag", "prompt engineering", "workflow automation")),
         ("Machine Learning / AI", ("machine learning", "artificial intelligence", " ai ", "ml engineer")),
         ("Data Science", ("data scientist", "data science", "decision scientist")),
         ("Quant / Risk", ("quant", "risk", "actuari", "market data")),
@@ -311,6 +317,11 @@ class WorkdayAdapter(SourceAdapter):
             "data scientist",
             "research assistant",
             "engineer i",
+            "ai engineer",
+            "llm",
+            "agent",
+            "automation",
+            "generative ai",
         )
         detail_candidates = [
             raw
@@ -425,14 +436,7 @@ def _china_based(role: Role) -> bool:
 
 
 def _normalized_url(url: str) -> str:
-    parts = urlsplit(url)
-    return urlunsplit(
-        (parts.scheme.lower(), parts.netloc.lower(), parts.path.rstrip("/"), "", "")
-    )
-
-
-def _normalized_text(value: str) -> str:
-    return re.sub(r"[^a-z0-9]+", " ", value.lower()).strip()
+    return normalize_application_url(url)
 
 
 def deduplicate_roles(roles: Iterable[Role]) -> list[Role]:
@@ -440,9 +444,9 @@ def deduplicate_roles(roles: Iterable[Role]) -> list[Role]:
     exact: dict[tuple[str, str, str], Role] = {}
     for role in roles:
         key = (
-            _normalized_text(role.company),
-            _normalized_text(role.title),
-            _normalized_text(role.location),
+            normalize_company_name(role.company),
+            normalize_job_title(role.title),
+            normalize_location_name(role.location),
         )
         existing = exact.get(key)
         if existing:

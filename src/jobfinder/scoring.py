@@ -6,6 +6,56 @@ from typing import Any, Iterable
 from .models import Job, Score
 
 
+AI_ENGINEER_KEYWORDS = (
+    "ai engineer",
+    "applied ai engineer",
+    "agentic",
+    "ai agent",
+    "ai agents",
+    "llm",
+    "large language model",
+    "generative ai",
+    "genai",
+    "langchain",
+    "autogen",
+    "crewai",
+    "n8n",
+    "zapier",
+    "workflow automation",
+    "rag",
+    "retrieval augmented",
+    "vector database",
+    "embeddings",
+    "prompt engineering",
+    "tool calling",
+    "function calling",
+    "ai automation",
+    "openai api",
+    "anthropic",
+    "hugging face",
+    "model evaluation",
+    "applied ai",
+    "ai product",
+    "ai platform",
+    "ai solutions",
+)
+
+PURE_SWE_TERMS = (
+    "pure backend",
+    "backend engineer",
+    "frontend engineer",
+    "front end engineer",
+    "mobile engineer",
+    "ios engineer",
+    "android engineer",
+    "devops",
+    "site reliability",
+    "infrastructure",
+    "general software engineer",
+    "software engineer intern",
+)
+
+
 def _contains(text: str, terms: Iterable[str]) -> bool:
     return any(term in text for term in terms)
 
@@ -149,8 +199,20 @@ def _timing_fit(job: Job, profile: dict[str, Any]) -> tuple[float, str]:
 def _relevance(job: Job) -> tuple[float, list[str]]:
     text = job.text
     title = job.title.lower()
-    score = 1.5
+    score = 1.0
     reasons: list[str] = []
+    ai_score, ai_keywords, ai_focus, pure_swe_signal = _ai_focus(job)
+    if ai_score >= 7.0:
+        score += 4.5
+        reasons.append(
+            "Direct AI Engineer / agentic-AI fit through "
+            + ", ".join(ai_keywords[:4])
+        )
+    elif ai_score >= 4.0:
+        score += 2.5
+        reasons.append(
+            "Applied AI adjacency that can connect Bobby's math/ML background to products"
+        )
     if _contains(
         text,
         (
@@ -200,9 +262,12 @@ def _relevance(job: Job) -> tuple[float, list[str]]:
             "machine learning",
             "data science",
             "algorithm",
+            "pytorch",
+            "tensorflow",
+            "recommendation model",
         ),
     ):
-        score += 1.5
+        score += 1.0
         reasons.append("Builds technical ML, data science, or software experience")
     if _contains(
         title,
@@ -212,8 +277,13 @@ def _relevance(job: Job) -> tuple[float, list[str]]:
             "data engineer",
         ),
     ):
-        score += 2.5
-        reasons.append("Builds technical ML, data science, or software experience")
+        if ai_score >= 4.0:
+            score += 1.5
+            reasons.append(
+                "Software engineering scope is connected to applied AI systems"
+            )
+        elif pure_swe_signal:
+            score -= 2.0
     if _contains(
         title,
         (
@@ -225,6 +295,28 @@ def _relevance(job: Job) -> tuple[float, list[str]]:
         score += 1.0
         reasons.append("Offers modeling, optimization, or experimentation work")
     return _clamp(score), reasons
+
+
+def _ai_focus(job: Job) -> tuple[float, tuple[str, ...], str, bool]:
+    text = job.text
+    title = job.title.lower()
+    matched = tuple(
+        term
+        for term in AI_ENGINEER_KEYWORDS
+        if term in text or term in title
+    )
+    pure_swe_signal = bool(_contains(f"{title} {text}", PURE_SWE_TERMS))
+    if matched:
+        base = 7.0 + min(3.0, 0.6 * len(matched))
+        if any(term in title for term in ("ai engineer", "llm", "agentic", "ai agent")):
+            base += 0.8
+        if pure_swe_signal:
+            base -= 1.2
+        focus = "AI-focused" if base >= 8.0 else "Applied-AI adjacent"
+        return _clamp(base), matched[:8], focus, pure_swe_signal
+    if _contains(text, ("machine learning", "pytorch", "tensorflow", "modeling")):
+        return 4.0, tuple(), "ML/data adjacent, but not clearly agentic-AI", pure_swe_signal
+    return 1.0, tuple(), "Not clearly AI-focused", pure_swe_signal
 
 
 def _competition_ease(job: Job, text: str) -> tuple[float, float]:
@@ -324,6 +416,11 @@ def _practical_value(job: Job, text: str) -> float:
             "experimentation",
             "optimization",
             "risk",
+            "llm",
+            "rag",
+            "workflow automation",
+            "openai api",
+            "model evaluation",
         ),
     ):
         value += 2.0
@@ -341,6 +438,10 @@ def _bucket(
     ease_biased = _contains(
         job.title.lower(),
         (
+            "ai engineer",
+            "applied ai",
+            "llm",
+            "automation",
             "analytics",
             "data analyst",
             "business analyst",
@@ -374,6 +475,7 @@ def score_job(job: Job, profile: dict[str, Any]) -> Score:
     internship_eligible = is_internship_role(job)
     timing_fit, timing_concern = _timing_fit(job, profile)
     relevance, matches = _relevance(job)
+    ai_score, ai_keywords, ai_focus, pure_swe_signal = _ai_focus(job)
     competition_ease, popularity_penalty = _competition_ease(job, text)
     requirement_ease, concerns, phd_only = _requirement_ease(job, text)
     stability = 9.0 if "remote" in job.location.lower() else 10.0
@@ -399,16 +501,26 @@ def score_job(job: Job, profile: dict[str, Any]) -> Score:
             "doctoral intern",
         ),
     )
+    title = job.title.lower()
+    ml_engineer_without_agentic = (
+        _contains(title, ("machine learning engineer", "ml engineer"))
+        and ai_score < 5.0
+        and "intern" in title
+    )
     overall = round(
-        0.30 * relevance
+        0.34 * relevance
         + 0.20 * clarity
         + 0.20 * competition_ease
-        + 0.15 * requirement_ease
-        + 0.10 * stability
+        + 0.13 * requirement_ease
+        + 0.08 * stability
         + 0.05 * practical
         - popularity_penalty,
         2,
     )
+    if ai_score >= 7.0:
+        overall += 0.7
+    elif pure_swe_signal and ai_score < 5.0:
+        overall -= 2.0
     overall = _clamp(overall)
 
     if not us_eligible:
@@ -419,8 +531,12 @@ def score_job(job: Job, profile: dict[str, Any]) -> Score:
         reason = "Internship is restricted to MBA or doctoral candidates"
     elif low_value:
         reason = "Role is outside the target analytical/technical path"
+    elif pure_swe_signal and ai_score < 5.0:
+        reason = "Pure SWE/backend/frontend/mobile/infrastructure role without clear AI-agentic scope"
+    elif ml_engineer_without_agentic:
+        reason = "ML Engineer internship lacks clear LLM, agent, RAG, automation, or applied-AI product scope"
     elif relevance < 4.0:
-        reason = "Insufficient relevance to math, economics, data, OR, SWE, or analytics"
+        reason = "Insufficient AI Engineer, agentic-AI, applied ML, data, OR, or analytics relevance"
     elif phd_only and requirement_ease <= 3.0:
         reason = "Internship is too PhD/publication-heavy for the current profile"
     else:
@@ -431,6 +547,8 @@ def score_job(job: Job, profile: dict[str, Any]) -> Score:
         concerns.append(timing_concern)
     if not concerns:
         concerns.append("Confirm project scope, mentorship, and interview expectations")
+    if pure_swe_signal and ai_score < 6.0:
+        concerns.insert(0, "Verify this is not a pure SWE role before applying")
     if not matches:
         matches.append("Provides adjacent analytical or technical internship experience")
 
@@ -466,4 +584,7 @@ def score_job(job: Job, profile: dict[str, Any]) -> Score:
         us_stability=stability if us_eligible else 0.0,
         practical_value=practical,
         popularity_penalty=popularity_penalty,
+        ai_focus=ai_focus,
+        ai_keywords=ai_keywords,
+        pure_swe_signal=pure_swe_signal,
     )

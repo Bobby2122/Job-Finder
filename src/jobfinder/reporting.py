@@ -27,6 +27,17 @@ class BucketSelection:
     fill_note: str = ""
 
 
+@dataclass(frozen=True)
+class CorrectionLog:
+    history_excluded: int = 0
+    duplicate_history_excluded: int = 0
+    pure_swe_excluded: int = 0
+    full_time_excluded: int = 0
+    non_us_excluded: int = 0
+    rejection_reasons: tuple[str, ...] = ()
+    suggestions: tuple[str, ...] = ()
+
+
 def _eligible(item: ScoredJob, floor: float) -> bool:
     title = item.job.title.lower()
     senior_only = any(
@@ -226,6 +237,8 @@ def _job_block(item: ScoredJob, bucket: str, urgent_threshold: float) -> list[st
         f"- **Tracker ID:** `{job.tracking_id}`",
         f"- **Location:** {job.location}",
         f"- **Employment type:** {job.employment_type or 'Not listed'}",
+        f"- **Application link:** {job.url}",
+        f"- **Source link:** {job.url}",
         f"- **Start timing:** {job.start_year_or_season}",
         f"- **Role family:** {job.role_family or 'Not classified'}",
         f"- **Source:** {job.source}",
@@ -236,9 +249,16 @@ def _job_block(item: ScoredJob, bucket: str, urgent_threshold: float) -> list[st
         "",
         "**Why it matches Bobby:** " + "; ".join(score.why_match) + ".",
         "",
+        f"**AI/agentic relevance:** {score.ai_focus}.",
+        "",
+        "**Matched AI keywords:** "
+        + (", ".join(score.ai_keywords) if score.ai_keywords else "None explicit; verify scope."),
+        "",
+        f"**Pure SWE vs AI-focused:** {'Potential pure SWE concern' if score.pure_swe_signal else score.ai_focus}.",
+        "",
         f"**Why it is {bucket}:** {_bucket_reason(item, bucket)}",
         "",
-        f"**Main gap to prepare:** {score.concerns[0]}.",
+        "**Potential concerns:** " + "; ".join(score.concerns) + ".",
         "",
     ]
 
@@ -278,6 +298,7 @@ def build_report(
     generated_at: datetime,
     stats: ReportStats | None = None,
     bucket_selections: dict[str, BucketSelection] | None = None,
+    correction_log: CorrectionLog | None = None,
 ) -> str:
     stats = stats or ReportStats(
         companies_searched=len({item.job.company for item in scored}),
@@ -385,14 +406,59 @@ def build_report(
                 "",
             ]
         )
+    if correction_log:
+        lines.extend(
+            [
+                "## Daily Self-Improvement Log",
+                "",
+                f"- **Excluded from history/applied/rejected/not interested:** {correction_log.history_excluded}",
+                f"- **Excluded as likely duplicate of inactive history:** {correction_log.duplicate_history_excluded}",
+                f"- **Excluded as pure SWE without AI-agentic scope:** {correction_log.pure_swe_excluded}",
+                f"- **Excluded as full-time/non-internship:** {correction_log.full_time_excluded}",
+                f"- **Excluded as outside the U.S.:** {correction_log.non_us_excluded}",
+                "",
+                "**User rejection reasons collected:**",
+                "",
+            ]
+        )
+        if correction_log.rejection_reasons:
+            lines.extend(f"- {reason}" for reason in correction_log.rejection_reasons)
+        else:
+            lines.append("- No manual rejection reasons recorded yet.")
+        lines.extend(["", "**Suggested ranking/filter improvements:**", ""])
+        if correction_log.suggestions:
+            lines.extend(f"- {suggestion}" for suggestion in correction_log.suggestions)
+        else:
+            lines.append("- Keep prioritizing explicit AI Engineer / agentic AI internships.")
+        prompt = (
+            "Update JobFinder ranking using these rejection patterns: "
+            + (
+                "; ".join(correction_log.rejection_reasons)
+                if correction_log.rejection_reasons
+                else "no new rejection reasons yet"
+            )
+            + ". Preserve hard filters for U.S. internships and suppress Applied, "
+            "Rejected, and Not Interested roles."
+        )
+        lines.extend(
+            [
+                "",
+                "**Prompt for Codex improvement:**",
+                "",
+                f"> {prompt}",
+                "",
+            ]
+        )
     lines.extend(
         [
             "## Method",
             "",
-            "Ease-adjusted score = relevance 30% + internship clarity 20% + "
-            "competition ease 20% + requirement ease 15% + U.S. stability 10% "
+            "Ease-adjusted score = AI/agentic relevance 34% + internship clarity 20% + "
+            "competition ease 20% + requirement ease 13% + U.S. stability 8% "
             "+ practical value 5%, minus popularity penalties. Final selection "
-            "then applies a two-role company cap and large/mid/startup mix targets.",
+            "then applies a two-role company cap, history suppression, and "
+            "large/mid/startup mix targets. Weak or duplicate roles are left "
+            "unfilled instead of forcing 15 recommendations.",
             "",
         ]
     )

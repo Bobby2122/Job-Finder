@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 import hashlib
 import re
 from typing import Any
-from urllib.parse import urlsplit, urlunsplit
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 
 def _location_path(city: dict[str, Any] | None) -> tuple[str, ...]:
@@ -81,8 +81,109 @@ def _start_period(title: str, description: str = "") -> str:
     return " ".join(part for part in (season, year) if part) or "Flexible/unspecified"
 
 
-def _tracking_value(value: str) -> str:
-    return re.sub(r"\s+", " ", value).strip().casefold()
+TRACKING_QUERY_PREFIXES = ("utm_",)
+TRACKING_QUERY_PARAMS = {
+    "gh_src",
+    "gh_jid",
+    "lever-source",
+    "source",
+    "src",
+    "ref",
+    "referrer",
+    "campaign",
+    "fbclid",
+    "gclid",
+    "msclkid",
+}
+
+
+def normalize_identity_text(value: str) -> str:
+    """Normalize user-visible identity text for stable tracking/dedupe."""
+    text = re.sub(r"&", " and ", value.casefold())
+    text = re.sub(r"[^a-z0-9]+", " ", text)
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def normalize_company_name(value: str) -> str:
+    text = normalize_identity_text(value)
+    text = re.sub(
+        r"\b(?:inc|incorporated|corp|corporation|llc|ltd|limited|co|company)\b",
+        " ",
+        text,
+    )
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def normalize_job_title(value: str) -> str:
+    text = normalize_identity_text(value)
+    text = re.sub(
+        r"\b(?:spring|summer|fall|autumn|winter|jan|jun|january|june)\b",
+        " ",
+        text,
+    )
+    text = re.sub(r"\b20\d{2}\b", " ", text)
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def normalize_location_name(value: str) -> str:
+    text = normalize_identity_text(value)
+    replacements = {
+        "united states of america": "united states",
+        "u s a": "united states",
+        "usa": "united states",
+        "u s": "united states",
+        "remote us": "remote united states",
+        "remote u s": "remote united states",
+    }
+    for source, target in replacements.items():
+        text = text.replace(source, target)
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def normalize_application_url(url: str) -> str:
+    """Normalize a job URL while preserving non-tracking query parameters."""
+    parts = urlsplit(url.strip())
+    kept_query = [
+        (key, value)
+        for key, value in parse_qsl(parts.query, keep_blank_values=False)
+        if key.casefold() not in TRACKING_QUERY_PARAMS
+        and not key.casefold().startswith(TRACKING_QUERY_PREFIXES)
+    ]
+    return urlunsplit(
+        (
+            parts.scheme.casefold(),
+            parts.netloc.casefold(),
+            parts.path.rstrip("/"),
+            urlencode(kept_query, doseq=True),
+            "",
+        )
+    )
+
+
+def identity_tokens(value: str) -> set[str]:
+    return {
+        token
+        for token in normalize_job_title(value).split()
+        if token
+        not in {
+            "intern",
+            "internship",
+            "co",
+            "op",
+            "student",
+            "early",
+            "career",
+        }
+    }
+
+
+def similar_job_titles(first: str, second: str) -> bool:
+    left = identity_tokens(first)
+    right = identity_tokens(second)
+    if not left or not right:
+        return normalize_job_title(first) == normalize_job_title(second)
+    overlap = len(left & right) / max(len(left), len(right))
+    return overlap >= 0.72
 
 
 def stable_job_id(
@@ -92,19 +193,13 @@ def stable_job_id(
     application_url: str,
 ) -> str:
     """Create a stable identifier from the user-visible application identity."""
-    parts = urlsplit(application_url.strip())
-    normalized_url = urlunsplit(
-        (
-            parts.scheme.casefold(),
-            parts.netloc.casefold(),
-            parts.path.rstrip("/"),
-            "",
-            "",
-        )
-    )
     identity = "\x1f".join(
-        _tracking_value(value)
-        for value in (company, title, location, normalized_url)
+        (
+            normalize_company_name(company),
+            normalize_job_title(title),
+            normalize_location_name(location),
+            normalize_application_url(application_url),
+        )
     )
     return "job_" + hashlib.sha256(identity.encode("utf-8")).hexdigest()[:24]
 
@@ -299,6 +394,9 @@ class Score:
     us_stability: float = 5.0
     practical_value: float = 5.0
     popularity_penalty: float = 0.0
+    ai_focus: str = "Adjacent"
+    ai_keywords: tuple[str, ...] = field(default_factory=tuple)
+    pure_swe_signal: bool = False
 
 
 @dataclass(frozen=True)

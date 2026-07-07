@@ -233,6 +233,38 @@ class ScoringTests(unittest.TestCase):
         )
         self.assertFalse(score_job(return_offer, self.profile).relevant)
 
+    def test_pure_swe_intern_without_ai_scope_is_rejected(self):
+        from dataclasses import replace
+
+        swe = replace(
+            self.jobs["ml-intern-1"],
+            id="pure-swe",
+            title="Software Engineer Intern",
+            description="Build backend services, frontend features, and mobile APIs.",
+            requirement="Python or JavaScript experience preferred.",
+        )
+        score = score_job(swe, self.profile)
+        self.assertFalse(score.relevant)
+        self.assertTrue(score.pure_swe_signal)
+        self.assertIn("Pure SWE", score.rejection_reason)
+
+    def test_agentic_ai_intern_records_keywords_and_focus(self):
+        from dataclasses import replace
+
+        ai_role = replace(
+            self.jobs["ml-intern-1"],
+            id="agentic-ai",
+            title="AI Agent Engineer Intern",
+            description=(
+                "Build LLM agents with RAG, tool calling, OpenAI API, "
+                "embeddings, workflow automation, and model evaluation."
+            ),
+        )
+        score = score_job(ai_role, self.profile)
+        self.assertTrue(score.relevant)
+        self.assertEqual(score.ai_focus, "AI-focused")
+        self.assertIn("llm", score.ai_keywords)
+
 
 if __name__ == "__main__":
     unittest.main()
