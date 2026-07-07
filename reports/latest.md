@@ -1,233 +1,143 @@
 # Multi-Company Opportunity Intelligence Report
 
-Generated 2026-07-06 21:07 CST
+Generated 2026-07-07 11:16 CST
 
-- **Roles reviewed:** 9598
+- **Roles reviewed:** 9639
 - **Companies searched:** 57
 - **Companies successfully read:** 44
-- **Unique relevant roles found:** 97
-- **Roles selected:** 15
-- **Selected company-size mix:** Large 6 | Mid 5 | Small/startup 4
+- **Unique relevant roles found:** 106
+- **Roles selected:** 13
+- **Selected company-size mix:** Large 7 | Mid 4 | Small/startup 2
 
 ## A. Reach Roles (5)
 
-### [Insurance Operations Project Intern (Global Payment) - 2026 Start (BS/MS)](https://jobs.bytedance.com/en/position/7579330892582701365/detail) - NEW
-
-- **Company:** ByteDance / TikTok
-- **Company size/category:** Big tech / famous lab
-- **Size group:** Large
-- **Source category:** Big tech / AI labs
-- **Application status:** New
-- **Tracker ID:** `job_1c2777a6512b3ad673e22c33`
-- **Location:** Seattle, United States of America
-- **Employment type:** Intern
-- **Start timing:** Winter 2026
-- **Role family:** Data Science
-- **Source:** ByteDance official careers API
-
-**Ease-adjusted score 7.20/10** - Relevance 10.0 | Internship clarity 10.0 | Competition ease 3.5 | Requirement ease 9.0 | U.S. stability 10.0
-
-**Competitiveness:** High
-
-**Why it matches Bobby:** Uses Python, SQL, analytics, or data-driven decision making; Aligns with Bobby's math, economics, statistics, or risk background; Offers modeling, optimization, or experimentation work.
-
-**Why it is Reach:** The role is relevant but carries higher popularity, research depth, or technical competition.
-
-**Main gap to prepare:** Advertised for 2026, not 2027.
-
-### [Deployment Strategist, Internship - US Government](https://jobs.lever.co/palantir/a49d4181-a289-435a-b581-7f5af0497c8e) - NEW
-
-- **Company:** Palantir
-- **Company size/category:** Big tech / famous lab
-- **Size group:** Large
-- **Source category:** Government contractors / research labs / policy analytics
-- **Application status:** New
-- **Tracker ID:** `job_4024078626ec675189cce2b6`
-- **Location:** Honolulu, HI, United States
-- **Employment type:** Internship
-- **Start timing:** Flexible/unspecified
-- **Role family:** Other
-- **Source:** Lever official postings API
-
-**Ease-adjusted score 7.00/10** - Relevance 9.0 | Internship clarity 10.0 | Competition ease 3.5 | Requirement ease 9.0 | U.S. stability 10.0
-
-**Competitiveness:** High
-
-**Why it matches Bobby:** Uses Python, SQL, analytics, or data-driven decision making; Aligns with Bobby's math, economics, statistics, or risk background; Offers modeling, optimization, or experimentation work.
-
-**Why it is Reach:** The role is relevant but carries higher popularity, research depth, or technical competition.
-
-**Main gap to prepare:** Start date is not stated; verify Jan-Jun 2027.
-
-### [CIS/CS Internship](https://jobs.lever.co/crestoperations/234d5be4-a214-4568-a681-d60f15624488) - NEW
-
-- **Company:** Crest Industries
-- **Company size/category:** Mid-size tech
-- **Size group:** Mid
-- **Source category:** Finance / risk analytics
-- **Application status:** New
-- **Tracker ID:** `job_74befd83f0df83f658f6b7c3`
-- **Location:** Pineville, Louisiana, United States
-- **Employment type:** Intern
-- **Start timing:** Flexible/unspecified
-- **Role family:** Other
-- **Source:** Lever official postings API
-
-**Ease-adjusted score 7.50/10** - Relevance 6.0 | Internship clarity 10.0 | Competition ease 7.0 | Requirement ease 9.0 | U.S. stability 10.0
-
-**Competitiveness:** Medium
-
-**Why it matches Bobby:** Aligns with Bobby's math, economics, statistics, or risk background; Offers modeling, optimization, or experimentation work.
-
-**Why it is Reach:** The role is relevant but carries higher popularity, research depth, or technical competition.
-
-**Main gap to prepare:** Start date is not stated; verify Jan-Jun 2027.
-
-### [Software Engineer Intern (Fall 2026)](https://jobs.ashbyhq.com/notion/5b15697c-fa91-4511-9482-c98a6ff29f90) - NEW
-
-- **Company:** Notion
-- **Company size/category:** Mid-size tech
-- **Size group:** Mid
-- **Source category:** SaaS / data infrastructure / ML platform startups
-- **Application status:** New
-- **Tracker ID:** `job_599fc2a9438dd0b82d414934`
-- **Location:** San Francisco, California, United States
-- **Employment type:** Intern
-- **Start timing:** Winter 2026
-- **Role family:** Other
-- **Source:** Ashby official job postings API
-
-**Ease-adjusted score 7.50/10** - Relevance 7.0 | Internship clarity 10.0 | Competition ease 6.2 | Requirement ease 9.0 | U.S. stability 10.0
-
-**Competitiveness:** Medium
-
-**Why it matches Bobby:** Uses Python, SQL, analytics, or data-driven decision making; Builds technical ML, data science, or software experience.
-
-**Why it is Reach:** The role is relevant but carries higher popularity, research depth, or technical competition.
-
-**Main gap to prepare:** Advertised for 2026, not 2027.
-
-### [Intern, Data Analytics](https://jobs.lever.co/evrealty-us/0274f48f-9b19-4bed-bf6a-5e02a2b1e865) - NEW / URGENT APPLY
-
-- **Company:** EV Realty
-- **Company size/category:** Startup
-- **Size group:** Small
-- **Source category:** Climate / energy / transportation analytics
-- **Application status:** New
-- **Tracker ID:** `job_f09211ff0dd1a5edc4bb8228`
-- **Location:** San Francisco, CA, United States
-- **Employment type:** Internship
-- **Start timing:** Summer
-- **Role family:** Analytics
-- **Source:** Lever official postings API
-
-**Ease-adjusted score 9.60/10** - Relevance 10.0 | Internship clarity 10.0 | Competition ease 9.0 | Requirement ease 9.0 | U.S. stability 10.0
-
-**Competitiveness:** Low
-
-**Why it matches Bobby:** Uses Python, SQL, analytics, or data-driven decision making; Aligns with Bobby's math, economics, statistics, or risk background; Offers modeling, optimization, or experimentation work.
-
-**Why it is Reach:** The role is relevant but carries higher popularity, research depth, or technical competition.
-
-**Main gap to prepare:** Start date is not stated; verify Jan-Jun 2027.
-
-## B. Target Roles (5)
-
-### [AI Builder Intern](https://job-boards.greenhouse.io/scaleai/jobs/4703343005) - NEW
-
-- **Company:** Scale AI
-- **Company size/category:** Big tech / famous lab
-- **Size group:** Large
-- **Source category:** SaaS / data infrastructure / ML platform startups
-- **Application status:** New
-- **Tracker ID:** `job_6df23cf6c9d9be40e0d4ddfa`
-- **Location:** San Francisco, CA; New York, NY, United States
-- **Employment type:** Internship
-- **Start timing:** Summer
-- **Role family:** Other
-- **Source:** Greenhouse official job board API
-
-**Ease-adjusted score 6.80/10** - Relevance 8.5 | Internship clarity 10.0 | Competition ease 3.5 | Requirement ease 9.0 | U.S. stability 10.0
-
-**Competitiveness:** High
-
-**Why it matches Bobby:** Uses Python, SQL, analytics, or data-driven decision making; Aligns with Bobby's math, economics, statistics, or risk background; Builds technical ML, data science, or software experience.
-
-**Why it is Target:** The internship balances strong relevance with a realistic undergraduate hiring bar.
-
-**Main gap to prepare:** Start date is not stated; verify Jan-Jun 2027.
-
-### [2027 Software Engineer Intern](https://boards.greenhouse.io/andurilindustries/jobs/5148079007?gh_jid=5148079007) - NEW
+### [2027 Electrical Engineer Intern](https://boards.greenhouse.io/andurilindustries/jobs/5148101007?gh_jid=5148101007) - NEW
 
 - **Company:** Anduril
 - **Company size/category:** Big tech / famous lab
 - **Size group:** Large
 - **Source category:** Government contractors / research labs / policy analytics
 - **Application status:** New
-- **Tracker ID:** `job_074268f50039df5956881a7f`
+- **Tracker ID:** `job_a4beea0e113940733f5902d0`
 - **Location:** Atlanta, Georgia, United States; Boston, Massachusetts, United States; Costa Mesa, California, United States; Irvine, California, United States; Reston, Virginia, United States; Seattle, Washington, United States, United States
 - **Employment type:** Internship
+- **Application link:** https://boards.greenhouse.io/andurilindustries/jobs/5148101007?gh_jid=5148101007
+- **Source link:** https://boards.greenhouse.io/andurilindustries/jobs/5148101007?gh_jid=5148101007
 - **Start timing:** Summer 2027
 - **Role family:** Other
 - **Source:** Greenhouse official job board API
 
-**Ease-adjusted score 6.80/10** - Relevance 10.0 | Internship clarity 10.0 | Competition ease 2.7 | Requirement ease 9.0 | U.S. stability 10.0
+**Ease-adjusted score 8.00/10** - Relevance 10.0 | Internship clarity 10.0 | Competition ease 3.5 | Requirement ease 9.0 | U.S. stability 10.0
 
 **Competitiveness:** High
 
-**Why it matches Bobby:** Uses Python, SQL, analytics, or data-driven decision making; Aligns with Bobby's math, economics, statistics, or risk background; Builds technical ML, data science, or software experience.
+**Why it matches Bobby:** Direct AI Engineer / agentic-AI fit through rag; Uses Python, SQL, analytics, or data-driven decision making; Aligns with Bobby's math, economics, statistics, or risk background.
 
-**Why it is Target:** The internship balances strong relevance with a realistic undergraduate hiring bar.
+**AI/agentic relevance:** Applied-AI adjacent.
 
-**Main gap to prepare:** Confirm Summer 2027 ends before graduate school.
+**Matched AI keywords:** rag
 
-### [Middleware Software Engineer Intern - Fall 2026](https://jobs.ashbyhq.com/skydio/7d9dbb60-4ca1-4ba8-8bae-5ebfded4a915) - NEW
+**Pure SWE vs AI-focused:** Applied-AI adjacent.
 
-- **Company:** Skydio
+**Why it is Reach:** The role is relevant but carries higher popularity, research depth, or technical competition.
+
+**Potential concerns:** Confirm Summer 2027 ends before graduate school.
+
+### [Project Management Project Intern (Real Estate & Facilities - AMS) - 2026 Start (BS/MS)](https://jobs.bytedance.com/en/position/7620892797440379189/detail) - NEW
+
+- **Company:** ByteDance / TikTok
+- **Company size/category:** Big tech / famous lab
+- **Size group:** Large
+- **Source category:** Big tech / AI labs
+- **Application status:** New
+- **Tracker ID:** `job_96ad2d015e3f39151f130124`
+- **Location:** San Jose, United States of America
+- **Employment type:** Intern
+- **Application link:** https://jobs.bytedance.com/en/position/7620892797440379189/detail
+- **Source link:** https://jobs.bytedance.com/en/position/7620892797440379189/detail
+- **Start timing:** 2026
+- **Role family:** AI Engineer / Agentic AI
+- **Source:** ByteDance official careers API
+
+**Ease-adjusted score 8.00/10** - Relevance 10.0 | Internship clarity 10.0 | Competition ease 3.5 | Requirement ease 9.0 | U.S. stability 10.0
+
+**Competitiveness:** High
+
+**Why it matches Bobby:** Direct AI Engineer / agentic-AI fit through rag; Aligns with Bobby's math, economics, statistics, or risk background; Offers modeling, optimization, or experimentation work.
+
+**AI/agentic relevance:** Applied-AI adjacent.
+
+**Matched AI keywords:** rag
+
+**Pure SWE vs AI-focused:** Applied-AI adjacent.
+
+**Why it is Reach:** The role is relevant but carries higher popularity, research depth, or technical competition.
+
+**Potential concerns:** Advertised for 2026, not 2027.
+
+### [CIS/CS Internship](https://jobs.lever.co/crestoperations/234d5be4-a214-4568-a681-d60f15624488) - NEW / URGENT APPLY
+
+- **Company:** Crest Industries
 - **Company size/category:** Mid-size tech
 - **Size group:** Mid
-- **Source category:** Climate / energy / transportation analytics
+- **Source category:** Finance / risk analytics
 - **Application status:** New
-- **Tracker ID:** `job_bfb59d630b9d7b0540d34aad`
-- **Location:** San Mateo, California, United States, United States
+- **Tracker ID:** `job_e6c87ced7e3489cbc50eb84d`
+- **Location:** Pineville, Louisiana, United States
 - **Employment type:** Intern
-- **Start timing:** Fall 2026
+- **Application link:** https://jobs.lever.co/crestoperations/234d5be4-a214-4568-a681-d60f15624488
+- **Source link:** https://jobs.lever.co/crestoperations/234d5be4-a214-4568-a681-d60f15624488
+- **Start timing:** Flexible/unspecified
 - **Role family:** Other
-- **Source:** Ashby official job postings API
+- **Source:** Lever official postings API
 
-**Ease-adjusted score 7.40/10** - Relevance 7.0 | Internship clarity 10.0 | Competition ease 6.2 | Requirement ease 8.5 | U.S. stability 10.0
+**Ease-adjusted score 9.50/10** - Relevance 10.0 | Internship clarity 10.0 | Competition ease 7.0 | Requirement ease 9.0 | U.S. stability 10.0
 
 **Competitiveness:** Medium
 
-**Why it matches Bobby:** Uses Python, SQL, analytics, or data-driven decision making; Builds technical ML, data science, or software experience.
+**Why it matches Bobby:** Direct AI Engineer / agentic-AI fit through rag; Aligns with Bobby's math, economics, statistics, or risk background; Offers modeling, optimization, or experimentation work.
 
-**Why it is Target:** The internship balances strong relevance with a realistic undergraduate hiring bar.
+**AI/agentic relevance:** Applied-AI adjacent.
 
-**Main gap to prepare:** Advertised for 2026, not 2027.
+**Matched AI keywords:** rag
 
-### [Software Engineer Intern Fall 2026/Winter 2027](https://jobs.ashbyhq.com/skydio/f6320e9b-4eed-408d-8d37-d509fb0406ee) - NEW
+**Pure SWE vs AI-focused:** Applied-AI adjacent.
 
-- **Company:** Skydio
+**Why it is Reach:** The role is relevant but carries higher popularity, research depth, or technical competition.
+
+**Potential concerns:** Start date is not stated; verify Jan-Jun 2027.
+
+### [Software Engineer Intern (Fall 2026)](https://jobs.ashbyhq.com/notion/5b15697c-fa91-4511-9482-c98a6ff29f90) - NEW / URGENT APPLY
+
+- **Company:** Notion
 - **Company size/category:** Mid-size tech
 - **Size group:** Mid
-- **Source category:** Climate / energy / transportation analytics
+- **Source category:** SaaS / data infrastructure / ML platform startups
 - **Application status:** New
-- **Tracker ID:** `job_96cbadb753ab1b9905c4eba2`
-- **Location:** San Mateo, California, United States, United States
+- **Tracker ID:** `job_37dbb7e5d2f6ec6fb5800b56`
+- **Location:** San Francisco, California, United States
 - **Employment type:** Intern
+- **Application link:** https://jobs.ashbyhq.com/notion/5b15697c-fa91-4511-9482-c98a6ff29f90
+- **Source link:** https://jobs.ashbyhq.com/notion/5b15697c-fa91-4511-9482-c98a6ff29f90
 - **Start timing:** Winter 2026
 - **Role family:** Other
 - **Source:** Ashby official job postings API
 
-**Ease-adjusted score 7.40/10** - Relevance 7.0 | Internship clarity 10.0 | Competition ease 6.2 | Requirement ease 8.5 | U.S. stability 10.0
+**Ease-adjusted score 9.10/10** - Relevance 10.0 | Internship clarity 10.0 | Competition ease 6.2 | Requirement ease 9.0 | U.S. stability 10.0
 
 **Competitiveness:** Medium
 
-**Why it matches Bobby:** Uses Python, SQL, analytics, or data-driven decision making; Builds technical ML, data science, or software experience.
+**Why it matches Bobby:** Direct AI Engineer / agentic-AI fit through ai agent, ai agents, llm, rag; Uses Python, SQL, analytics, or data-driven decision making; Software engineering scope is connected to applied AI systems.
 
-**Why it is Target:** The internship balances strong relevance with a realistic undergraduate hiring bar.
+**AI/agentic relevance:** AI-focused.
 
-**Main gap to prepare:** Advertised for 2026, not 2027.
+**Matched AI keywords:** ai agent, ai agents, llm, rag, embeddings
+
+**Pure SWE vs AI-focused:** Potential pure SWE concern.
+
+**Why it is Reach:** The role is relevant but carries higher popularity, research depth, or technical competition.
+
+**Potential concerns:** Advertised for 2026, not 2027.
 
 ### [Software Engineer Internship, Android](https://jobs.ashbyhq.com/ramp/67fadb77-43d8-4449-954b-d4cf2c6d3b8b) - NEW / URGENT APPLY
 
@@ -236,122 +146,32 @@ Generated 2026-07-06 21:07 CST
 - **Size group:** Small
 - **Source category:** Quant finance / trading
 - **Application status:** New
-- **Tracker ID:** `job_84ec4b1e105e07808538ac50`
+- **Tracker ID:** `job_bd22ae0ddabbb1fbe9fb311a`
 - **Location:** New York, NY (HQ), United States
 - **Employment type:** Intern
+- **Application link:** https://jobs.ashbyhq.com/ramp/67fadb77-43d8-4449-954b-d4cf2c6d3b8b
+- **Source link:** https://jobs.ashbyhq.com/ramp/67fadb77-43d8-4449-954b-d4cf2c6d3b8b
 - **Start timing:** Fall 2026
 - **Role family:** Other
 - **Source:** Ashby official job postings API
 
-**Ease-adjusted score 8.90/10** - Relevance 9.5 | Internship clarity 10.0 | Competition ease 8.2 | Requirement ease 9.0 | U.S. stability 10.0
+**Ease-adjusted score 9.10/10** - Relevance 10.0 | Internship clarity 10.0 | Competition ease 8.2 | Requirement ease 9.0 | U.S. stability 10.0
 
 **Competitiveness:** Low
 
-**Why it matches Bobby:** Uses Python, SQL, analytics, or data-driven decision making; Aligns with Bobby's math, economics, statistics, or risk background; Builds technical ML, data science, or software experience.
+**Why it matches Bobby:** Applied AI adjacency that can connect Bobby's math/ML background to products; Uses Python, SQL, analytics, or data-driven decision making; Aligns with Bobby's math, economics, statistics, or risk background.
 
-**Why it is Target:** The internship balances strong relevance with a realistic undergraduate hiring bar.
+**AI/agentic relevance:** Applied-AI adjacent.
 
-**Main gap to prepare:** Advertised for 2026, not 2027.
+**Matched AI keywords:** rag
 
-## C. Safe Roles (5)
+**Pure SWE vs AI-focused:** Potential pure SWE concern.
 
-> Could not fill the planned Small slot without violating U.S.-internship or company-cap rules. Filled a missing size slot with the strongest remaining diverse U.S. internship.
+**Why it is Reach:** The role is relevant but carries higher popularity, research depth, or technical competition.
 
-### [Benefits Operation Data Analyst Project Intern - 2026 Start (BS/MS)](https://jobs.bytedance.com/en/position/7605524889478842677/detail) - NEW
+**Potential concerns:** Advertised for 2026, not 2027.
 
-- **Company:** ByteDance / TikTok
-- **Company size/category:** Big tech / famous lab
-- **Size group:** Large
-- **Source category:** Big tech / AI labs
-- **Application status:** New
-- **Tracker ID:** `job_028537efcaf2462285752c93`
-- **Location:** San Jose, United States of America
-- **Employment type:** Intern
-- **Start timing:** 2026
-- **Role family:** Quant / Risk
-- **Source:** ByteDance official careers API
-
-**Ease-adjusted score 7.00/10** - Relevance 9.0 | Internship clarity 10.0 | Competition ease 3.5 | Requirement ease 9.0 | U.S. stability 10.0
-
-**Competitiveness:** High
-
-**Why it matches Bobby:** Uses Python, SQL, analytics, or data-driven decision making; Aligns with Bobby's math, economics, statistics, or risk background; Offers modeling, optimization, or experimentation work.
-
-**Why it is Safe:** The internship has a clearer, lower-complexity path to interview while retaining useful analytics, risk, operations, or data experience.
-
-**Main gap to prepare:** Advertised for 2026, not 2027.
-
-### [Finance Internship](https://jobs.lever.co/crestoperations/a4e1fa07-80f5-4a7d-989e-b755a7ac7d7e) - NEW
-
-- **Company:** Crest Industries
-- **Company size/category:** Mid-size tech
-- **Size group:** Mid
-- **Source category:** Finance / risk analytics
-- **Application status:** New
-- **Tracker ID:** `job_2da0bddff71e3467b8f56855`
-- **Location:** Pineville, Louisiana, United States
-- **Employment type:** Intern
-- **Start timing:** Flexible/unspecified
-- **Role family:** Other
-- **Source:** Lever official postings API
-
-**Ease-adjusted score 7.40/10** - Relevance 6.0 | Internship clarity 10.0 | Competition ease 7.0 | Requirement ease 7.8 | U.S. stability 10.0
-
-**Competitiveness:** Medium
-
-**Why it matches Bobby:** Aligns with Bobby's math, economics, statistics, or risk background; Offers modeling, optimization, or experimentation work.
-
-**Why it is Safe:** The internship has a clearer, lower-complexity path to interview while retaining useful analytics, risk, operations, or data experience.
-
-**Main gap to prepare:** Start date is not stated; verify Jan-Jun 2027.
-
-### [Software Engineering Intern (Summer 2026)](https://jobs.ashbyhq.com/zettabyte-space/ec96b63a-e11c-4589-ab25-4f1779fb8759) - NEW / URGENT APPLY
-
-- **Company:** Zettabyte
-- **Company size/category:** Startup
-- **Size group:** Small
-- **Source category:** SaaS / data infrastructure / ML platform startups
-- **Application status:** New
-- **Tracker ID:** `job_1494a096b611ce89da0cfced`
-- **Location:** United States
-- **Employment type:** Intern
-- **Start timing:** Summer 2026
-- **Role family:** Other
-- **Source:** Ashby official job postings API
-
-**Ease-adjusted score 8.50/10** - Relevance 8.5 | Internship clarity 10.0 | Competition ease 8.2 | Requirement ease 7.5 | U.S. stability 10.0
-
-**Competitiveness:** Low
-
-**Why it matches Bobby:** Uses Python, SQL, analytics, or data-driven decision making; Builds technical ML, data science, or software experience.
-
-**Why it is Safe:** The internship has a clearer, lower-complexity path to interview while retaining useful analytics, risk, operations, or data experience.
-
-**Main gap to prepare:** Advanced production or systems experience may be a gap.
-
-### [Data Science Intern](https://boards.greenhouse.io/faire/jobs/8376377002?gh_jid=8376377002) - NEW
-
-- **Company:** Faire
-- **Company size/category:** Startup
-- **Size group:** Small
-- **Source category:** Smaller startups with ML/data/optimization roles
-- **Application status:** New
-- **Tracker ID:** `job_807bfa4299482df0f001ad11`
-- **Location:** San Francisco, CA, United States
-- **Employment type:** Internship
-- **Start timing:** Fall 2026
-- **Role family:** Data Science
-- **Source:** Greenhouse official job board API
-
-**Ease-adjusted score 7.80/10** - Relevance 7.5 | Internship clarity 10.0 | Competition ease 7.0 | Requirement ease 8.5 | U.S. stability 10.0
-
-**Competitiveness:** Medium
-
-**Why it matches Bobby:** Aligns with Bobby's math, economics, statistics, or risk background; Offers modeling, optimization, or experimentation work; Builds technical ML, data science, or software experience.
-
-**Why it is Safe:** The internship has a clearer, lower-complexity path to interview while retaining useful analytics, risk, operations, or data experience.
-
-**Main gap to prepare:** Advertised for 2026, not 2027.
+## B. Target Roles (5)
 
 ### [Forward Deployed Software Engineer, Internship - Commercial](https://jobs.lever.co/palantir/4d29249a-d7e8-4c39-880d-3b35d7b2f6f6) - NEW
 
@@ -360,77 +180,312 @@ Generated 2026-07-06 21:07 CST
 - **Size group:** Large
 - **Source category:** Government contractors / research labs / policy analytics
 - **Application status:** New
-- **Tracker ID:** `job_3f39159e791a72a16b9a4cf2`
+- **Tracker ID:** `job_7e372d79145e513fd132082a`
 - **Location:** New York, NY, United States
 - **Employment type:** Internship
+- **Application link:** https://jobs.lever.co/palantir/4d29249a-d7e8-4c39-880d-3b35d7b2f6f6
+- **Source link:** https://jobs.lever.co/palantir/4d29249a-d7e8-4c39-880d-3b35d7b2f6f6
 - **Start timing:** Spring 2027
 - **Role family:** Other
 - **Source:** Lever official postings API
 
-**Ease-adjusted score 6.80/10** - Relevance 10.0 | Internship clarity 10.0 | Competition ease 2.7 | Requirement ease 9.0 | U.S. stability 10.0
+**Ease-adjusted score 7.60/10** - Relevance 10.0 | Internship clarity 10.0 | Competition ease 2.7 | Requirement ease 9.0 | U.S. stability 10.0
 
 **Competitiveness:** High
 
-**Why it matches Bobby:** Uses Python, SQL, analytics, or data-driven decision making; Aligns with Bobby's math, economics, statistics, or risk background; Offers modeling, optimization, or experimentation work.
+**Why it matches Bobby:** Direct AI Engineer / agentic-AI fit through llm, rag; Uses Python, SQL, analytics, or data-driven decision making; Aligns with Bobby's math, economics, statistics, or risk background.
+
+**AI/agentic relevance:** Applied-AI adjacent.
+
+**Matched AI keywords:** llm, rag
+
+**Pure SWE vs AI-focused:** Potential pure SWE concern.
+
+**Why it is Target:** The internship balances strong relevance with a realistic undergraduate hiring bar.
+
+**Potential concerns:** Confirm project scope, mentorship, and interview expectations.
+
+### [Payment Partnership Project Intern (Global Payment) - 2026 Start (BS/MS)](https://jobs.bytedance.com/en/position/7642450978503641397/detail) - NEW
+
+- **Company:** ByteDance / TikTok
+- **Company size/category:** Big tech / famous lab
+- **Size group:** Large
+- **Source category:** Big tech / AI labs
+- **Application status:** New
+- **Tracker ID:** `job_d4bbba16c83b435c5b778408`
+- **Location:** San Jose, United States of America
+- **Employment type:** Intern
+- **Application link:** https://jobs.bytedance.com/en/position/7642450978503641397/detail
+- **Source link:** https://jobs.bytedance.com/en/position/7642450978503641397/detail
+- **Start timing:** 2026
+- **Role family:** AI Engineer / Agentic AI
+- **Source:** ByteDance official careers API
+
+**Ease-adjusted score 8.00/10** - Relevance 10.0 | Internship clarity 10.0 | Competition ease 3.5 | Requirement ease 9.0 | U.S. stability 10.0
+
+**Competitiveness:** High
+
+**Why it matches Bobby:** Direct AI Engineer / agentic-AI fit through rag; Uses Python, SQL, analytics, or data-driven decision making; Offers modeling, optimization, or experimentation work.
+
+**AI/agentic relevance:** Applied-AI adjacent.
+
+**Matched AI keywords:** rag
+
+**Pure SWE vs AI-focused:** Applied-AI adjacent.
+
+**Why it is Target:** The internship balances strong relevance with a realistic undergraduate hiring bar.
+
+**Potential concerns:** Advertised for 2026, not 2027.
+
+### [Technical Support Engineering Intern - Fall 2026](https://job-boards.greenhouse.io/verkada/jobs/5017082007) - NEW
+
+- **Company:** Verkada
+- **Company size/category:** Mid-size tech
+- **Size group:** Mid
+- **Source category:** Smaller startups with ML/data/optimization roles
+- **Application status:** New
+- **Tracker ID:** `job_ecdb3fc3bb766a80092f4479`
+- **Location:** San Mateo, CA United States, United States
+- **Employment type:** Internship
+- **Application link:** https://job-boards.greenhouse.io/verkada/jobs/5017082007
+- **Source link:** https://job-boards.greenhouse.io/verkada/jobs/5017082007
+- **Start timing:** Fall 2026
+- **Role family:** Other
+- **Source:** Greenhouse official job board API
+
+**Ease-adjusted score 7.90/10** - Relevance 5.5 | Internship clarity 10.0 | Competition ease 7.0 | Requirement ease 9.0 | U.S. stability 10.0
+
+**Competitiveness:** Medium
+
+**Why it matches Bobby:** Direct AI Engineer / agentic-AI fit through agentic.
+
+**AI/agentic relevance:** Applied-AI adjacent.
+
+**Matched AI keywords:** agentic
+
+**Pure SWE vs AI-focused:** Applied-AI adjacent.
+
+**Why it is Target:** The internship balances strong relevance with a realistic undergraduate hiring bar.
+
+**Potential concerns:** Advertised for 2026, not 2027.
+
+### [Finance Internship](https://jobs.lever.co/crestoperations/a4e1fa07-80f5-4a7d-989e-b755a7ac7d7e) - NEW / URGENT APPLY
+
+- **Company:** Crest Industries
+- **Company size/category:** Mid-size tech
+- **Size group:** Mid
+- **Source category:** Finance / risk analytics
+- **Application status:** New
+- **Tracker ID:** `job_33b853b3010c55def5aa04db`
+- **Location:** Pineville, Louisiana, United States
+- **Employment type:** Intern
+- **Application link:** https://jobs.lever.co/crestoperations/a4e1fa07-80f5-4a7d-989e-b755a7ac7d7e
+- **Source link:** https://jobs.lever.co/crestoperations/a4e1fa07-80f5-4a7d-989e-b755a7ac7d7e
+- **Start timing:** Flexible/unspecified
+- **Role family:** Other
+- **Source:** Lever official postings API
+
+**Ease-adjusted score 9.40/10** - Relevance 10.0 | Internship clarity 10.0 | Competition ease 7.0 | Requirement ease 7.8 | U.S. stability 10.0
+
+**Competitiveness:** Medium
+
+**Why it matches Bobby:** Direct AI Engineer / agentic-AI fit through rag; Aligns with Bobby's math, economics, statistics, or risk background; Offers modeling, optimization, or experimentation work.
+
+**AI/agentic relevance:** Applied-AI adjacent.
+
+**Matched AI keywords:** rag
+
+**Pure SWE vs AI-focused:** Applied-AI adjacent.
+
+**Why it is Target:** The internship balances strong relevance with a realistic undergraduate hiring bar.
+
+**Potential concerns:** Start date is not stated; verify Jan-Jun 2027.
+
+### [Software Engineering Intern (Summer 2026)](https://jobs.ashbyhq.com/zettabyte-space/ec96b63a-e11c-4589-ab25-4f1779fb8759) - NEW / URGENT APPLY
+
+- **Company:** Zettabyte
+- **Company size/category:** Startup
+- **Size group:** Small
+- **Source category:** SaaS / data infrastructure / ML platform startups
+- **Application status:** New
+- **Tracker ID:** `job_fb5e9f012c27404249928980`
+- **Location:** United States
+- **Employment type:** Intern
+- **Application link:** https://jobs.ashbyhq.com/zettabyte-space/ec96b63a-e11c-4589-ab25-4f1779fb8759
+- **Source link:** https://jobs.ashbyhq.com/zettabyte-space/ec96b63a-e11c-4589-ab25-4f1779fb8759
+- **Start timing:** Summer 2026
+- **Role family:** Other
+- **Source:** Ashby official job postings API
+
+**Ease-adjusted score 8.60/10** - Relevance 9.0 | Internship clarity 10.0 | Competition ease 8.2 | Requirement ease 7.5 | U.S. stability 10.0
+
+**Competitiveness:** Low
+
+**Why it matches Bobby:** Applied AI adjacency that can connect Bobby's math/ML background to products; Uses Python, SQL, analytics, or data-driven decision making; Builds technical ML, data science, or software experience.
+
+**AI/agentic relevance:** Applied-AI adjacent.
+
+**Matched AI keywords:** rag
+
+**Pure SWE vs AI-focused:** Potential pure SWE concern.
+
+**Why it is Target:** The internship balances strong relevance with a realistic undergraduate hiring bar.
+
+**Potential concerns:** Advanced production or systems experience may be a gap; Advertised for 2026, not 2027.
+
+## C. Safe Roles (3)
+
+> Could not fill the planned Mid slot without violating U.S.-internship or company-cap rules. Could not fill the planned Small slot without violating U.S.-internship or company-cap rules. Could not fill the planned Small slot without violating U.S.-internship or company-cap rules. Could not fill the planned Small slot without violating U.S.-internship or company-cap rules. Filled a missing size slot with the strongest remaining diverse U.S. internship. Filled a missing size slot with the strongest remaining diverse U.S. internship. Only 3 qualifying roles were available; 2 slot(s) remain unfilled rather than violating hard filters.
+
+### [Technical Advisor Specialist (Part-Time Internship)](https://job-boards.greenhouse.io/scaleai/jobs/4611533005) - NEW
+
+- **Company:** Scale AI
+- **Company size/category:** Big tech / famous lab
+- **Size group:** Large
+- **Source category:** SaaS / data infrastructure / ML platform startups
+- **Application status:** New
+- **Tracker ID:** `job_0e6afaa62fa9ae0bde57396c`
+- **Location:** San Francisco, CA, United States
+- **Employment type:** Internship
+- **Application link:** https://job-boards.greenhouse.io/scaleai/jobs/4611533005
+- **Source link:** https://job-boards.greenhouse.io/scaleai/jobs/4611533005
+- **Start timing:** Summer
+- **Role family:** Other
+- **Source:** Greenhouse official job board API
+
+**Ease-adjusted score 6.40/10** - Relevance 5.5 | Internship clarity 10.0 | Competition ease 3.5 | Requirement ease 9.0 | U.S. stability 10.0
+
+**Competitiveness:** High
+
+**Why it matches Bobby:** Direct AI Engineer / agentic-AI fit through generative ai, rag, ai solutions.
+
+**AI/agentic relevance:** AI-focused.
+
+**Matched AI keywords:** generative ai, rag, ai solutions
+
+**Pure SWE vs AI-focused:** AI-focused.
 
 **Why it is Safe:** The internship has a clearer, lower-complexity path to interview while retaining useful analytics, risk, operations, or data experience.
 
-**Main gap to prepare:** Confirm project scope, mentorship, and interview expectations.
+**Potential concerns:** Start date is not stated; verify Jan-Jun 2027.
+
+### [Forward Deployed Software Engineer, Internship - Commercial](https://jobs.lever.co/palantir/d5486403-c050-4920-b2e0-91b69b61ebb2) - NEW
+
+- **Company:** Palantir
+- **Company size/category:** Big tech / famous lab
+- **Size group:** Large
+- **Source category:** Government contractors / research labs / policy analytics
+- **Application status:** New
+- **Tracker ID:** `job_56ea618c1b249645c6013853`
+- **Location:** Chicago, IL, United States
+- **Employment type:** Internship
+- **Application link:** https://jobs.lever.co/palantir/d5486403-c050-4920-b2e0-91b69b61ebb2
+- **Source link:** https://jobs.lever.co/palantir/d5486403-c050-4920-b2e0-91b69b61ebb2
+- **Start timing:** Spring 2027
+- **Role family:** Other
+- **Source:** Lever official postings API
+
+**Ease-adjusted score 7.60/10** - Relevance 10.0 | Internship clarity 10.0 | Competition ease 2.7 | Requirement ease 9.0 | U.S. stability 10.0
+
+**Competitiveness:** High
+
+**Why it matches Bobby:** Direct AI Engineer / agentic-AI fit through llm, rag; Uses Python, SQL, analytics, or data-driven decision making; Aligns with Bobby's math, economics, statistics, or risk background.
+
+**AI/agentic relevance:** Applied-AI adjacent.
+
+**Matched AI keywords:** llm, rag
+
+**Pure SWE vs AI-focused:** Potential pure SWE concern.
+
+**Why it is Safe:** The internship has a clearer, lower-complexity path to interview while retaining useful analytics, risk, operations, or data experience.
+
+**Potential concerns:** Confirm project scope, mentorship, and interview expectations.
+
+### [2027 Manufacturing Engineer Intern](https://boards.greenhouse.io/andurilindustries/jobs/5153218007?gh_jid=5153218007) - NEW
+
+- **Company:** Anduril
+- **Company size/category:** Big tech / famous lab
+- **Size group:** Large
+- **Source category:** Government contractors / research labs / policy analytics
+- **Application status:** New
+- **Tracker ID:** `job_c87955451ae5df2e078f55fd`
+- **Location:** Atlanta, Georgia, United States; Boston, Massachusetts, United States; Costa Mesa, California, United States; Irvine, California, United States; Seattle, Washington, United States, United States
+- **Employment type:** Internship
+- **Application link:** https://boards.greenhouse.io/andurilindustries/jobs/5153218007?gh_jid=5153218007
+- **Source link:** https://boards.greenhouse.io/andurilindustries/jobs/5153218007?gh_jid=5153218007
+- **Start timing:** Summer 2027
+- **Role family:** Other
+- **Source:** Greenhouse official job board API
+
+**Ease-adjusted score 7.30/10** - Relevance 8.0 | Internship clarity 10.0 | Competition ease 3.5 | Requirement ease 9.0 | U.S. stability 10.0
+
+**Competitiveness:** High
+
+**Why it matches Bobby:** Direct AI Engineer / agentic-AI fit through rag; Aligns with Bobby's math, economics, statistics, or risk background.
+
+**AI/agentic relevance:** Applied-AI adjacent.
+
+**Matched AI keywords:** rag
+
+**Pure SWE vs AI-focused:** Applied-AI adjacent.
+
+**Why it is Safe:** The internship has a clearer, lower-complexity path to interview while retaining useful analytics, risk, operations, or data experience.
+
+**Potential concerns:** Confirm Summer 2027 ends before graduate school.
 
 ## D. Rejected But Interesting
 
 ### [MBA Intern - AI Ops Transformation](https://careers.toasttab.com/jobs?gh_jid=7909139)
 
-Toast - Boston, MA, United States - **Ease-adjusted score 8.00/10** - Relevance 7.5 | Internship clarity 10.0 | Competition ease 7.0 | Requirement ease 9.0 | U.S. stability 10.0
+Toast - Boston, MA, United States - **Ease-adjusted score 9.50/10** - Relevance 10.0 | Internship clarity 10.0 | Competition ease 7.0 | Requirement ease 9.0 | U.S. stability 10.0
 
 **Rejection reason:** Internship is restricted to MBA or doctoral candidates.
 
 ### [Machine Learning Engineer, PhD Intern (Fall)](https://instacart.careers/job/?gh_jid=5917202)
 
-Instacart - United States - Remote, United States - **Ease-adjusted score 7.80/10** - Relevance 10.0 | Internship clarity 10.0 | Competition ease 7.0 | Requirement ease 3.0 | U.S. stability 9.0
+Instacart - United States - Remote, United States - **Ease-adjusted score 8.70/10** - Relevance 10.0 | Internship clarity 10.0 | Competition ease 7.0 | Requirement ease 3.0 | U.S. stability 9.0
 
 **Rejection reason:** Internship is restricted to MBA or doctoral candidates.
 
-### [Machine Learning PhD Intern, Economics (Fall)](https://instacart.careers/job/?gh_jid=7532267)
+### [Accounting Internship](https://jobs.lever.co/crestoperations/0c3cb17a-06f9-43aa-a623-c3588544f606)
 
-Instacart - United States - Remote, United States - **Ease-adjusted score 6.80/10** - Relevance 10.0 | Internship clarity 10.0 | Competition ease 5.0 | Requirement ease 3.0 | U.S. stability 9.0
+Crest Industries - Pineville, Louisiana, United States - **Ease-adjusted score 8.70/10** - Relevance 7.5 | Internship clarity 10.0 | Competition ease 7.0 | Requirement ease 9.0 | U.S. stability 10.0
 
-**Rejection reason:** Internship is restricted to MBA or doctoral candidates.
+**Rejection reason:** Start date is not stated; verify Jan-Jun 2027.
 
-### [Forward Deployed Software Engineer, Internship - Commercial](https://jobs.lever.co/palantir/d5486403-c050-4920-b2e0-91b69b61ebb2)
+### [Internships - All Disciplines](https://jobs.lever.co/crestoperations/9afdac38-29ca-40be-8bd3-314869633cad)
 
-Palantir - Chicago, IL, United States - **Ease-adjusted score 6.80/10** - Relevance 10.0 | Internship clarity 10.0 | Competition ease 2.7 | Requirement ease 9.0 | U.S. stability 10.0
+Crest Industries - Pineville, Louisiana, United States - **Ease-adjusted score 8.60/10** - Relevance 8.0 | Internship clarity 9.0 | Competition ease 7.0 | Requirement ease 9.0 | U.S. stability 10.0
 
-**Rejection reason:** Confirm project scope, mentorship, and interview expectations.
+**Rejection reason:** Start date is not stated; verify Jan-Jun 2027.
 
-### [Forward Deployed Software Engineer, Internship - France](https://jobs.lever.co/palantir/ac0dc094-2480-43c2-8495-26ade227ff4f)
+### [Security Engineering Project Intern (Watermark) - 2026 Start (BS/MS)](https://jobs.bytedance.com/en/position/7625759034518128901/detail)
 
-Palantir - New York, NY, United States - **Ease-adjusted score 6.80/10** - Relevance 10.0 | Internship clarity 10.0 | Competition ease 2.7 | Requirement ease 9.0 | U.S. stability 10.0
+ByteDance / TikTok - San Jose, United States of America - **Ease-adjusted score 8.00/10** - Relevance 10.0 | Internship clarity 10.0 | Competition ease 3.5 | Requirement ease 9.0 | U.S. stability 10.0
 
 **Rejection reason:** Advertised for 2026, not 2027.
 
-### [Forward Deployed Software Engineer, Internship - Poland](https://jobs.lever.co/palantir/d582cd84-14fd-4aa3-b413-15982d286bd9)
+### [Machine Learning Engineer Intern (E-Commerce Knowledge Graph - CV/Multimodal/NLP) - 2026 Summer (BS/MS)](https://jobs.bytedance.com/en/position/7543005612200970503/detail)
 
-Palantir - New York, NY, United States - **Ease-adjusted score 6.80/10** - Relevance 10.0 | Internship clarity 10.0 | Competition ease 2.7 | Requirement ease 9.0 | U.S. stability 10.0
+ByteDance / TikTok - Seattle, United States of America - **Ease-adjusted score 8.00/10** - Relevance 10.0 | Internship clarity 10.0 | Competition ease 3.5 | Requirement ease 9.0 | U.S. stability 10.0
 
-**Rejection reason:** Advertised for 2025, not 2027.
+**Rejection reason:** Advertised for 2026, not 2027.
 
-### [Forward Deployed Software Engineer, Internship - US Government](https://jobs.lever.co/palantir/315f695d-04d1-4a9a-848e-cb2bec7a997e)
+### [Machine Learning Engineer Intern (E-commerce Governance Algorithms) - 2026 Summer (BS/MS)](https://jobs.bytedance.com/en/position/7535168003103033618/detail)
 
-Palantir - Honolulu, HI, United States - **Ease-adjusted score 6.80/10** - Relevance 10.0 | Internship clarity 10.0 | Competition ease 2.7 | Requirement ease 9.0 | U.S. stability 10.0
+ByteDance / TikTok - Seattle, United States of America - **Ease-adjusted score 8.00/10** - Relevance 10.0 | Internship clarity 10.0 | Competition ease 3.5 | Requirement ease 9.0 | U.S. stability 10.0
 
-**Rejection reason:** Confirm project scope, mentorship, and interview expectations.
+**Rejection reason:** Advertised for 2026, not 2027.
 
-### [Forward Deployed Software Engineer, Internship - US Government](https://jobs.lever.co/palantir/e0010393-c300-446f-bf67-fa2ef067f16f)
+### [Software Engineer Project Intern (Security-Data) - 2026 Start (BS/MS)](https://jobs.bytedance.com/en/position/7616874229010647349/detail)
 
-Palantir - New York, NY, United States - **Ease-adjusted score 6.80/10** - Relevance 10.0 | Internship clarity 10.0 | Competition ease 2.7 | Requirement ease 9.0 | U.S. stability 10.0
+ByteDance / TikTok - San Jose, United States of America - **Ease-adjusted score 7.60/10** - Relevance 10.0 | Internship clarity 10.0 | Competition ease 2.7 | Requirement ease 9.0 | U.S. stability 10.0
 
-**Rejection reason:** Advertised for 2028, not 2027.
+**Rejection reason:** Advertised for 2026, not 2027.
 
 ## E. Strategy Advice
 
 - Keep SQL interview-ready, especially joins, windows, experiment analysis, and metric design.
-- Practice experiment design, statistical inference, and communicating uncertainty in business terms.
 - Build one production-flavored project with a data pipeline, cloud deployment, evaluation layer, and documented tradeoffs.
 - **Do not only apply to Reach roles. Prioritize 5–8 Target/Safe applications per Reach application.**
 
@@ -438,6 +493,26 @@ Palantir - New York, NY, United States - **Ease-adjusted score 6.80/10** - Relev
 
 13 source(s) failed without stopping the report. Review the GitHub Actions log for company-level details.
 
+## Daily Self-Improvement Log
+
+- **Excluded from history/applied/rejected/not interested:** 6
+- **Excluded as likely duplicate of inactive history:** 6
+- **Excluded as pure SWE without AI-agentic scope:** 3
+- **Excluded as full-time/non-internship:** 4930
+- **Excluded as outside the U.S.:** 2825
+
+**User rejection reasons collected:**
+
+- No manual rejection reasons recorded yet.
+
+**Suggested ranking/filter improvements:**
+
+- Keep prioritizing explicit AI Engineer / agentic AI internships.
+
+**Prompt for Codex improvement:**
+
+> Update JobFinder ranking using these rejection patterns: no new rejection reasons yet. Preserve hard filters for U.S. internships and suppress Applied, Rejected, and Not Interested roles.
+
 ## Method
 
-Ease-adjusted score = relevance 30% + internship clarity 20% + competition ease 20% + requirement ease 15% + U.S. stability 10% + practical value 5%, minus popularity penalties. Final selection then applies a two-role company cap and large/mid/startup mix targets.
+Ease-adjusted score = AI/agentic relevance 34% + internship clarity 20% + competition ease 20% + requirement ease 13% + U.S. stability 8% + practical value 5%, minus popularity penalties. Final selection then applies a two-role company cap, history suppression, and large/mid/startup mix targets. Weak or duplicate roles are left unfilled instead of forcing 15 recommendations.

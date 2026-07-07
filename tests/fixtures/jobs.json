@@ -1,8 +1,8 @@
 [
   {
     "id": "ml-intern-1",
-    "title": "Machine Learning Research Intern - 2027 Start",
-    "description": "Run experiments on recommendation models and optimization methods using large-scale data.",
+    "title": "AI Agent Engineer Intern - 2027 Start",
+    "description": "Build LLM agents with RAG, embeddings, tool calling, OpenAI API integrations, workflow automation, and model evaluation.",
     "requirement": "Current undergraduate or graduate student. Strong Python, probability, linear algebra, and PyTorch preferred.",
     "recruit_type": {"en_name": "Intern"},
     "job_category": {"en_name": "R&D"},
@@ -45,4 +45,3 @@
     "job_post_info": {}
   }
 ]
-

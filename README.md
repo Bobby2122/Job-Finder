@@ -54,12 +54,15 @@ analytics, finance/market data, logistics/OR, and research-oriented companies.
 
 Hard filters run before ranking in this order:
 
+- AI Engineer classifier: AI-focused title, or multiple AI-engineering signals
+  plus system-building responsibility language
 - explicit U.S. location, including U.S.-remote roles
 - explicit internship employment or title
+- Spring 2027, Jan-Jun 2027, or Summer 2027 timing; 2026 seasons are blocked
 - no full-time, new-grad, or ambiguous employment
 - no senior-only, irrelevant marketing/sales, or pure SWE roles without AI scope
-- no Applied, Rejected, Not Interested, dismissed, or likely duplicate inactive
-  jobs from `data/applications.json`
+- no Applied, Rejected, Not Interested, dismissed, previously recommended, or
+  likely duplicate jobs from `data/applications.json`
 
 Eligible roles receive an ease-adjusted score:
 
@@ -87,9 +90,10 @@ Profile constraints and tie-breakers live in `config/profile.json`.
 
 Each selected recommendation is persisted in `data/applications.json` using a
 stable hash of normalized company, title, location, and application URL. URLs
-drop tracking parameters, and future runs also suppress likely duplicate
-inactive records using normalized identity plus similar title matching. Start the
-local tracker after running the recommendation agent:
+drop tracking parameters, and future runs suppress exact URL repeats,
+company/title/location matches, similar-title duplicates, and jobs already shown
+in previous reports. Start the local tracker after running the recommendation
+agent:
 
 ```bash
 PYTHONPATH=src python3 -m jobfinder run
@@ -107,8 +111,9 @@ recommendation.
 The application button routes through the local tracker and changes only New
 to Viewed. It never infers Started or Applied. Those outcomes remain manual.
 Applied, Rejected, and Not Interested roles are excluded from later
-recommendations; pass `--show-history` to `jobfinder run` to include them.
-Viewed jobs remain eligible with a ranking penalty.
+recommendations. Previously recommended jobs are also excluded from the default
+daily push so stale or repeated jobs do not fill empty slots. Pass
+`--show-history` to `jobfinder run` to include tracked history.
 
 Manual entries are respected the same way as crawler-discovered roles. Add a
 job as Applied, Rejected, or Not Interested if you handled it elsewhere; future

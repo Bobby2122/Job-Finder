@@ -256,10 +256,12 @@ function card(job) {
   for (const [label, value] of [
     ["Why recommended", job.why_recommended || "Manual entry or no recommendation text stored yet."],
     ["AI/agentic relevance", job.ai_relevance || "Not recorded"],
+    ["AI Engineer classifier", `${job.ai_engineer ? "Passed" : "Not passed"}${job.ai_classification_reason ? " — " + job.ai_classification_reason : ""}`],
     ["Matched keywords", keywordText],
     ["Concerns", concerns || "None recorded"],
     ["Pure SWE vs AI-focused", job.pure_swe_signal ? "Potential pure SWE concern" : (job.ai_relevance || "Not recorded")],
-    ["Source", job.source || "Unknown"]
+    ["Source", job.source || "Unknown"],
+    ["Status updated", job.status_updated_at || job.updated_at || "Not recorded"]
   ]) {
     const p = document.createElement("p");
     p.innerHTML = `<strong>${label}:</strong> `;

@@ -30,10 +30,13 @@ class BucketSelection:
 @dataclass(frozen=True)
 class CorrectionLog:
     history_excluded: int = 0
+    inactive_history_excluded: int = 0
     duplicate_history_excluded: int = 0
     pure_swe_excluded: int = 0
+    not_ai_engineer_excluded: int = 0
     full_time_excluded: int = 0
     non_us_excluded: int = 0
+    wrong_date_excluded: int = 0
     rejection_reasons: tuple[str, ...] = ()
     suggestions: tuple[str, ...] = ()
 
@@ -251,6 +254,8 @@ def _job_block(item: ScoredJob, bucket: str, urgent_threshold: float) -> list[st
         "",
         f"**AI/agentic relevance:** {score.ai_focus}.",
         "",
+        f"**AI Engineer classifier:** {'Passed' if score.ai_engineer else 'Failed'} - {score.ai_classification_reason}.",
+        "",
         "**Matched AI keywords:** "
         + (", ".join(score.ai_keywords) if score.ai_keywords else "None explicit; verify scope."),
         "",
@@ -411,9 +416,11 @@ def build_report(
             [
                 "## Daily Self-Improvement Log",
                 "",
-                f"- **Excluded from history/applied/rejected/not interested:** {correction_log.history_excluded}",
-                f"- **Excluded as likely duplicate of inactive history:** {correction_log.duplicate_history_excluded}",
+                f"- **Excluded because already applied/rejected/not interested:** {correction_log.inactive_history_excluded}",
+                f"- **Excluded because duplicate or seen in a previous report:** {correction_log.duplicate_history_excluded}",
                 f"- **Excluded as pure SWE without AI-agentic scope:** {correction_log.pure_swe_excluded}",
+                f"- **Excluded because not AI Engineer / Agentic AI:** {correction_log.not_ai_engineer_excluded}",
+                f"- **Excluded because wrong internship date:** {correction_log.wrong_date_excluded}",
                 f"- **Excluded as full-time/non-internship:** {correction_log.full_time_excluded}",
                 f"- **Excluded as outside the U.S.:** {correction_log.non_us_excluded}",
                 "",

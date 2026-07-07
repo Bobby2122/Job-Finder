@@ -125,6 +125,30 @@ class TrackerTests(unittest.TestCase):
         self.assertIn("- **Roles selected:** 1", history_report)
         self.assertIn("- **Application status:** Applied", history_report)
 
+    def test_pipeline_suppresses_previous_report_recommendation(self):
+        from jobfinder.cli import run
+
+        config = ROOT / "config/profile.json"
+        fixture = ROOT / "tests/fixtures/jobs.json"
+        with tempfile.TemporaryDirectory() as directory:
+            run_root = Path(directory)
+            with patch("jobfinder.cli.ROOT", run_root):
+                with patch(
+                    "jobfinder.cli.send_discord_notification",
+                    return_value=True,
+                ):
+                    self.assertEqual(run(config, fixture, dry_run=False), 0)
+                    self.assertEqual(run(config, fixture, dry_run=False), 0)
+                    report = (
+                        run_root / "reports/latest.md"
+                    ).read_text(encoding="utf-8")
+
+        self.assertIn("- **Roles selected:** 0", report)
+        self.assertIn(
+            "- **Excluded because duplicate or seen in a previous report:** 1",
+            report,
+        )
+
     def test_viewed_status_is_preserved_when_job_is_seen_again(self):
         with tempfile.TemporaryDirectory() as directory:
             tracker = ApplicationTracker(Path(directory) / "applications.json")

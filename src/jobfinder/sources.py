@@ -20,6 +20,7 @@ from .models import (
     normalize_job_title,
     normalize_location_name,
 )
+from .scoring import classify_ai_engineer
 
 
 class SourceError(RuntimeError):
@@ -35,8 +36,20 @@ def _plain_text(value: str | None) -> str:
 
 def _role_family(title: str, text: str = "") -> str:
     value = f"{title} {text}".lower()
+    probe = Role.normalized(
+        id="role-family-probe",
+        company="",
+        title=title,
+        location="",
+        employment_type="Internship",
+        url="",
+        source="",
+        description=text,
+        requirements=text,
+    )
+    if classify_ai_engineer(probe).is_ai_engineer:
+        return "AI Engineer / Agentic AI"
     families = (
-        ("AI Engineer / Agentic AI", ("ai engineer", "agentic", "ai agent", "llm", "generative ai", "rag", "prompt engineering", "workflow automation")),
         ("Machine Learning / AI", ("machine learning", "artificial intelligence", " ai ", "ml engineer")),
         ("Data Science", ("data scientist", "data science", "decision scientist")),
         ("Quant / Risk", ("quant", "risk", "actuari", "market data")),

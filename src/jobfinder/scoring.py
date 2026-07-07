@@ -1,39 +1,78 @@
 from __future__ import annotations
 
 import re
+from dataclasses import dataclass
 from typing import Any, Iterable
 
 from .models import Job, Score
 
 
-AI_ENGINEER_KEYWORDS = (
+AI_TITLE_TERMS = (
     "ai engineer",
     "applied ai engineer",
+    "llm engineer",
+    "agent engineer",
     "agentic",
-    "ai agent",
-    "ai agents",
+    "agentic ai engineer",
+    "generative ai engineer",
+    "ai automation engineer",
+    "ai solutions engineer",
+    "ai product engineer",
+    "research engineer",
+)
+
+AI_ENGINEERING_SIGNALS = (
     "llm",
     "large language model",
-    "generative ai",
-    "genai",
+    "rag",
+    "retrieval augmented",
+    "embeddings",
+    "vector database",
     "langchain",
     "autogen",
     "crewai",
-    "n8n",
-    "zapier",
+    "openai api",
+    "anthropic api",
+    "fine tuning",
+    "fine-tuning",
+    "model evaluation",
+    "ai agent",
+    "ai agents",
+    "agentic",
+    "ai workflow automation",
     "workflow automation",
-    "rag",
-    "retrieval augmented",
-    "vector database",
-    "embeddings",
-    "prompt engineering",
     "tool calling",
     "function calling",
+    "prompt engineering",
+)
+
+AI_SYSTEM_BUILDING_TERMS = (
+    "build",
+    "building",
+    "develop",
+    "design",
+    "implement",
+    "ship",
+    "prototype",
+    "deploy",
+    "evaluate",
+    "integrate",
+    "automate",
+    "productionize",
+    "own",
+)
+
+AI_ENGINEER_KEYWORDS = (
+    *AI_TITLE_TERMS,
+    *AI_ENGINEERING_SIGNALS,
+    "generative ai",
+    "genai",
+    "n8n",
+    "zapier",
     "ai automation",
-    "openai api",
+    "openai",
     "anthropic",
     "hugging face",
-    "model evaluation",
     "applied ai",
     "ai product",
     "ai platform",
@@ -53,7 +92,21 @@ PURE_SWE_TERMS = (
     "infrastructure",
     "general software engineer",
     "software engineer intern",
+    "forward deployed software engineer",
+    "technical support engineer",
+    "support engineering",
+    "electrical engineer",
+    "android",
 )
+
+
+@dataclass(frozen=True)
+class AIEngineerClassification:
+    is_ai_engineer: bool
+    focus: str
+    keywords: tuple[str, ...]
+    reason: str
+    pure_swe_signal: bool = False
 
 
 def _contains(text: str, terms: Iterable[str]) -> bool:
@@ -62,6 +115,10 @@ def _contains(text: str, terms: Iterable[str]) -> bool:
 
 def _clamp(value: float) -> float:
     return round(max(0.0, min(10.0, value)), 1)
+
+
+def _unique_matches(text: str, terms: Iterable[str]) -> tuple[str, ...]:
+    return tuple(dict.fromkeys(term for term in terms if term in text))
 
 
 def _years_required(text: str) -> int:
@@ -196,23 +253,38 @@ def _timing_fit(job: Job, profile: dict[str, Any]) -> tuple[float, str]:
     return 7.0, "Start date is not stated; verify Jan-Jun 2027"
 
 
+def is_target_timing(job: Job, profile: dict[str, Any]) -> bool:
+    timing_fit, _concern = _timing_fit(job, profile)
+    return timing_fit >= 7.0
+
+
+def is_pure_swe_title(job: Job) -> bool:
+    title = job.title.lower()
+    return _contains(title, PURE_SWE_TERMS) or (
+        _contains(
+            title,
+            (
+                "software engineer",
+                "backend engineer",
+                "frontend engineer",
+                "android engineer",
+                "ios engineer",
+                "mobile engineer",
+            ),
+        )
+        and not _contains(title, AI_TITLE_TERMS)
+    )
+
+
 def _relevance(job: Job) -> tuple[float, list[str]]:
     text = job.text
     title = job.title.lower()
     score = 1.0
     reasons: list[str] = []
-    ai_score, ai_keywords, ai_focus, pure_swe_signal = _ai_focus(job)
-    if ai_score >= 7.0:
-        score += 4.5
-        reasons.append(
-            "Direct AI Engineer / agentic-AI fit through "
-            + ", ".join(ai_keywords[:4])
-        )
-    elif ai_score >= 4.0:
-        score += 2.5
-        reasons.append(
-            "Applied AI adjacency that can connect Bobby's math/ML background to products"
-        )
+    classification = classify_ai_engineer(job)
+    if classification.is_ai_engineer:
+        score += 5.5
+        reasons.append(classification.reason)
     if _contains(
         text,
         (
@@ -277,12 +349,12 @@ def _relevance(job: Job) -> tuple[float, list[str]]:
             "data engineer",
         ),
     ):
-        if ai_score >= 4.0:
+        if classification.is_ai_engineer:
             score += 1.5
             reasons.append(
                 "Software engineering scope is connected to applied AI systems"
             )
-        elif pure_swe_signal:
+        elif classification.pure_swe_signal:
             score -= 2.0
     if _contains(
         title,
@@ -297,26 +369,100 @@ def _relevance(job: Job) -> tuple[float, list[str]]:
     return _clamp(score), reasons
 
 
-def _ai_focus(job: Job) -> tuple[float, tuple[str, ...], str, bool]:
+def classify_ai_engineer(job: Job) -> AIEngineerClassification:
+    """Strict AI Engineer classifier used before ranking.
+
+    A single AI token, especially a generic occurrence such as "RAG", is not
+    enough. The title must be AI-engineering focused, or the description must
+    contain multiple AI-engineering signals plus responsibility language that
+    indicates building AI systems.
+    """
     text = job.text
     title = job.title.lower()
-    matched = tuple(
-        term
-        for term in AI_ENGINEER_KEYWORDS
-        if term in text or term in title
+    title_matches = _unique_matches(title, AI_TITLE_TERMS)
+    signal_matches = _unique_matches(text, AI_ENGINEERING_SIGNALS)
+    building_matches = _unique_matches(text, AI_SYSTEM_BUILDING_TERMS)
+    pure_swe_signal = is_pure_swe_title(job)
+    unrelated_title = _contains(
+        title,
+        (
+            "project management",
+            "technical support",
+            "support engineering",
+            "electrical engineer",
+            "android",
+            "facilities",
+            "payment partnership",
+            "operations intern",
+        ),
     )
-    pure_swe_signal = bool(_contains(f"{title} {text}", PURE_SWE_TERMS))
-    if matched:
-        base = 7.0 + min(3.0, 0.6 * len(matched))
-        if any(term in title for term in ("ai engineer", "llm", "agentic", "ai agent")):
-            base += 0.8
-        if pure_swe_signal:
-            base -= 1.2
-        focus = "AI-focused" if base >= 8.0 else "Applied-AI adjacent"
-        return _clamp(base), matched[:8], focus, pure_swe_signal
-    if _contains(text, ("machine learning", "pytorch", "tensorflow", "modeling")):
-        return 4.0, tuple(), "ML/data adjacent, but not clearly agentic-AI", pure_swe_signal
-    return 1.0, tuple(), "Not clearly AI-focused", pure_swe_signal
+    if title_matches and not unrelated_title:
+        reason = (
+            "AI Engineer title match: "
+            + ", ".join(title_matches[:3])
+        )
+        return AIEngineerClassification(
+            True,
+            "AI Engineer / Agentic AI",
+            tuple(dict.fromkeys((*title_matches, *signal_matches)))[:8],
+            reason,
+            pure_swe_signal,
+        )
+    if len(signal_matches) >= 2 and building_matches and not unrelated_title:
+        reason = (
+            "Multiple AI-engineering signals with system-building responsibilities: "
+            + ", ".join(signal_matches[:4])
+        )
+        return AIEngineerClassification(
+            True,
+            "AI Engineer / Agentic AI",
+            signal_matches[:8],
+            reason,
+            pure_swe_signal,
+        )
+    if signal_matches:
+        reason = (
+            "AI keyword(s) found but not enough to classify as AI Engineer: "
+            + ", ".join(signal_matches[:4])
+        )
+    elif pure_swe_signal:
+        reason = "SWE/support/electrical/project title without major AI-engineering scope"
+    else:
+        reason = "No AI Engineer title or multi-signal AI-system building evidence"
+    return AIEngineerClassification(
+        False,
+        "Not AI Engineer",
+        signal_matches[:8],
+        reason,
+        pure_swe_signal,
+    )
+
+
+def _ai_focus(job: Job) -> tuple[float, tuple[str, ...], str, bool]:
+    classification = classify_ai_engineer(job)
+    if classification.is_ai_engineer:
+        base = 8.0 + min(2.0, 0.4 * len(classification.keywords))
+        if classification.pure_swe_signal:
+            base -= 1.0
+        return (
+            _clamp(base),
+            classification.keywords,
+            classification.focus,
+            classification.pure_swe_signal,
+        )
+    if classification.keywords:
+        return (
+            2.5,
+            classification.keywords,
+            "AI keyword present, but not AI Engineer",
+            classification.pure_swe_signal,
+        )
+    return (
+        1.0,
+        tuple(),
+        "Not AI Engineer",
+        classification.pure_swe_signal,
+    )
 
 
 def _competition_ease(job: Job, text: str) -> tuple[float, float]:
@@ -474,6 +620,8 @@ def score_job(job: Job, profile: dict[str, Any]) -> Score:
     us_eligible = is_us_location(job)
     internship_eligible = is_internship_role(job)
     timing_fit, timing_concern = _timing_fit(job, profile)
+    timing_eligible = is_target_timing(job, profile)
+    ai_classification = classify_ai_engineer(job)
     relevance, matches = _relevance(job)
     ai_score, ai_keywords, ai_focus, pure_swe_signal = _ai_focus(job)
     competition_ease, popularity_penalty = _competition_ease(job, text)
@@ -517,9 +665,11 @@ def score_job(job: Job, profile: dict[str, Any]) -> Score:
         - popularity_penalty,
         2,
     )
-    if ai_score >= 7.0:
+    if ai_classification.is_ai_engineer:
         overall += 0.7
-    elif pure_swe_signal and ai_score < 5.0:
+    else:
+        overall -= 4.0
+    if pure_swe_signal and not ai_classification.is_ai_engineer:
         overall -= 2.0
     overall = _clamp(overall)
 
@@ -527,14 +677,18 @@ def score_job(job: Job, profile: dict[str, Any]) -> Score:
         reason = "Not a clearly U.S.-based role"
     elif not internship_eligible:
         reason = "Not an explicit internship or is marked full-time/new-grad"
+    elif not timing_eligible:
+        reason = timing_concern or "Internship timing is outside Spring/Summer 2027 target"
     elif graduate_only:
         reason = "Internship is restricted to MBA or doctoral candidates"
     elif low_value:
         reason = "Role is outside the target analytical/technical path"
-    elif pure_swe_signal and ai_score < 5.0:
+    elif pure_swe_signal and not ai_classification.is_ai_engineer:
         reason = "Pure SWE/backend/frontend/mobile/infrastructure role without clear AI-agentic scope"
     elif ml_engineer_without_agentic:
         reason = "ML Engineer internship lacks clear LLM, agent, RAG, automation, or applied-AI product scope"
+    elif not ai_classification.is_ai_engineer:
+        reason = "Not an AI Engineer / Agentic AI internship: " + ai_classification.reason
     elif relevance < 4.0:
         reason = "Insufficient AI Engineer, agentic-AI, applied ML, data, OR, or analytics relevance"
     elif phd_only and requirement_ease <= 3.0:
@@ -547,7 +701,7 @@ def score_job(job: Job, profile: dict[str, Any]) -> Score:
         concerns.append(timing_concern)
     if not concerns:
         concerns.append("Confirm project scope, mentorship, and interview expectations")
-    if pure_swe_signal and ai_score < 6.0:
+    if pure_swe_signal and not ai_classification.is_ai_engineer:
         concerns.insert(0, "Verify this is not a pure SWE role before applying")
     if not matches:
         matches.append("Provides adjacent analytical or technical internship experience")
@@ -587,4 +741,6 @@ def score_job(job: Job, profile: dict[str, Any]) -> Score:
         ai_focus=ai_focus,
         ai_keywords=ai_keywords,
         pure_swe_signal=pure_swe_signal,
+        ai_engineer=ai_classification.is_ai_engineer,
+        ai_classification_reason=ai_classification.reason,
     )

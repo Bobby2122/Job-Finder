@@ -20,9 +20,10 @@ class ScoringTests(unittest.TestCase):
             job.id: job for job in load_fixture(ROOT / "tests/fixtures/jobs.json")
         }
 
-    def test_ml_intern_is_high_quality_and_accessible(self):
+    def test_ai_agent_intern_is_high_quality_and_accessible(self):
         score = score_job(self.jobs["ml-intern-1"], self.profile)
         self.assertTrue(score.relevant)
+        self.assertTrue(score.ai_engineer)
         self.assertGreaterEqual(score.learning_value, 8.0)
         self.assertGreaterEqual(score.accessibility, 7.0)
         self.assertGreaterEqual(score.overall, 6.5)
@@ -39,8 +40,8 @@ class ScoringTests(unittest.TestCase):
         phd_job = replace(
             self.jobs["ml-intern-1"],
             id="phd-title",
-            title="Student Researcher (LLM - Seed) - 2027 Start (PhD)",
-            requirement="Strong Python and machine learning research.",
+            title="Research Engineer (AI) Intern - 2027 Start (PhD)",
+            requirement="Strong Python, LLM, RAG, and machine learning research.",
         )
         score = score_job(phd_job, self.profile)
         self.assertIn("PhD/publication-heavy", score.rejection_reason)
@@ -94,22 +95,22 @@ class ScoringTests(unittest.TestCase):
         self.assertFalse(score.geography_ok)
         self.assertFalse(score.relevant)
 
-    def test_2026_start_is_flagged_but_not_blocked_by_latest_filters(self):
+    def test_2026_start_is_blocked_by_current_ai_internship_filters(self):
         from dataclasses import replace
 
         old_timing = replace(
             self.jobs["ml-intern-1"],
             id="old-timing",
-            title="Data Science Internship",
+            title="AI Agent Engineer Internship",
             description=(
-                "This internship starts in Spring 2026. Program materials were "
-                "updated for the 2027 recruiting calendar."
+                "This internship starts in Spring 2026. Build LLM agents with "
+                "RAG, embeddings, and model evaluation."
             ),
         )
         score = score_job(old_timing, self.profile)
         self.assertEqual(score.timing_fit, 1.0)
-        self.assertTrue(score.relevant)
-        self.assertIn("2026", score.concerns[-1])
+        self.assertFalse(score.relevant)
+        self.assertIn("2026", score.rejection_reason)
 
     def test_full_time_analyst_is_excluded_even_when_relevant(self):
         from dataclasses import replace
@@ -262,8 +263,24 @@ class ScoringTests(unittest.TestCase):
         )
         score = score_job(ai_role, self.profile)
         self.assertTrue(score.relevant)
-        self.assertEqual(score.ai_focus, "AI-focused")
+        self.assertTrue(score.ai_engineer)
+        self.assertEqual(score.ai_focus, "AI Engineer / Agentic AI")
         self.assertIn("llm", score.ai_keywords)
+
+    def test_single_rag_keyword_does_not_make_unrelated_role_ai_engineer(self):
+        from dataclasses import replace
+
+        project = replace(
+            self.jobs["ml-intern-1"],
+            id="pm-rag",
+            title="Project Management Intern",
+            description="Coordinate real estate facilities projects. The page mentions RAG once in boilerplate.",
+            requirement="Strong communication and project tracking skills.",
+        )
+        score = score_job(project, self.profile)
+        self.assertFalse(score.ai_engineer)
+        self.assertFalse(score.relevant)
+        self.assertIn("Not an AI Engineer", score.rejection_reason)
 
 
 if __name__ == "__main__":

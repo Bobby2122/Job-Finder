@@ -183,7 +183,11 @@ class ApplicationTracker:
                 statuses[str(tracking_id)] = "New"
         return statuses
 
-    def suppression_match(self, job: Role) -> dict[str, Any] | None:
+    def suppression_match(
+        self,
+        job: Role,
+        include_previous: bool = False,
+    ) -> dict[str, Any] | None:
         """Return a suppressing tracked record matching a role exactly or likely."""
         with self._lock:
             records = self._load()["jobs"]
@@ -193,7 +197,11 @@ class ApplicationTracker:
                 status = normalize_status(str(exact.get("status", "New")))
             except ValueError:
                 status = "New"
-            if status in INACTIVE_STATUSES or exact.get("inactive") is True:
+            if (
+                status in INACTIVE_STATUSES
+                or exact.get("inactive") is True
+                or include_previous
+            ):
                 return dict(exact)
         for record in records.values():
             if not isinstance(record, dict):
@@ -202,7 +210,11 @@ class ApplicationTracker:
                 status = normalize_status(str(record.get("status", "New")))
             except ValueError:
                 status = "New"
-            if status not in INACTIVE_STATUSES and record.get("inactive") is not True:
+            if (
+                status not in INACTIVE_STATUSES
+                and record.get("inactive") is not True
+                and not include_previous
+            ):
                 continue
             if _matches_role(record, job):
                 return dict(record)
@@ -272,6 +284,8 @@ class ApplicationTracker:
                     "recommendation_tier": bucket,
                     "why_recommended": "; ".join(item.score.why_match),
                     "ai_relevance": item.score.ai_focus,
+                    "ai_engineer": item.score.ai_engineer,
+                    "ai_classification_reason": item.score.ai_classification_reason,
                     "matched_keywords": list(item.score.ai_keywords),
                     "concerns": list(item.score.concerns),
                     "pure_swe_signal": item.score.pure_swe_signal,
@@ -279,6 +293,11 @@ class ApplicationTracker:
                     "first_seen": str(existing.get("first_seen") or timestamp),
                     "last_seen": timestamp,
                     "updated_at": str(existing.get("updated_at") or timestamp),
+                    "status_updated_at": str(
+                        existing.get("status_updated_at")
+                        or existing.get("updated_at")
+                        or timestamp
+                    ),
                 }
             _save_tracker_data(self.path, data)
 
@@ -301,7 +320,9 @@ class ApplicationTracker:
             if normalized in {"Rejected", "Not Interested"}:
                 record["reason_category"] = reason_category.strip()
                 record["manual_reason"] = manual_reason.strip()[:1000]
-            record["updated_at"] = _now()
+            timestamp = _now()
+            record["updated_at"] = timestamp
+            record["status_updated_at"] = timestamp
             _save_tracker_data(self.path, data)
             return dict(record)
 
@@ -314,7 +335,9 @@ class ApplicationTracker:
                 raise KeyError(tracking_id)
             if record.get("status", "New") == "New":
                 record["status"] = "Viewed"
-                record["updated_at"] = _now()
+                timestamp = _now()
+                record["updated_at"] = timestamp
+                record["status_updated_at"] = timestamp
                 _save_tracker_data(self.path, data)
             return dict(record)
 
@@ -397,6 +420,10 @@ class ApplicationTracker:
                 "recommendation_tier": str(existing.get("recommendation_tier", "Manual")),
                 "why_recommended": str(existing.get("why_recommended", "")),
                 "ai_relevance": str(existing.get("ai_relevance", "")),
+                "ai_engineer": bool(existing.get("ai_engineer", False)),
+                "ai_classification_reason": str(
+                    existing.get("ai_classification_reason", "")
+                ),
                 "matched_keywords": list(existing.get("matched_keywords", [])),
                 "concerns": list(existing.get("concerns", [])),
                 "pure_swe_signal": bool(existing.get("pure_swe_signal", False)),
@@ -404,6 +431,7 @@ class ApplicationTracker:
                 "first_seen": str(existing.get("first_seen") or timestamp),
                 "last_seen": str(existing.get("last_seen") or timestamp),
                 "updated_at": timestamp,
+                "status_updated_at": timestamp,
             }
             data["jobs"][tracking_id] = record
             _save_tracker_data(self.path, data)

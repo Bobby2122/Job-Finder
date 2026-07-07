@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 import hashlib
 import re
+from difflib import SequenceMatcher
 from typing import Any
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
@@ -183,7 +184,12 @@ def similar_job_titles(first: str, second: str) -> bool:
     if not left or not right:
         return normalize_job_title(first) == normalize_job_title(second)
     overlap = len(left & right) / max(len(left), len(right))
-    return overlap >= 0.72
+    similarity = SequenceMatcher(
+        None,
+        normalize_job_title(first),
+        normalize_job_title(second),
+    ).ratio()
+    return overlap >= 0.72 or similarity >= 0.84
 
 
 def stable_job_id(
@@ -397,6 +403,8 @@ class Score:
     ai_focus: str = "Adjacent"
     ai_keywords: tuple[str, ...] = field(default_factory=tuple)
     pure_swe_signal: bool = False
+    ai_engineer: bool = False
+    ai_classification_reason: str = ""
 
 
 @dataclass(frozen=True)
