@@ -405,6 +405,13 @@ class Score:
     pure_swe_signal: bool = False
     ai_engineer: bool = False
     ai_classification_reason: str = ""
+    ai_relevance_score: float = 0.0
+    optimization_relevance_score: float = 0.0
+    applied_math_relevance_score: float = 0.0
+    data_relevance_score: float = 0.0
+    quant_relevance_score: float = 0.0
+    relevance_total: float = 0.0
+    primary_track: str = ""
 
 
 @dataclass(frozen=True)

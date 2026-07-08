@@ -196,7 +196,7 @@ def _score_line(item: ScoredJob) -> str:
     score = item.score
     return (
         f"**Ease-adjusted score {score.overall:.2f}/10** - "
-        f"Relevance {score.skill_fit:.1f} | Internship clarity "
+        f"Fit {score.skill_fit:.1f} | Internship clarity "
         f"{score.internship_clarity:.1f} | Competition ease "
         f"{score.competition_ease:.1f} | Requirement ease "
         f"{score.requirement_ease:.1f} | U.S. stability {score.us_stability:.1f}"
@@ -254,6 +254,18 @@ def _job_block(item: ScoredJob, bucket: str, urgent_threshold: float) -> list[st
         "**Why it matches Bobby:** " + "; ".join(score.why_match) + ".",
         "",
         f"**AI/agentic relevance:** {score.ai_focus}.",
+        "",
+        (
+            "**Career relevance breakdown:** "
+            f"AI {score.ai_relevance_score:.1f}/35 | "
+            f"OR/Optimization {score.optimization_relevance_score:.1f}/25 | "
+            f"Applied Math {score.applied_math_relevance_score:.1f}/20 | "
+            f"Data/Stats {score.data_relevance_score:.1f}/15 | "
+            f"Quant/Risk {score.quant_relevance_score:.1f}/5 | "
+            f"Total {score.relevance_total:.1f}"
+        ),
+        "",
+        f"**Primary track:** {score.primary_track or 'Not classified'}.",
         "",
         f"**AI Engineer classifier:** {'Passed' if score.ai_engineer else 'Failed'} - {score.ai_classification_reason}.",
         "",
@@ -422,8 +434,8 @@ def build_report(
                 f"- {correction_log.inactive_history_excluded} already applied/rejected/not interested",
                 f"- {correction_log.duplicate_jobs_excluded} duplicate jobs in this run",
                 f"- {correction_log.duplicate_history_excluded} similar previous recommendations",
-                f"- {correction_log.pure_swe_excluded} pure SWE without AI-agentic scope",
-                f"- {correction_log.not_ai_engineer_excluded} not AI Engineer / Agentic AI",
+                f"- {correction_log.pure_swe_excluded} pure SWE without AI/ML/modeling scope",
+                f"- {correction_log.not_ai_engineer_excluded} low career relevance / wrong direction",
                 f"- {correction_log.wrong_date_excluded} wrong internship date",
                 f"- {correction_log.full_time_excluded} wrong job type / non-internship",
                 f"- {correction_log.non_us_excluded} outside the U.S.",
@@ -440,7 +452,11 @@ def build_report(
         if correction_log.suggestions:
             lines.extend(f"- {suggestion}" for suggestion in correction_log.suggestions)
         else:
-            lines.append("- Keep prioritizing explicit AI Engineer / agentic AI internships.")
+            lines.append(
+                "- Keep prioritizing realistic AI/applied AI, OR/optimization, "
+                "applied math, scientific computing, modeling-heavy data science, "
+                "and quant/risk internships."
+            )
         prompt = (
             "Update JobFinder ranking using these rejection patterns: "
             + (
@@ -449,7 +465,10 @@ def build_report(
                 else "no new rejection reasons yet"
             )
             + ". Preserve hard filters for U.S. internships and suppress Applied, "
-            "Rejected, and Not Interested roles."
+            "Rejected, and Not Interested roles. Keep the target portfolio broad: "
+            "AI/applied AI, applied scientist/research engineer, OR/optimization, "
+            "applied math/computational math, modeling-heavy data science, and "
+            "quant/risk."
         )
         lines.extend(
             [
@@ -464,12 +483,14 @@ def build_report(
         [
             "## Method",
             "",
-            "Ease-adjusted score = AI/agentic relevance 34% + internship clarity 20% + "
-            "competition ease 20% + requirement ease 13% + U.S. stability 8% "
-            "+ practical value 5%, minus popularity penalties. Final selection "
-            "then applies a two-role company cap, history suppression, and "
-            "large/mid/startup mix targets. Weak or duplicate roles are left "
-            "unfilled instead of forcing 15 recommendations.",
+            "Career relevance = AI/applied AI 35% + OR/optimization 25% + "
+            "applied math/computational math 20% + data/statistics 15% + "
+            "quant/risk 5%, plus bonuses for math/statistics/computational "
+            "science eligibility, research/modeling/algorithms/simulation, "
+            "smaller-company ownership, and career-path fit. The relevance "
+            "score is blended with internship clarity, accessibility, and "
+            "company realism. Final selection then applies a two-role company "
+            "cap, history suppression, and large/mid/startup mix targets.",
             "",
         ]
     )

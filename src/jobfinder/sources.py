@@ -20,7 +20,7 @@ from .models import (
     normalize_job_title,
     normalize_location_name,
 )
-from .scoring import classify_ai_engineer
+from .scoring import classify_ai_engineer, classify_career_relevance
 
 
 class SourceError(RuntimeError):
@@ -49,6 +49,15 @@ def _role_family(title: str, text: str = "") -> str:
     )
     if classify_ai_engineer(probe).is_ai_engineer:
         return "AI Engineer / Agentic AI"
+    relevance = classify_career_relevance(probe)
+    if relevance.primary_track == "Operations Research / Optimization":
+        return "Optimization / OR"
+    if relevance.primary_track == "Applied Math / Computational Math":
+        return "Applied Math / Scientific Computing"
+    if relevance.primary_track == "Data Science / Statistics":
+        return "Data Science"
+    if relevance.primary_track == "Quant / Risk Modeling":
+        return "Quant / Risk"
     families = (
         ("Machine Learning / AI", ("machine learning", "artificial intelligence", " ai ", "ml engineer")),
         ("Data Science", ("data scientist", "data science", "decision scientist")),

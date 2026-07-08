@@ -109,6 +109,21 @@ class AIEngineerClassification:
     pure_swe_signal: bool = False
 
 
+@dataclass(frozen=True)
+class CareerRelevance:
+    ai: float
+    optimization: float
+    applied_math: float
+    data: float
+    quant: float
+    total: float
+    primary_track: str
+    reasons: tuple[str, ...]
+    keywords: tuple[str, ...]
+    pure_swe_signal: bool = False
+    business_dashboard_signal: bool = False
+
+
 def _contains(text: str, terms: Iterable[str]) -> bool:
     return any(term in text for term in terms)
 
@@ -119,6 +134,25 @@ def _clamp(value: float) -> float:
 
 def _unique_matches(text: str, terms: Iterable[str]) -> tuple[str, ...]:
     return tuple(dict.fromkeys(term for term in terms if term in text))
+
+
+def _score_terms(
+    title: str,
+    text: str,
+    *,
+    title_terms: Iterable[str],
+    keywords: Iterable[str],
+    title_points: float,
+    keyword_points: float,
+    cap: float,
+) -> tuple[float, tuple[str, ...]]:
+    title_matches = _unique_matches(title, title_terms)
+    keyword_matches = _unique_matches(text, keywords)
+    score = min(
+        cap,
+        title_points * len(title_matches) + keyword_points * len(keyword_matches),
+    )
+    return score, tuple(dict.fromkeys((*title_matches, *keyword_matches)))
 
 
 def _years_required(text: str) -> int:
@@ -276,97 +310,267 @@ def is_pure_swe_title(job: Job) -> bool:
     )
 
 
-def _relevance(job: Job) -> tuple[float, list[str]]:
+def classify_career_relevance(job: Job) -> CareerRelevance:
     text = job.text
     title = job.title.lower()
-    score = 1.0
-    reasons: list[str] = []
-    classification = classify_ai_engineer(job)
-    if classification.is_ai_engineer:
-        score += 5.5
-        reasons.append(classification.reason)
-    if _contains(
+    ai_classification = classify_ai_engineer(job)
+    ai, ai_keywords = _score_terms(
+        title,
         text,
-        (
-            "analytics",
-            "data analyst",
-            "business analyst",
-            "product analyst",
-            "decision science",
-            "sql",
-            "python",
+        title_terms=(
+            "ai engineer",
+            "machine learning engineer",
+            "ml engineer",
+            "applied ai",
+            "generative ai",
+            "llm engineer",
+            "ai research",
+            "research engineer",
+            "ml infrastructure",
         ),
-    ):
-        score += 3.0
-        reasons.append("Uses Python, SQL, analytics, or data-driven decision making")
-    if _contains(
-        text,
-        (
-            "statistics",
-            "probability",
-            "forecasting",
-            "risk",
-            "quantitative",
-            "economics",
-            "finance",
-            "actuarial",
+        keywords=(
+            "llm",
+            "rag",
+            "ai agent",
+            "ai agents",
+            "langchain",
+            "langgraph",
+            "workflow automation",
+            "model evaluation",
+            "prompt engineering",
+            "ml pipeline",
+            "ml pipelines",
+            "deep learning",
+            "nlp",
+            "computer vision",
         ),
-    ):
-        score += 2.5
-        reasons.append("Aligns with Bobby's math, economics, statistics, or risk background")
-    if _contains(
+        title_points=12.0,
+        keyword_points=4.0,
+        cap=35.0,
+    )
+    if ai_classification.is_ai_engineer:
+        ai = max(ai, 24.0)
+        ai_keywords = tuple(dict.fromkeys((*ai_keywords, *ai_classification.keywords)))
+
+    optimization, opt_keywords = _score_terms(
+        title,
         text,
-        (
+        title_terms=(
             "operations research",
-            "operations",
-            "optimization",
-            "supply chain",
-            "simulation",
-            "experimentation",
-            "a/b test",
+            "optimization intern",
+            "decision science",
+            "algorithm intern",
+            "simulation intern",
+            "supply chain optimization",
+            "data science optimization",
         ),
-    ):
-        score += 2.0
-        reasons.append("Offers modeling, optimization, or experimentation work")
+        keywords=(
+            "linear programming",
+            "integer programming",
+            "stochastic optimization",
+            "simulation",
+            "mathematical optimization",
+            "forecasting",
+            "decision models",
+            "operations research",
+            "probability models",
+            "optimization",
+        ),
+        title_points=10.0,
+        keyword_points=3.2,
+        cap=25.0,
+    )
+    applied_math, math_keywords = _score_terms(
+        title,
+        text,
+        title_terms=(
+            "applied mathematics",
+            "computational mathematics",
+            "scientific computing",
+            "numerical analysis",
+            "mathematical modeling",
+            "simulation research",
+            "computational science",
+            "scientific machine learning",
+        ),
+        keywords=(
+            "differential equations",
+            "pde",
+            "ode",
+            "numerical methods",
+            "computational modeling",
+            "simulation",
+            "scientific computing",
+            "dynamical systems",
+            "mathematical modeling",
+            "optimization theory",
+        ),
+        title_points=9.0,
+        keyword_points=3.0,
+        cap=20.0,
+    )
+    data, data_keywords = _score_terms(
+        title,
+        text,
+        title_terms=(
+            "data science intern",
+            "statistical modeling",
+            "machine learning data scientist",
+            "quantitative analyst",
+            "analytics scientist",
+        ),
+        keywords=(
+            "python",
+            "statistics",
+            "machine learning",
+            "experimentation",
+            "predictive modeling",
+            "optimization",
+            "statistical",
+            "modeling",
+        ),
+        title_points=6.0,
+        keyword_points=1.8,
+        cap=15.0,
+    )
+    quant, quant_keywords = _score_terms(
+        title,
+        text,
+        title_terms=(
+            "quant research",
+            "quantitative analyst",
+            "risk modeling",
+            "financial modeling",
+        ),
+        keywords=(
+            "probability",
+            "stochastic processes",
+            "statistics",
+            "machine learning",
+            "optimization",
+            "risk",
+        ),
+        title_points=3.0,
+        keyword_points=1.0,
+        cap=5.0,
+    )
+
+    bonuses = 0.0
+    reasons: list[str] = []
     if _contains(
         text,
         (
-            "machine learning",
-            "data science",
+            "mathematics",
+            "applied mathematics",
+            "statistics",
+            "computational science",
+            "math major",
+            "mathematics major",
+        ),
+    ):
+        bonuses += 10.0
+        reasons.append("Explicitly welcomes math/applied math/statistics/computational science background")
+    if _contains(
+        text,
+        (
+            "research",
+            "modeling",
             "algorithm",
-            "pytorch",
-            "tensorflow",
-            "recommendation model",
+            "algorithms",
+            "simulation",
+            "numerical",
         ),
     ):
-        score += 1.0
-        reasons.append("Builds technical ML, data science, or software experience")
-    if _contains(
-        title,
+        bonuses += 10.0
+        reasons.append("Involves research, modeling, algorithms, numerical work, or simulation")
+    if company_size_group(job) in {"Mid", "Small"} and _contains(
+        text,
         (
-            "software engineer",
-            "software developer",
-            "data engineer",
+            "build",
+            "own",
+            "end-to-end",
+            "prototype",
+            "cross-functional",
+            "research",
         ),
     ):
-        if classification.is_ai_engineer:
-            score += 1.5
-            reasons.append(
-                "Software engineering scope is connected to applied AI systems"
+        bonuses += 5.0
+        reasons.append("Smaller or mid-size environment with broader project ownership")
+    if ai >= 12 or optimization >= 10 or applied_math >= 8:
+        bonuses += 5.0
+        reasons.append("Can lead toward AI Engineer, Applied Scientist, or Optimization career paths")
+
+    pure_swe_signal = is_pure_swe_title(job)
+    business_dashboard_signal = _contains(
+        text,
+        (
+            "dashboard",
+            "dashboards",
+            "business analyst",
+            "sales analytics",
+            "marketing analytics",
+            "reporting dashboard",
+        ),
+    ) and not _contains(
+        text,
+        (
+            "modeling",
+            "machine learning",
+            "optimization",
+            "research",
+            "simulation",
+            "predictive",
+        ),
+    )
+    penalties = 0.0
+    if pure_swe_signal and ai < 10 and data < 8:
+        penalties += 20.0
+    if business_dashboard_signal:
+        penalties += 20.0
+
+    components = {
+        "AI / Applied AI": ai,
+        "Operations Research / Optimization": optimization,
+        "Applied Math / Computational Math": applied_math,
+        "Data Science / Statistics": data,
+        "Quant / Risk Modeling": quant,
+    }
+    primary_track = max(components, key=components.get)
+    total = max(0.0, ai + optimization + applied_math + data + quant + bonuses - penalties)
+    keywords = tuple(
+        dict.fromkeys(
+            (
+                *ai_keywords,
+                *opt_keywords,
+                *math_keywords,
+                *data_keywords,
+                *quant_keywords,
             )
-        elif classification.pure_swe_signal:
-            score -= 2.0
-    if _contains(
-        title,
-        (
-            "operations",
-            "supply chain",
-            "logistics",
-        ),
-    ):
-        score += 1.0
-        reasons.append("Offers modeling, optimization, or experimentation work")
-    return _clamp(score), reasons
+        )
+    )[:12]
+    if components[primary_track] > 0:
+        reasons.insert(0, f"Primary track: {primary_track}")
+    return CareerRelevance(
+        ai=round(ai, 1),
+        optimization=round(optimization, 1),
+        applied_math=round(applied_math, 1),
+        data=round(data, 1),
+        quant=round(quant, 1),
+        total=round(total, 1),
+        primary_track=primary_track if components[primary_track] > 0 else "Unclassified",
+        reasons=tuple(dict.fromkeys(reasons))[:4],
+        keywords=keywords,
+        pure_swe_signal=pure_swe_signal,
+        business_dashboard_signal=business_dashboard_signal,
+    )
+
+
+def _relevance(job: Job) -> tuple[float, list[str]]:
+    relevance = classify_career_relevance(job)
+    reasons = list(relevance.reasons)
+    if relevance.keywords:
+        reasons.append("Matched signals: " + ", ".join(relevance.keywords[:5]))
+    return _clamp(relevance.total / 5.0), reasons
 
 
 def classify_ai_engineer(job: Job) -> AIEngineerClassification:
@@ -567,6 +771,11 @@ def _practical_value(job: Job, text: str) -> float:
             "workflow automation",
             "openai api",
             "model evaluation",
+            "scientific computing",
+            "numerical methods",
+            "operations research",
+            "simulation",
+            "mathematical modeling",
         ),
     ):
         value += 2.0
@@ -588,6 +797,12 @@ def _bucket(
             "applied ai",
             "llm",
             "automation",
+            "operations research",
+            "optimization",
+            "applied mathematics",
+            "computational",
+            "scientific computing",
+            "data science",
             "analytics",
             "data analyst",
             "business analyst",
@@ -622,6 +837,7 @@ def score_job(job: Job, profile: dict[str, Any]) -> Score:
     timing_fit, timing_concern = _timing_fit(job, profile)
     timing_eligible = is_target_timing(job, profile)
     ai_classification = classify_ai_engineer(job)
+    career_relevance = classify_career_relevance(job)
     relevance, matches = _relevance(job)
     ai_score, ai_keywords, ai_focus, pure_swe_signal = _ai_focus(job)
     competition_ease, popularity_penalty = _competition_ease(job, text)
@@ -650,26 +866,23 @@ def score_job(job: Job, profile: dict[str, Any]) -> Score:
         ),
     )
     title = job.title.lower()
-    ml_engineer_without_agentic = (
-        _contains(title, ("machine learning engineer", "ml engineer"))
-        and ai_score < 5.0
-        and "intern" in title
-    )
     overall = round(
-        0.34 * relevance
+        0.55 * relevance
         + 0.20 * clarity
-        + 0.20 * competition_ease
-        + 0.13 * requirement_ease
-        + 0.08 * stability
+        + 0.10 * competition_ease
+        + 0.07 * requirement_ease
+        + 0.03 * stability
         + 0.05 * practical
         - popularity_penalty,
         2,
     )
+    if company_size_group(job) in {"Mid", "Small"} and career_relevance.total >= 25:
+        overall += 0.3
     if ai_classification.is_ai_engineer:
         overall += 0.7
-    else:
-        overall -= 4.0
-    if pure_swe_signal and not ai_classification.is_ai_engineer:
+    if pure_swe_signal and career_relevance.ai < 10 and career_relevance.data < 8:
+        overall -= 2.0
+    if career_relevance.business_dashboard_signal:
         overall -= 2.0
     overall = _clamp(overall)
 
@@ -683,14 +896,12 @@ def score_job(job: Job, profile: dict[str, Any]) -> Score:
         reason = "Internship is restricted to MBA or doctoral candidates"
     elif low_value:
         reason = "Role is outside the target analytical/technical path"
-    elif pure_swe_signal and not ai_classification.is_ai_engineer:
+    elif career_relevance.business_dashboard_signal:
+        reason = "Business analytics/dashboard-only role without modeling, ML, optimization, or research depth"
+    elif pure_swe_signal and career_relevance.ai < 10 and career_relevance.data < 8:
         reason = "Pure SWE/backend/frontend/mobile/infrastructure role without clear AI-agentic scope"
-    elif ml_engineer_without_agentic:
-        reason = "ML Engineer internship lacks clear LLM, agent, RAG, automation, or applied-AI product scope"
-    elif not ai_classification.is_ai_engineer:
-        reason = "Not an AI Engineer / Agentic AI internship: " + ai_classification.reason
-    elif relevance < 4.0:
-        reason = "Insufficient AI Engineer, agentic-AI, applied ML, data, OR, or analytics relevance"
+    elif career_relevance.total < 12.0:
+        reason = "Insufficient relevance to AI, applied science, OR/optimization, applied math, modeling, data science, or quant/risk"
     elif phd_only and requirement_ease <= 3.0:
         reason = "Internship is too PhD/publication-heavy for the current profile"
     else:
@@ -701,7 +912,7 @@ def score_job(job: Job, profile: dict[str, Any]) -> Score:
         concerns.append(timing_concern)
     if not concerns:
         concerns.append("Confirm project scope, mentorship, and interview expectations")
-    if pure_swe_signal and not ai_classification.is_ai_engineer:
+    if pure_swe_signal and career_relevance.ai < 10 and career_relevance.data < 8:
         concerns.insert(0, "Verify this is not a pure SWE role before applying")
     if not matches:
         matches.append("Provides adjacent analytical or technical internship experience")
@@ -739,8 +950,15 @@ def score_job(job: Job, profile: dict[str, Any]) -> Score:
         practical_value=practical,
         popularity_penalty=popularity_penalty,
         ai_focus=ai_focus,
-        ai_keywords=ai_keywords,
+        ai_keywords=tuple(dict.fromkeys((*ai_keywords, *career_relevance.keywords)))[:12],
         pure_swe_signal=pure_swe_signal,
         ai_engineer=ai_classification.is_ai_engineer,
         ai_classification_reason=ai_classification.reason,
+        ai_relevance_score=career_relevance.ai,
+        optimization_relevance_score=career_relevance.optimization,
+        applied_math_relevance_score=career_relevance.applied_math,
+        data_relevance_score=career_relevance.data,
+        quant_relevance_score=career_relevance.quant,
+        relevance_total=career_relevance.total,
+        primary_track=career_relevance.primary_track,
     )

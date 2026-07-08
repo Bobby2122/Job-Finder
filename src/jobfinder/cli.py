@@ -19,7 +19,6 @@ from .models import (
 )
 from .reporting import CorrectionLog, ReportStats, build_report, select_buckets
 from .scoring import (
-    classify_ai_engineer,
     is_internship_role,
     is_pure_swe_title,
     is_target_timing,
@@ -168,40 +167,26 @@ def run(
         print(f"ERROR: {exc}")
         return 1
 
-    not_ai_excluded = 0
+    low_relevance_excluded = 0
     pure_swe_excluded = 0
-    ai_candidates = []
-    for job in jobs:
-        classification = classify_ai_engineer(job)
-        if not classification.is_ai_engineer:
-            not_ai_excluded += 1
-            if classification.pure_swe_signal or is_pure_swe_title(job):
-                pure_swe_excluded += 1
-            continue
-        ai_candidates.append(job)
-
-    non_us_excluded = sum(1 for job in ai_candidates if not is_us_location(job))
+    non_us_excluded = sum(1 for job in jobs if not is_us_location(job))
     full_time_excluded = sum(
-        1 for job in ai_candidates if is_us_location(job) and not is_internship_role(job)
+        1 for job in jobs if is_us_location(job) and not is_internship_role(job)
     )
     wrong_date_excluded = sum(
         1
-        for job in ai_candidates
+        for job in jobs
         if is_us_location(job)
         and is_internship_role(job)
         and not is_target_timing(job, profile)
     )
     hard_filtered_jobs = [
         job
-        for job in ai_candidates
+        for job in jobs
         if is_us_internship(job) and is_target_timing(job, profile)
     ]
     print(
-        f"[FILTER] {len(ai_candidates)} AI Engineer candidate(s) retained "
-        f"from {len(jobs)} normalized roles"
-    )
-    print(
-        f"[FILTER] {len(hard_filtered_jobs)} target-date U.S. AI internships retained "
+        f"[FILTER] {len(hard_filtered_jobs)} target-date U.S. internships retained "
         f"after internship/date/location filters"
     )
 
@@ -217,6 +202,14 @@ def run(
     duplicate_suppressed = 0
     for job in hard_filtered_jobs:
         score = score_job(job, profile)
+        if score.rejection_reason:
+            low_relevance_excluded += 1
+            if (
+                "Pure SWE" in score.rejection_reason
+                or is_pure_swe_title(job)
+            ):
+                pure_swe_excluded += 1
+            continue
         suppressing_record = tracker.suppression_match(
             job,
             include_previous=not show_history,
@@ -252,7 +245,7 @@ def run(
     print(f"[DEBUG] excluded_duplicate_jobs = {current_duplicate_excluded}")
     print(f"[DEBUG] excluded_similar_previous_recommendations = {duplicate_suppressed}")
     print(f"[DEBUG] excluded_pure_swe = {pure_swe_excluded}")
-    print(f"[DEBUG] excluded_not_ai_engineer = {not_ai_excluded}")
+    print(f"[DEBUG] excluded_low_career_relevance = {low_relevance_excluded}")
     print(f"[DEBUG] excluded_wrong_date = {wrong_date_excluded}")
     top_floor = float(profile["thresholds"]["top_opportunity"])
     qualifying_counts = Counter(
@@ -293,7 +286,7 @@ def run(
         full_time_excluded=full_time_excluded,
         non_us_excluded=non_us_excluded,
         wrong_date_excluded=wrong_date_excluded,
-        not_ai_engineer_excluded=not_ai_excluded,
+        not_ai_engineer_excluded=low_relevance_excluded,
         inactive_history_excluded=inactive_suppressed,
         rejection_reasons=tuple(
             f"{reason} ({count})" for reason, count in reason_counts.most_common(8)

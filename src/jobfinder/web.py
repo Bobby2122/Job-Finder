@@ -255,6 +255,7 @@ function card(job) {
   const concerns = Array.isArray(job.concerns) ? job.concerns.join("; ") : String(job.concerns || "");
   for (const [label, value] of [
     ["Why recommended", job.why_recommended || "Manual entry or no recommendation text stored yet."],
+    ["Primary track", `${job.primary_track || "Not recorded"}${job.relevance_total ? " — relevance " + Number(job.relevance_total).toFixed(1) : ""}`],
     ["AI/agentic relevance", job.ai_relevance || "Not recorded"],
     ["AI Engineer classifier", `${job.ai_engineer ? "Passed" : "Not passed"}${job.ai_classification_reason ? " — " + job.ai_classification_reason : ""}`],
     ["Matched keywords", keywordText],

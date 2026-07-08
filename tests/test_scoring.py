@@ -188,6 +188,42 @@ class ScoringTests(unittest.TestCase):
         self.assertTrue(score.relevant)
         self.assertNotIn("PhD/publication-heavy", score.rejection_reason)
 
+    def test_operations_research_optimization_intern_is_relevant(self):
+        from dataclasses import replace
+
+        or_role = replace(
+            self.jobs["ml-intern-1"],
+            id="or-intern",
+            title="Operations Research Optimization Intern - Summer 2027",
+            description=(
+                "Build decision models using linear programming, integer "
+                "programming, stochastic optimization, simulation, and forecasting."
+            ),
+            requirement="Open to mathematics, applied mathematics, statistics, or operations research majors.",
+        )
+        score = score_job(or_role, self.profile)
+        self.assertTrue(score.relevant)
+        self.assertEqual(score.primary_track, "Operations Research / Optimization")
+        self.assertGreaterEqual(score.optimization_relevance_score, 15)
+
+    def test_applied_math_scientific_computing_intern_is_relevant(self):
+        from dataclasses import replace
+
+        math_role = replace(
+            self.jobs["ml-intern-1"],
+            id="applied-math",
+            title="Scientific Computing Intern - Summer 2027",
+            description=(
+                "Use numerical methods, PDE and ODE models, dynamical systems, "
+                "simulation, scientific computing, and mathematical modeling."
+            ),
+            requirement="Applied mathematics or computational science background preferred.",
+        )
+        score = score_job(math_role, self.profile)
+        self.assertTrue(score.relevant)
+        self.assertEqual(score.primary_track, "Applied Math / Computational Math")
+        self.assertGreaterEqual(score.applied_math_relevance_score, 15)
+
     def test_mba_only_internship_is_excluded(self):
         from dataclasses import replace
 
@@ -280,7 +316,7 @@ class ScoringTests(unittest.TestCase):
         score = score_job(project, self.profile)
         self.assertFalse(score.ai_engineer)
         self.assertFalse(score.relevant)
-        self.assertIn("Not an AI Engineer", score.rejection_reason)
+        self.assertIn("Insufficient relevance", score.rejection_reason)
 
 
 if __name__ == "__main__":

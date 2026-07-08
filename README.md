@@ -6,10 +6,12 @@ Chen. Full-time, new-grad, uncertain-employment, and non-U.S. roles are excluded
 before scoring.
 
 The goal is realistic interview opportunities rather than prestige alone, with
-the current ranking tilted toward AI Engineer / agentic AI internships. LLM,
-RAG, AI agents, workflow automation, prompt/tool calling, model evaluation, and
-AI-product roles receive the strongest boost. Pure SWE roles are rejected unless
-the posting clearly involves applied AI systems.
+ranking tuned for Bobby's mathematics, applied AI, optimization, computational
+math, scientific computing, and ML/data-science background. AI Engineer roles
+still matter, but they are no longer the only path; OR/optimization, applied
+science, numerical modeling, scientific computing, and mathematically serious
+data-science internships can rank highly too. Pure SWE roles are rejected unless
+the posting clearly involves AI, ML, modeling, optimization, or research depth.
 
 ## Quick start
 
@@ -54,23 +56,33 @@ analytics, finance/market data, logistics/OR, and research-oriented companies.
 
 Hard filters run before ranking in this order:
 
-- AI Engineer classifier: AI-focused title, or multiple AI-engineering signals
-  plus system-building responsibility language
 - explicit U.S. location, including U.S.-remote roles
 - explicit internship employment or title
 - Spring 2027, Jan-Jun 2027, or Summer 2027 timing; 2026 seasons are blocked
 - no full-time, new-grad, or ambiguous employment
-- no senior-only, irrelevant marketing/sales, or pure SWE roles without AI scope
+- no senior-only, irrelevant marketing/sales, cybersecurity, IT/support,
+  hardware-only, pure product-management, dashboard-only, or pure SWE roles
+  without AI/ML/modeling/optimization scope
 - no Applied, Rejected, Not Interested, dismissed, previously recommended, or
   likely duplicate jobs from `data/job_history.json` and `data/manual_jobs.json`
 
-Eligible roles receive an ease-adjusted score:
+Eligible roles receive a career relevance score:
 
-- AI/agentic relevance: 34%
+- AI Engineer / Applied AI / LLM / agent relevance: 35%
+- Operations research / optimization relevance: 25%
+- Applied math / computational math relevance: 20%
+- Data science / statistics / analytics relevance: 15%
+- Quant finance / risk modeling relevance: 5%
+- bonuses for math/statistics/computational science eligibility, research,
+  modeling, algorithms, simulation, smaller-company ownership, and career path
+  fit
+
+The relevance score is then blended with:
+
 - internship clarity: 20%
-- competition ease: 20%
-- requirement ease: 13%
-- U.S. stability: 8%
+- competition ease
+- requirement ease
+- U.S. stability
 - practical learning value: 5%
 - minus large-company/popularity penalties
 
