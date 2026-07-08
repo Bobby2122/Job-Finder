@@ -8,7 +8,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from jobfinder.client import load_fixture
-from jobfinder.models import ScoredJob, stable_job_id
+from jobfinder.models import Role, ScoredJob, stable_job_id
 from jobfinder.scoring import score_job
 from jobfinder.tracker import ApplicationTracker
 
@@ -145,9 +145,141 @@ class TrackerTests(unittest.TestCase):
 
         self.assertIn("- **Roles selected:** 0", report)
         self.assertIn(
-            "- **Excluded because duplicate or seen in a previous report:** 1",
+            "- 1 similar previous recommendations",
             report,
         )
+
+    def test_pipeline_suppresses_manual_applied_job_file(self):
+        from jobfinder.cli import run
+
+        config = ROOT / "config/profile.json"
+        fixture = ROOT / "tests/fixtures/jobs.json"
+        with tempfile.TemporaryDirectory() as directory:
+            run_root = Path(directory)
+            tracker = ApplicationTracker(run_root / "data/applications.json")
+            tracker.add_manual_job(
+                company=self.job.company,
+                title=self.job.title,
+                location=self.job.location,
+                url=self.job.url,
+                status="applied",
+                reason_category="already applied",
+            )
+            with patch("jobfinder.cli.ROOT", run_root):
+                with patch(
+                    "jobfinder.cli.send_discord_notification",
+                    return_value=True,
+                ):
+                    self.assertEqual(run(config, fixture, dry_run=False), 0)
+                    report = (
+                        run_root / "reports/latest.md"
+                    ).read_text(encoding="utf-8")
+
+            manual = json.loads(
+                (run_root / "data/manual_jobs.json").read_text(encoding="utf-8")
+            )
+
+        self.assertIn("- **Roles selected:** 0", report)
+        self.assertEqual(
+            manual["jobs"][self.job.tracking_id]["status"],
+            "applied",
+        )
+
+    def test_pipeline_suppresses_rejected_job_file(self):
+        from jobfinder.cli import run
+
+        config = ROOT / "config/profile.json"
+        fixture = ROOT / "tests/fixtures/jobs.json"
+        with tempfile.TemporaryDirectory() as directory:
+            run_root = Path(directory)
+            tracker = ApplicationTracker(run_root / "data/applications.json")
+            tracker.add_manual_job(
+                company=self.job.company,
+                title=self.job.title,
+                location=self.job.location,
+                url=self.job.url,
+                status="rejected",
+                reason_category="too SWE",
+            )
+            with patch("jobfinder.cli.ROOT", run_root):
+                with patch(
+                    "jobfinder.cli.send_discord_notification",
+                    return_value=True,
+                ):
+                    self.assertEqual(run(config, fixture, dry_run=False), 0)
+                    report = (
+                        run_root / "reports/latest.md"
+                    ).read_text(encoding="utf-8")
+
+        self.assertIn("- **Roles selected:** 0", report)
+        self.assertIn("- too SWE (1)", report)
+
+    def test_current_run_duplicate_company_title_jobs_are_filtered(self):
+        from jobfinder.cli import _deduplicate_scored
+
+        first = self.item
+        duplicate_role = Role.normalized(
+            id="same-direction",
+            company=self.job.company,
+            title="AI Agent Engineer Internship",
+            location="Seattle, WA",
+            employment_type="Internship",
+            url="https://example.com/same-direction",
+            source="Official careers API",
+            description=(
+                "Build LLM agents with RAG, embeddings, OpenAI API, "
+                "workflow automation, and model evaluation."
+            ),
+            requirements="Undergraduate students preferred.",
+            role_family=self.job.role_family,
+            company_size_category=self.job.company_size_category,
+            source_category=self.job.source_category,
+        )
+        duplicate = ScoredJob(
+            duplicate_role,
+            score_job(duplicate_role, self.profile),
+            is_new=True,
+            tracking_status="New",
+        )
+
+        deduped, excluded = _deduplicate_scored([first, duplicate])
+
+        self.assertEqual(excluded, 1)
+        self.assertEqual(len(deduped), 1)
+
+    def test_phase_one_json_files_are_written_and_shareable(self):
+        with tempfile.TemporaryDirectory() as directory:
+            data_dir = Path(directory)
+            tracker = ApplicationTracker(data_dir / "applications.json")
+            tracker.upsert_recommendations([(self.item, "Target")])
+            tracker.update_status(
+                self.job.tracking_id,
+                "Rejected",
+                reason_category="not AI focused",
+            )
+            tracker.add_manual_job(
+                company="Manual AI Co",
+                title="AI Engineer Intern",
+                location="Remote, United States",
+                url="https://example.com/manual-ai",
+                status="saved",
+            )
+
+            history = json.loads(
+                (data_dir / "job_history.json").read_text(encoding="utf-8")
+            )
+            manual = json.loads(
+                (data_dir / "manual_jobs.json").read_text(encoding="utf-8")
+            )
+            feedback = json.loads(
+                (data_dir / "user_feedback.json").read_text(encoding="utf-8")
+            )
+
+        self.assertIn(self.job.tracking_id, history["jobs"])
+        self.assertIn("normalized_title", history["jobs"][self.job.tracking_id])
+        self.assertEqual(history["jobs"][self.job.tracking_id]["status"], "rejected")
+        self.assertEqual(len(manual["jobs"]), 1)
+        self.assertEqual(feedback["feedback"][0]["reason"], "not AI focused")
 
     def test_viewed_status_is_preserved_when_job_is_seen_again(self):
         with tempfile.TemporaryDirectory() as directory:

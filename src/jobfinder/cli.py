@@ -9,7 +9,14 @@ from pathlib import Path
 
 from .alerts import send_discord_notification
 from .client import load_fixture
-from .models import ScoredJob
+from .models import (
+    ScoredJob,
+    normalize_application_url,
+    normalize_company_name,
+    normalize_job_title,
+    normalize_location_name,
+    similar_job_titles,
+)
 from .reporting import CorrectionLog, ReportStats, build_report, select_buckets
 from .scoring import (
     classify_ai_engineer,
@@ -39,6 +46,55 @@ def _select_alert_candidates(
         for bucket in ("Reach", "Target", "Safe")
         for item in buckets[bucket].roles
     ]
+
+
+def _same_direction(first: ScoredJob, second: ScoredJob) -> bool:
+    if normalize_company_name(first.job.company) != normalize_company_name(
+        second.job.company
+    ):
+        return False
+    if normalize_application_url(first.job.url) == normalize_application_url(
+        second.job.url
+    ):
+        return True
+    if (
+        normalize_job_title(first.job.title) == normalize_job_title(second.job.title)
+        and normalize_location_name(first.job.location)
+        == normalize_location_name(second.job.location)
+    ):
+        return True
+    if similar_job_titles(first.job.title, second.job.title):
+        return True
+    if (
+        first.job.role_family
+        and second.job.role_family
+        and first.job.role_family == second.job.role_family
+        and similar_job_titles(first.job.title, second.job.title)
+    ):
+        return True
+    return False
+
+
+def _deduplicate_scored(scored: list[ScoredJob]) -> tuple[list[ScoredJob], int]:
+    selected: list[ScoredJob] = []
+    excluded = 0
+    for item in sorted(scored, key=lambda entry: entry.score.overall, reverse=True):
+        duplicate_index = next(
+            (
+                index
+                for index, existing in enumerate(selected)
+                if _same_direction(existing, item)
+            ),
+            None,
+        )
+        if duplicate_index is None:
+            selected.append(item)
+            continue
+        excluded += 1
+        existing = selected[duplicate_index]
+        if item.score.overall > existing.score.overall:
+            selected[duplicate_index] = item
+    return selected, excluded
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -191,8 +247,10 @@ def run(
             f"{inactive_suppressed} inactive and {duplicate_suppressed} previous/duplicate. "
             "Use --show-history to include tracked history."
         )
+    scored, current_duplicate_excluded = _deduplicate_scored(scored)
     print(f"[DEBUG] excluded_already_applied_or_inactive = {inactive_suppressed}")
-    print(f"[DEBUG] excluded_duplicate_or_previous_report = {duplicate_suppressed}")
+    print(f"[DEBUG] excluded_duplicate_jobs = {current_duplicate_excluded}")
+    print(f"[DEBUG] excluded_similar_previous_recommendations = {duplicate_suppressed}")
     print(f"[DEBUG] excluded_pure_swe = {pure_swe_excluded}")
     print(f"[DEBUG] excluded_not_ai_engineer = {not_ai_excluded}")
     print(f"[DEBUG] excluded_wrong_date = {wrong_date_excluded}")
@@ -216,25 +274,12 @@ def run(
     now = datetime.now(timezone.utc)
     thresholds = profile["thresholds"]
     per_bucket = int(thresholds.get("max_per_bucket", 5))
-    tracked_reasons = [
-        " - ".join(
-            part
-            for part in (
-                str(record.get("reason_category", "")).strip(),
-                str(record.get("manual_reason", "")).strip(),
-            )
-            if part
-        )
-        for status in ("Rejected", "Not Interested")
-        for record in tracker.list_jobs(status)
-    ]
-    tracked_reasons = [reason for reason in tracked_reasons if reason]
-    reason_counts = Counter(tracked_reasons)
+    reason_counts = Counter(tracker.feedback_summary())
     suggestions: list[str] = []
-    reason_text = " ".join(tracked_reasons).lower()
-    if "too pure swe" in reason_text:
+    reason_text = " ".join(reason_counts.keys()).lower()
+    if "too pure swe" in reason_text or "too swe" in reason_text:
         suggestions.append("Increase penalties for backend/frontend/mobile-only titles unless AI keywords are present.")
-    if "not ai/agentic enough" in reason_text:
+    if "not ai/agentic enough" in reason_text or "not ai focused" in reason_text:
         suggestions.append("Require stronger LLM, agent, RAG, automation, evaluation, or AI-product evidence before selection.")
     if "too competitive" in reason_text:
         suggestions.append("Shift more Target/Safe slots toward smaller companies, applied AI tools, and analytics-adjacent AI roles.")
@@ -243,6 +288,7 @@ def run(
     correction_log = CorrectionLog(
         history_excluded=suppressed,
         duplicate_history_excluded=duplicate_suppressed,
+        duplicate_jobs_excluded=current_duplicate_excluded,
         pure_swe_excluded=pure_swe_excluded,
         full_time_excluded=full_time_excluded,
         non_us_excluded=non_us_excluded,

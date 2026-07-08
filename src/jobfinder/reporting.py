@@ -31,6 +31,7 @@ class BucketSelection:
 class CorrectionLog:
     history_excluded: int = 0
     inactive_history_excluded: int = 0
+    duplicate_jobs_excluded: int = 0
     duplicate_history_excluded: int = 0
     pure_swe_excluded: int = 0
     not_ai_engineer_excluded: int = 0
@@ -414,15 +415,18 @@ def build_report(
     if correction_log:
         lines.extend(
             [
-                "## Daily Self-Improvement Log",
+                "## Daily Filtering Report",
                 "",
-                f"- **Excluded because already applied/rejected/not interested:** {correction_log.inactive_history_excluded}",
-                f"- **Excluded because duplicate or seen in a previous report:** {correction_log.duplicate_history_excluded}",
-                f"- **Excluded as pure SWE without AI-agentic scope:** {correction_log.pure_swe_excluded}",
-                f"- **Excluded because not AI Engineer / Agentic AI:** {correction_log.not_ai_engineer_excluded}",
-                f"- **Excluded because wrong internship date:** {correction_log.wrong_date_excluded}",
-                f"- **Excluded as full-time/non-internship:** {correction_log.full_time_excluded}",
-                f"- **Excluded as outside the U.S.:** {correction_log.non_us_excluded}",
+                "Excluded:",
+                "",
+                f"- {correction_log.inactive_history_excluded} already applied/rejected/not interested",
+                f"- {correction_log.duplicate_jobs_excluded} duplicate jobs in this run",
+                f"- {correction_log.duplicate_history_excluded} similar previous recommendations",
+                f"- {correction_log.pure_swe_excluded} pure SWE without AI-agentic scope",
+                f"- {correction_log.not_ai_engineer_excluded} not AI Engineer / Agentic AI",
+                f"- {correction_log.wrong_date_excluded} wrong internship date",
+                f"- {correction_log.full_time_excluded} wrong job type / non-internship",
+                f"- {correction_log.non_us_excluded} outside the U.S.",
                 "",
                 "**User rejection reasons collected:**",
                 "",

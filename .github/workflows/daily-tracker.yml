@@ -23,6 +23,9 @@ jobs:
           path: |
             data/state.json
             data/applications.json
+            data/job_history.json
+            data/manual_jobs.json
+            data/user_feedback.json
           key: jobfinder-state-${{ github.run_id }}
           restore-keys: |
             jobfinder-state-
@@ -39,4 +42,7 @@ jobs:
             reports/
             data/state.json
             data/applications.json
+            data/job_history.json
+            data/manual_jobs.json
+            data/user_feedback.json
           retention-days: 30

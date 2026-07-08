@@ -62,7 +62,7 @@ Hard filters run before ranking in this order:
 - no full-time, new-grad, or ambiguous employment
 - no senior-only, irrelevant marketing/sales, or pure SWE roles without AI scope
 - no Applied, Rejected, Not Interested, dismissed, previously recommended, or
-  likely duplicate jobs from `data/applications.json`
+  likely duplicate jobs from `data/job_history.json` and `data/manual_jobs.json`
 
 Eligible roles receive an ease-adjusted score:
 
@@ -88,12 +88,19 @@ Profile constraints and tie-breakers live in `config/profile.json`.
 
 ## Application tracker
 
-Each selected recommendation is persisted in `data/applications.json` using a
-stable hash of normalized company, title, location, and application URL. URLs
-drop tracking parameters, and future runs suppress exact URL repeats,
-company/title/location matches, similar-title duplicates, and jobs already shown
-in previous reports. Start the local tracker after running the recommendation
-agent:
+Each selected recommendation is persisted in committed JSON files under `data/`:
+
+- `job_history.json` for crawler-discovered recommendations and statuses
+- `manual_jobs.json` for manually added applications
+- `user_feedback.json` for rejection / not-interested reasons
+
+The older ignored `applications.json` is still read as a compatibility fallback,
+but Phase 1 writes the shareable files above so local and GitHub Actions runs can
+use the same state. Jobs use a stable hash of normalized company, title,
+location, and application URL. URLs drop tracking parameters, and future runs
+suppress exact URL repeats, company/title/location matches, similar-title
+duplicates, and jobs already shown in previous reports. Start the local tracker
+after running the recommendation agent:
 
 ```bash
 PYTHONPATH=src python3 -m jobfinder run
@@ -103,8 +110,8 @@ PYTHONPATH=src python3 -m jobfinder tracker
 Then open `http://127.0.0.1:8765`. The tracker provides status badges, status
 filters, a dedicated Saved view, persistent notes, manual add/update, and reason
 fields for Rejected / Not Interested decisions. Supported statuses are New,
-Viewed, Started, Applied, Rejected, Saved, and Not Interested. The UI also
-shows the recommendation tier, score, employment classification, source,
+Viewed, Saved, Applied, Rejected, and Not Interested. The UI also shows the
+recommendation tier, score, employment classification, source,
 AI/agentic relevance, matched keywords, reasons, and concerns stored with each
 recommendation.
 
@@ -118,9 +125,10 @@ daily push so stale or repeated jobs do not fill empty slots. Pass
 Manual entries are respected the same way as crawler-discovered roles. Add a
 job as Applied, Rejected, or Not Interested if you handled it elsewhere; future
 runs will suppress matching or likely duplicate postings. Rejection reasons such
-as "too pure SWE", "not AI/agentic enough", "too competitive", and "bad
-location" are stored and summarized in the report's Daily Self-Improvement Log
-with a copyable "Prompt for Codex improvement" section.
+as "too SWE", "wrong location", "full-time only", "not AI focused", and "not
+qualified" are stored in `user_feedback.json` and summarized in the report's
+Daily Filtering Report with suggested ranking improvements. These suggestions do
+not automatically modify code.
 
 The JSON store survives local restarts and is included in GitHub Actions cache
 and artifacts. Local tracker edits must be copied or committed to whatever
