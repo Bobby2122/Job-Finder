@@ -270,7 +270,7 @@ class ScoringTests(unittest.TestCase):
         )
         self.assertFalse(score_job(return_offer, self.profile).relevant)
 
-    def test_pure_swe_intern_without_ai_scope_is_rejected(self):
+    def test_pure_swe_intern_without_ai_scope_is_penalized_by_relevance(self):
         from dataclasses import replace
 
         swe = replace(
@@ -283,7 +283,8 @@ class ScoringTests(unittest.TestCase):
         score = score_job(swe, self.profile)
         self.assertFalse(score.relevant)
         self.assertTrue(score.pure_swe_signal)
-        self.assertIn("Pure SWE", score.rejection_reason)
+        self.assertLess(score.overall, 4.5)
+        self.assertIn("Insufficient relevance", score.rejection_reason)
 
     def test_agentic_ai_intern_records_keywords_and_focus(self):
         from dataclasses import replace

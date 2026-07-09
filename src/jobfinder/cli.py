@@ -21,7 +21,6 @@ from .reporting import CorrectionLog, ReportStats, build_report, select_buckets
 from .scoring import (
     is_internship_role,
     is_pure_swe_title,
-    is_target_timing,
     is_us_internship,
     is_us_location,
     score_job,
@@ -155,13 +154,14 @@ def run(
             sources_config = load_sources_config(
                 sources_path or ROOT / "config" / "sources.json"
             )
-            result = MultiCompanyClient(max_workers=4).search(sources_config)
+            result = MultiCompanyClient(max_workers=12).search(sources_config)
             jobs = result.roles
             stats = ReportStats(
                 companies_searched=result.companies_attempted,
                 companies_succeeded=result.companies_succeeded,
                 raw_roles_found=result.raw_roles_found,
                 source_failures=result.failures,
+                source_health=result.source_health,
             )
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         print(f"ERROR: {exc}")
@@ -169,25 +169,19 @@ def run(
 
     low_relevance_excluded = 0
     pure_swe_excluded = 0
+    wrong_date_excluded = 0
     non_us_excluded = sum(1 for job in jobs if not is_us_location(job))
     full_time_excluded = sum(
         1 for job in jobs if is_us_location(job) and not is_internship_role(job)
     )
-    wrong_date_excluded = sum(
-        1
-        for job in jobs
-        if is_us_location(job)
-        and is_internship_role(job)
-        and not is_target_timing(job, profile)
-    )
     hard_filtered_jobs = [
         job
         for job in jobs
-        if is_us_internship(job) and is_target_timing(job, profile)
+        if is_us_internship(job)
     ]
     print(
-        f"[FILTER] {len(hard_filtered_jobs)} target-date U.S. internships retained "
-        f"after internship/date/location filters"
+        f"[FILTER] {len(hard_filtered_jobs)} U.S. internships retained after "
+        "location/employment hard filters"
     )
 
     state_path = ROOT / "data" / "state.json"
@@ -204,6 +198,8 @@ def run(
         score = score_job(job, profile)
         if score.rejection_reason:
             low_relevance_excluded += 1
+            if score.timing_fit < 7.0:
+                wrong_date_excluded += 1
             if (
                 "Pure SWE" in score.rejection_reason
                 or is_pure_swe_title(job)
@@ -247,6 +243,16 @@ def run(
     print(f"[DEBUG] excluded_pure_swe = {pure_swe_excluded}")
     print(f"[DEBUG] excluded_low_career_relevance = {low_relevance_excluded}")
     print(f"[DEBUG] excluded_wrong_date = {wrong_date_excluded}")
+    print(f"[RUN STATS] companies_scanned = {stats.companies_searched}")
+    print(f"[RUN STATS] successful_crawlers = {stats.companies_succeeded}")
+    failed_crawlers = stats.companies_searched - stats.companies_succeeded
+    internship_postings_found = sum(
+        int(getattr(item, "internship_roles", 0)) for item in stats.source_health
+    )
+    print(f"[RUN STATS] failed_crawlers = {failed_crawlers}")
+    print(f"[RUN STATS] internship_postings_found = {internship_postings_found}")
+    print(f"[RUN STATS] surviving_hard_filters = {len(hard_filtered_jobs)}")
+    print(f"[RUN STATS] selected_for_ranking = {len(scored)}")
     top_floor = float(profile["thresholds"]["top_opportunity"])
     qualifying_counts = Counter(
         item.job.company

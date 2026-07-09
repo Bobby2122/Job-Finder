@@ -19,6 +19,7 @@ class ReportStats:
     companies_succeeded: int = 0
     raw_roles_found: int = 0
     source_failures: tuple[str, ...] = ()
+    source_health: tuple[object, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -334,6 +335,12 @@ def build_report(
     ]
     selected_ids = {item.job.id for item in selected}
     size_distribution = Counter(company_size_group(item.job) for item in selected)
+    source_status_counts = Counter(
+        str(getattr(item, "status", "")) for item in stats.source_health
+    )
+    internship_postings_found = sum(
+        int(getattr(item, "internship_roles", 0)) for item in stats.source_health
+    )
     ranked = sorted(scored, key=lambda item: item.score.overall, reverse=True)
     rejected = [
         item
@@ -354,6 +361,9 @@ def build_report(
         f"- **Roles reviewed:** {stats.raw_roles_found}",
         f"- **Companies searched:** {stats.companies_searched}",
         f"- **Companies successfully read:** {stats.companies_succeeded}",
+        f"- **Companies failed/unavailable:** {stats.companies_searched - stats.companies_succeeded}",
+        f"- **Companies with no open internships found:** {source_status_counts['no_open_internships']}",
+        f"- **Internship/co-op postings found:** {internship_postings_found}",
         f"- **Unique relevant roles found:** {len(scored)}",
         f"- **Roles selected:** {len(selected)}",
         (
@@ -412,18 +422,62 @@ def build_report(
             "",
         ]
     )
-    if stats.source_failures:
+    if stats.source_health or stats.source_failures:
+        crawler_failed = [
+            item for item in stats.source_health
+            if str(getattr(item, "status", "")) == "crawler_failed"
+        ]
+        unavailable = [
+            item for item in stats.source_health
+            if str(getattr(item, "status", "")) == "source_unavailable"
+        ]
+        no_internships = [
+            item for item in stats.source_health
+            if str(getattr(item, "status", "")) == "no_open_internships"
+        ]
         lines.extend(
             [
                 "## Source Health",
                 "",
-                (
-                    f"{len(stats.source_failures)} source(s) failed without stopping "
-                    "the report. Review the GitHub Actions log for company-level details."
-                ),
+                f"- **Successful with internship/co-op-like postings:** {source_status_counts['success']}",
+                f"- **No open internships found:** {len(no_internships)}",
+                f"- **Crawler failed:** {len(crawler_failed)}",
+                f"- **Company source unavailable / adapter mismatch:** {len(unavailable)}",
                 "",
             ]
         )
+        if no_internships:
+            lines.extend(
+                [
+                    "**No open internships found:** "
+                    + ", ".join(
+                        str(getattr(item, "company", "Unknown"))
+                        for item in no_internships[:20]
+                    )
+                    + ("." if len(no_internships) <= 20 else ", ..."),
+                    "",
+                ]
+            )
+        if crawler_failed:
+            lines.extend(["**Crawler failed:**", ""])
+            for item in crawler_failed[:12]:
+                lines.append(
+                    f"- {getattr(item, 'company', 'Unknown')}: "
+                    f"{getattr(item, 'message', '')}"
+                )
+            if len(crawler_failed) > 12:
+                lines.append(f"- ... {len(crawler_failed) - 12} more")
+            lines.append("")
+        if unavailable:
+            lines.extend(["**Company source unavailable / adapter mismatch:**", ""])
+            for item in unavailable[:12]:
+                lines.append(
+                    f"- {getattr(item, 'company', 'Unknown')}: "
+                    f"{getattr(item, 'message', '')}"
+                )
+            if len(unavailable) > 12:
+                lines.append(f"- ... {len(unavailable) - 12} more")
+            lines.append("")
     if correction_log:
         lines.extend(
             [

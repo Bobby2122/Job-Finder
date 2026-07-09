@@ -325,8 +325,11 @@ def classify_career_relevance(job: Job) -> CareerRelevance:
             "generative ai",
             "llm engineer",
             "ai research",
+            "ai research intern",
+            "model evaluation",
             "research engineer",
             "ml infrastructure",
+            "ai infrastructure",
         ),
         keywords=(
             "llm",
@@ -360,9 +363,13 @@ def classify_career_relevance(job: Job) -> CareerRelevance:
             "optimization intern",
             "decision science",
             "algorithm intern",
+            "algorithm research",
             "simulation intern",
+            "modeling and simulation",
             "supply chain optimization",
             "data science optimization",
+            "energy modeling",
+            "defense modeling",
         ),
         keywords=(
             "linear programming",
@@ -385,10 +392,12 @@ def classify_career_relevance(job: Job) -> CareerRelevance:
         text,
         title_terms=(
             "applied mathematics",
+            "applied mathematician",
             "computational mathematics",
             "scientific computing",
             "numerical analysis",
             "mathematical modeling",
+            "modeling and simulation",
             "simulation research",
             "computational science",
             "scientific machine learning",
@@ -416,6 +425,9 @@ def classify_career_relevance(job: Job) -> CareerRelevance:
             "data science intern",
             "statistical modeling",
             "machine learning data scientist",
+            "healthcare analytics",
+            "actuarial data analytics",
+            "actuarial analytics",
             "quantitative analyst",
             "analytics scientist",
         ),
@@ -438,9 +450,11 @@ def classify_career_relevance(job: Job) -> CareerRelevance:
         text,
         title_terms=(
             "quant research",
+            "quantitative research",
             "quantitative analyst",
             "risk modeling",
             "financial modeling",
+            "actuarial",
         ),
         keywords=(
             "probability",
@@ -690,6 +704,21 @@ def _competition_ease(job: Job, text: str) -> tuple[float, float]:
     if _contains(job.title.lower(), ("software engineer", "machine learning intern")):
         ease -= 0.8
         popularity_penalty += 0.3
+    if _contains(
+        text,
+        (
+            "production software",
+            "production systems",
+            "microservices",
+            "frontend",
+            "front-end",
+            "backend",
+            "mobile app",
+            "on-call",
+        ),
+    ):
+        ease -= 0.7
+        popularity_penalty += 0.2
     return _clamp(ease), round(popularity_penalty, 2)
 
 
@@ -754,6 +783,22 @@ def _requirement_ease(job: Job, text: str) -> tuple[float, list[str], bool]:
     return _clamp(ease), concerns, phd_only
 
 
+def _work_authorization_blocked(text: str) -> bool:
+    return _contains(
+        text,
+        (
+            "must be a u.s. citizen",
+            "must be a us citizen",
+            "u.s. citizenship is required",
+            "us citizenship is required",
+            "active security clearance required",
+            "requires an active security clearance",
+            "current security clearance required",
+            "existing security clearance required",
+        ),
+    )
+
+
 def _practical_value(job: Job, text: str) -> float:
     value = 6.0
     if _contains(
@@ -761,6 +806,9 @@ def _practical_value(job: Job, text: str) -> float:
         (
             "python",
             "sql",
+            "numpy",
+            "scipy",
+            "pandas",
             "modeling",
             "forecasting",
             "experimentation",
@@ -773,6 +821,7 @@ def _practical_value(job: Job, text: str) -> float:
             "model evaluation",
             "scientific computing",
             "numerical methods",
+            "numerical analysis",
             "operations research",
             "simulation",
             "mathematical modeling",
@@ -842,6 +891,7 @@ def score_job(job: Job, profile: dict[str, Any]) -> Score:
     ai_score, ai_keywords, ai_focus, pure_swe_signal = _ai_focus(job)
     competition_ease, popularity_penalty = _competition_ease(job, text)
     requirement_ease, concerns, phd_only = _requirement_ease(job, text)
+    authorization_blocked = _work_authorization_blocked(text)
     stability = 9.0 if "remote" in job.location.lower() else 10.0
     practical = _practical_value(job, text)
 
@@ -867,12 +917,12 @@ def score_job(job: Job, profile: dict[str, Any]) -> Score:
     )
     title = job.title.lower()
     overall = round(
-        0.55 * relevance
-        + 0.20 * clarity
-        + 0.10 * competition_ease
-        + 0.07 * requirement_ease
+        0.50 * relevance
+        + 0.18 * clarity
+        + 0.14 * competition_ease
+        + 0.08 * requirement_ease
         + 0.03 * stability
-        + 0.05 * practical
+        + 0.07 * practical
         - popularity_penalty,
         2,
     )
@@ -881,7 +931,7 @@ def score_job(job: Job, profile: dict[str, Any]) -> Score:
     if ai_classification.is_ai_engineer:
         overall += 0.7
     if pure_swe_signal and career_relevance.ai < 10 and career_relevance.data < 8:
-        overall -= 2.0
+        overall -= 2.5
     if career_relevance.business_dashboard_signal:
         overall -= 2.0
     overall = _clamp(overall)
@@ -892,14 +942,14 @@ def score_job(job: Job, profile: dict[str, Any]) -> Score:
         reason = "Not an explicit internship or is marked full-time/new-grad"
     elif not timing_eligible:
         reason = timing_concern or "Internship timing is outside Spring/Summer 2027 target"
+    elif authorization_blocked:
+        reason = "Requires U.S. citizenship or an active security clearance"
     elif graduate_only:
         reason = "Internship is restricted to MBA or doctoral candidates"
     elif low_value:
         reason = "Role is outside the target analytical/technical path"
     elif career_relevance.business_dashboard_signal:
         reason = "Business analytics/dashboard-only role without modeling, ML, optimization, or research depth"
-    elif pure_swe_signal and career_relevance.ai < 10 and career_relevance.data < 8:
-        reason = "Pure SWE/backend/frontend/mobile/infrastructure role without clear AI-agentic scope"
     elif career_relevance.total < 12.0:
         reason = "Insufficient relevance to AI, applied science, OR/optimization, applied math, modeling, data science, or quant/risk"
     elif phd_only and requirement_ease <= 3.0:

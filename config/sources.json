@@ -26,11 +26,14 @@
     "actuarial",
     "operations research",
     "operations research intern",
+    "applied mathematician intern",
     "optimization",
     "optimization intern",
     "decision science intern",
     "algorithm intern",
+    "algorithm research intern",
     "simulation intern",
+    "modeling and simulation intern",
     "supply chain optimization",
     "linear programming",
     "integer programming",
@@ -42,6 +45,8 @@
     "numerical analysis intern",
     "mathematical modeling intern",
     "simulation research intern",
+    "defense modeling intern",
+    "energy modeling intern",
     "computational science intern",
     "scientific machine learning",
     "differential equations",
@@ -72,6 +77,7 @@
       "timeout": 40,
       "retries": 2,
       "page_size": 20,
+      "keyword_limit": 16,
       "max_pages_per_keyword": 2
     },
     {
@@ -441,6 +447,461 @@
       "identifier": "oneapp",
       "company_size_category": "Mid-size tech",
       "source_category": "Quant finance / trading"
+    },
+    {
+      "company": "Hugging Face",
+      "adapter": "greenhouse",
+      "identifier": "huggingface",
+      "company_size_category": "Big tech / famous lab",
+      "source_category": "Big tech / AI labs"
+    },
+    {
+      "company": "Together AI",
+      "adapter": "greenhouse",
+      "identifier": "togetherai",
+      "company_size_category": "Startup",
+      "source_category": "AI infrastructure companies"
+    },
+    {
+      "company": "Anyscale",
+      "adapter": "greenhouse",
+      "identifier": "anyscale",
+      "company_size_category": "Mid-size tech",
+      "source_category": "AI infrastructure companies"
+    },
+    {
+      "company": "Weights & Biases",
+      "adapter": "greenhouse",
+      "identifier": "weightsandbiases",
+      "company_size_category": "Mid-size tech",
+      "source_category": "AI infrastructure companies"
+    },
+    {
+      "company": "Runway",
+      "adapter": "greenhouse",
+      "identifier": "runwayml",
+      "company_size_category": "Startup",
+      "source_category": "Applied AI startups"
+    },
+    {
+      "company": "Perplexity AI",
+      "adapter": "greenhouse",
+      "identifier": "perplexityai",
+      "company_size_category": "Startup",
+      "source_category": "Applied AI startups"
+    },
+    {
+      "company": "Harvey",
+      "adapter": "ashby",
+      "identifier": "harvey",
+      "company_size_category": "Startup",
+      "source_category": "Applied AI startups"
+    },
+    {
+      "company": "Cursor",
+      "adapter": "ashby",
+      "identifier": "cursor",
+      "company_size_category": "Startup",
+      "source_category": "Applied AI startups"
+    },
+    {
+      "company": "Modal",
+      "adapter": "ashby",
+      "identifier": "modal",
+      "company_size_category": "Startup",
+      "source_category": "AI infrastructure companies"
+    },
+    {
+      "company": "Baseten",
+      "adapter": "greenhouse",
+      "identifier": "baseten",
+      "company_size_category": "Startup",
+      "source_category": "AI infrastructure companies"
+    },
+    {
+      "company": "LangChain",
+      "adapter": "greenhouse",
+      "identifier": "langchain",
+      "company_size_category": "Startup",
+      "source_category": "Applied AI startups"
+    },
+    {
+      "company": "Glean",
+      "adapter": "greenhouse",
+      "identifier": "gleanwork",
+      "company_size_category": "Mid-size tech",
+      "source_category": "Applied AI startups"
+    },
+    {
+      "company": "Cerebras",
+      "adapter": "greenhouse",
+      "identifier": "cerebras",
+      "company_size_category": "Mid-size tech",
+      "source_category": "AI infrastructure companies"
+    },
+    {
+      "company": "Sierra",
+      "adapter": "greenhouse",
+      "identifier": "sierra",
+      "company_size_category": "Startup",
+      "source_category": "Applied AI startups"
+    },
+    {
+      "company": "Factory",
+      "adapter": "ashby",
+      "identifier": "factory",
+      "company_size_category": "Startup",
+      "source_category": "Applied AI startups"
+    },
+    {
+      "company": "Windsurf",
+      "adapter": "greenhouse",
+      "identifier": "codeium",
+      "company_size_category": "Startup",
+      "source_category": "Applied AI startups"
+    },
+    {
+      "company": "Vannevar Labs",
+      "adapter": "lever",
+      "identifier": "vannevarlabs",
+      "company_size_category": "Startup",
+      "source_category": "Government contractors / research labs / policy analytics"
+    },
+    {
+      "company": "Epirus",
+      "adapter": "greenhouse",
+      "identifier": "epirus",
+      "company_size_category": "Startup",
+      "source_category": "Government contractors / research labs / policy analytics"
+    },
+    {
+      "company": "Gecko Robotics",
+      "adapter": "greenhouse",
+      "identifier": "geckorobotics",
+      "company_size_category": "Startup",
+      "source_category": "Robotics companies"
+    },
+    {
+      "company": "Saildrone",
+      "adapter": "greenhouse",
+      "identifier": "saildrone",
+      "company_size_category": "Startup",
+      "source_category": "Robotics companies"
+    },
+    {
+      "company": "Nuro",
+      "adapter": "greenhouse",
+      "identifier": "nuro",
+      "company_size_category": "Mid-size tech",
+      "source_category": "Robotics companies"
+    },
+    {
+      "company": "Aurora",
+      "adapter": "greenhouse",
+      "identifier": "aurora",
+      "company_size_category": "Mid-size tech",
+      "source_category": "Robotics companies"
+    },
+    {
+      "company": "Kodiak Robotics",
+      "adapter": "greenhouse",
+      "identifier": "kodiak",
+      "company_size_category": "Startup",
+      "source_category": "Robotics companies"
+    },
+    {
+      "company": "Gatik",
+      "adapter": "greenhouse",
+      "identifier": "gatik",
+      "company_size_category": "Startup",
+      "source_category": "Robotics companies"
+    },
+    {
+      "company": "Motive",
+      "adapter": "greenhouse",
+      "identifier": "gomotive",
+      "company_size_category": "Mid-size tech",
+      "source_category": "Supply chain/logistics optimization companies"
+    },
+    {
+      "company": "Zoox",
+      "adapter": "greenhouse",
+      "identifier": "zoox",
+      "company_size_category": "Mid-size tech",
+      "source_category": "Robotics companies"
+    },
+    {
+      "company": "Rivian",
+      "adapter": "greenhouse",
+      "identifier": "rivian",
+      "company_size_category": "Big tech / famous lab",
+      "source_category": "Industrial/engineering AI and simulation"
+    },
+    {
+      "company": "Lucid Motors",
+      "adapter": "greenhouse",
+      "identifier": "lucidmotors",
+      "company_size_category": "Mid-size tech",
+      "source_category": "Industrial/engineering AI and simulation"
+    },
+    {
+      "company": "Form Energy",
+      "adapter": "greenhouse",
+      "identifier": "formenergy",
+      "company_size_category": "Startup",
+      "source_category": "Climate / energy / transportation analytics"
+    },
+    {
+      "company": "Redwood Materials",
+      "adapter": "greenhouse",
+      "identifier": "redwoodmaterials",
+      "company_size_category": "Startup",
+      "source_category": "Climate / energy / transportation analytics"
+    },
+    {
+      "company": "Sila Nanotechnologies",
+      "adapter": "greenhouse",
+      "identifier": "silanano",
+      "company_size_category": "Startup",
+      "source_category": "Industrial/engineering AI and simulation"
+    },
+    {
+      "company": "Fivetran",
+      "adapter": "greenhouse",
+      "identifier": "fivetran",
+      "company_size_category": "Mid-size tech",
+      "source_category": "Data science companies"
+    },
+    {
+      "company": "Tecton",
+      "adapter": "greenhouse",
+      "identifier": "tecton",
+      "company_size_category": "Startup",
+      "source_category": "AI infrastructure companies"
+    },
+    {
+      "company": "Astronomer",
+      "adapter": "greenhouse",
+      "identifier": "astronomer",
+      "company_size_category": "Mid-size tech",
+      "source_category": "Data science companies"
+    },
+    {
+      "company": "Sigma Computing",
+      "adapter": "greenhouse",
+      "identifier": "sigmacomputing",
+      "company_size_category": "Mid-size tech",
+      "source_category": "Data science companies"
+    },
+    {
+      "company": "Hex",
+      "adapter": "greenhouse",
+      "identifier": "hex",
+      "company_size_category": "Startup",
+      "source_category": "Data science companies"
+    },
+    {
+      "company": "Retool",
+      "adapter": "greenhouse",
+      "identifier": "retool",
+      "company_size_category": "Mid-size tech",
+      "source_category": "Data science companies"
+    },
+    {
+      "company": "Amplitude",
+      "adapter": "greenhouse",
+      "identifier": "amplitude",
+      "company_size_category": "Mid-size tech",
+      "source_category": "Data science companies"
+    },
+    {
+      "company": "Mixpanel",
+      "adapter": "greenhouse",
+      "identifier": "mixpanel",
+      "company_size_category": "Mid-size tech",
+      "source_category": "Data science companies"
+    },
+    {
+      "company": "Hudson River Trading",
+      "adapter": "greenhouse",
+      "identifier": "hrt",
+      "company_size_category": "Big tech / famous lab",
+      "source_category": "Quant finance / trading"
+    },
+    {
+      "company": "Akuna Capital",
+      "adapter": "greenhouse",
+      "identifier": "akunacapital",
+      "company_size_category": "Mid-size tech",
+      "source_category": "Quant finance / trading"
+    },
+    {
+      "company": "DRW",
+      "adapter": "greenhouse",
+      "identifier": "drw",
+      "company_size_category": "Big tech / famous lab",
+      "source_category": "Quant finance / trading"
+    },
+    {
+      "company": "The Voleon Group",
+      "adapter": "greenhouse",
+      "identifier": "voleon",
+      "company_size_category": "Mid-size tech",
+      "source_category": "Quant finance / trading"
+    },
+    {
+      "company": "Point72",
+      "adapter": "greenhouse",
+      "identifier": "point72",
+      "company_size_category": "Big tech / famous lab",
+      "source_category": "Quant finance / trading"
+    },
+    {
+      "company": "Belvedere Trading",
+      "adapter": "greenhouse",
+      "identifier": "belvederetrading",
+      "company_size_category": "Mid-size tech",
+      "source_category": "Quant finance / trading"
+    },
+    {
+      "company": "Headlands Technologies",
+      "adapter": "greenhouse",
+      "identifier": "headlandstechnologies",
+      "company_size_category": "Mid-size tech",
+      "source_category": "Quant finance / trading"
+    },
+    {
+      "company": "Benchling",
+      "adapter": "greenhouse",
+      "identifier": "benchling",
+      "company_size_category": "Healthcare analytics",
+      "source_category": "Healthcare AI companies"
+    },
+    {
+      "company": "Color Health",
+      "adapter": "greenhouse",
+      "identifier": "color",
+      "company_size_category": "Healthcare analytics",
+      "source_category": "Healthcare AI companies"
+    },
+    {
+      "company": "Included Health",
+      "adapter": "greenhouse",
+      "identifier": "includedhealth",
+      "company_size_category": "Healthcare analytics",
+      "source_category": "Healthcare AI companies"
+    },
+    {
+      "company": "Ro",
+      "adapter": "greenhouse",
+      "identifier": "ro",
+      "company_size_category": "Healthcare analytics",
+      "source_category": "Healthcare AI companies"
+    },
+    {
+      "company": "Abridge",
+      "adapter": "ashby",
+      "identifier": "abridge",
+      "company_size_category": "Healthcare analytics",
+      "source_category": "Healthcare AI companies"
+    },
+    {
+      "company": "Ambience Healthcare",
+      "adapter": "ashby",
+      "identifier": "ambiencehealthcare",
+      "company_size_category": "Healthcare analytics",
+      "source_category": "Healthcare AI companies"
+    },
+    {
+      "company": "Insitro",
+      "adapter": "greenhouse",
+      "identifier": "insitro",
+      "company_size_category": "Healthcare analytics",
+      "source_category": "Healthcare AI companies"
+    },
+    {
+      "company": "Recursion",
+      "adapter": "greenhouse",
+      "identifier": "recursion",
+      "company_size_category": "Healthcare analytics",
+      "source_category": "Healthcare AI companies"
+    },
+    {
+      "company": "Freenome",
+      "adapter": "greenhouse",
+      "identifier": "freenome",
+      "company_size_category": "Healthcare analytics",
+      "source_category": "Healthcare AI companies"
+    },
+    {
+      "company": "GRAIL",
+      "adapter": "greenhouse",
+      "identifier": "grail",
+      "company_size_category": "Healthcare analytics",
+      "source_category": "Healthcare AI companies"
+    },
+    {
+      "company": "PathAI",
+      "adapter": "greenhouse",
+      "identifier": "pathai",
+      "company_size_category": "Healthcare analytics",
+      "source_category": "Healthcare AI companies"
+    },
+    {
+      "company": "Fractal",
+      "adapter": "greenhouse",
+      "identifier": "fractal",
+      "company_size_category": "Mid-size tech",
+      "source_category": "Consulting and analytics companies"
+    },
+    {
+      "company": "Nielsen",
+      "adapter": "greenhouse",
+      "identifier": "nielsen",
+      "company_size_category": "Mid-size tech",
+      "source_category": "Consulting and analytics companies"
+    },
+    {
+      "company": "Verisk",
+      "adapter": "greenhouse",
+      "identifier": "verisk",
+      "company_size_category": "Insurance/risk",
+      "source_category": "Insurance and risk analytics companies"
+    },
+    {
+      "company": "Esri",
+      "adapter": "greenhouse",
+      "identifier": "esri",
+      "company_size_category": "Mid-size tech",
+      "source_category": "Industrial/engineering AI and simulation"
+    },
+    {
+      "company": "EnergyHub",
+      "adapter": "greenhouse",
+      "identifier": "energyhub",
+      "company_size_category": "Startup",
+      "source_category": "Climate / energy / transportation analytics"
+    },
+    {
+      "company": "Aurora Solar",
+      "adapter": "greenhouse",
+      "identifier": "aurorasolar",
+      "company_size_category": "Mid-size tech",
+      "source_category": "Climate / energy / transportation analytics"
+    },
+    {
+      "company": "Gridware",
+      "adapter": "greenhouse",
+      "identifier": "gridware",
+      "company_size_category": "Startup",
+      "source_category": "Climate / energy / transportation analytics"
+    },
+    {
+      "company": "Voltus",
+      "adapter": "greenhouse",
+      "identifier": "voltus",
+      "company_size_category": "Startup",
+      "source_category": "Climate / energy / transportation analytics"
     },
     {
       "company": "Travelers",

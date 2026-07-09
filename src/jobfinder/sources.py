@@ -27,6 +27,10 @@ class SourceError(RuntimeError):
     pass
 
 
+class SourceUnavailable(SourceError):
+    pass
+
+
 def _plain_text(value: str | None) -> str:
     text = html.unescape(value or "")
     text = re.sub(r"<(?:br|/p|/li|/div|/h\d)\b[^>]*>", "\n", text, flags=re.I)
@@ -78,7 +82,7 @@ def _request_json(
     *,
     method: str = "GET",
     payload: dict[str, Any] | None = None,
-    timeout: float = 20.0,
+    timeout: float = 12.0,
     retries: int = 1,
 ) -> dict[str, Any] | list[Any]:
     body = json.dumps(payload).encode("utf-8") if payload is not None else None
@@ -97,8 +101,11 @@ def _request_json(
         try:
             with urlopen(request, timeout=timeout) as response:
                 return json.load(response)
+        except HTTPError as exc:
+            last_error = exc
+            if attempt < retries:
+                time.sleep(0.4 * (2**attempt))
         except (
-            HTTPError,
             URLError,
             TimeoutError,
             IncompleteRead,
@@ -108,6 +115,8 @@ def _request_json(
             last_error = exc
             if attempt < retries:
                 time.sleep(0.4 * (2**attempt))
+    if isinstance(last_error, HTTPError):
+        raise SourceUnavailable(f"{url}: HTTP {last_error.code}")
     raise SourceError(f"{url}: {type(last_error).__name__}")
 
 
@@ -143,8 +152,9 @@ class ByteDanceAdapter(SourceAdapter):
             timeout=float(self.config.get("timeout", 20)),
             retries=int(self.config.get("retries", 1)),
         )
+        source_keywords = keywords[: int(self.config.get("keyword_limit", 16))]
         roles = client.search(
-            keywords,
+            source_keywords,
             int(self.config.get("page_size", 20)),
             int(self.config.get("max_pages_per_keyword", 2)),
         )
@@ -179,8 +189,8 @@ class GreenhouseAdapter(SourceAdapter):
         url = f"https://boards-api.greenhouse.io/v1/boards/{token}/jobs?content=true"
         data = _request_json(
             url,
-            timeout=float(self.config.get("timeout", 30)),
-            retries=int(self.config.get("retries", 2)),
+            timeout=float(self.config.get("timeout", 12)),
+            retries=int(self.config.get("retries", 1)),
         )
         jobs = data.get("jobs", []) if isinstance(data, dict) else []
         roles: list[Role] = []
@@ -226,8 +236,8 @@ class LeverAdapter(SourceAdapter):
         url = f"https://{region}/v0/postings/{site}?mode=json"
         data = _request_json(
             url,
-            timeout=float(self.config.get("timeout", 30)),
-            retries=int(self.config.get("retries", 2)),
+            timeout=float(self.config.get("timeout", 12)),
+            retries=int(self.config.get("retries", 1)),
         )
         jobs = data if isinstance(data, list) else []
         roles: list[Role] = []
@@ -272,8 +282,8 @@ class AshbyAdapter(SourceAdapter):
         url = f"https://api.ashbyhq.com/posting-api/job-board/{board}"
         data = _request_json(
             url,
-            timeout=float(self.config.get("timeout", 30)),
-            retries=int(self.config.get("retries", 2)),
+            timeout=float(self.config.get("timeout", 12)),
+            retries=int(self.config.get("retries", 1)),
         )
         jobs = data.get("jobs", []) if isinstance(data, dict) else []
         roles: list[Role] = []
@@ -414,12 +424,121 @@ class WorkdayAdapter(SourceAdapter):
         return list(found.values())
 
 
+class SmartRecruitersAdapter(SourceAdapter):
+    def fetch(self, keywords: list[str]) -> list[Role]:
+        company_id = self.config["identifier"]
+        url = (
+            f"https://api.smartrecruiters.com/v1/companies/{company_id}/postings"
+            "?limit=100"
+        )
+        data = _request_json(
+            url,
+            timeout=float(self.config.get("timeout", 12)),
+            retries=int(self.config.get("retries", 1)),
+        )
+        postings = data.get("content", []) if isinstance(data, dict) else []
+        detail_terms = (
+            "intern",
+            "co-op",
+            "student",
+            "data",
+            "analytics",
+            "scientist",
+            "machine learning",
+            "ai",
+            "optimization",
+            "simulation",
+            "model",
+            "quant",
+            "risk",
+            "actuarial",
+        )
+        detail_limit = int(self.config.get("detail_limit", 35))
+        detail_candidates = [
+            raw
+            for raw in postings
+            if any(term in str(raw.get("name") or "").lower() for term in detail_terms)
+        ][:detail_limit]
+        details: dict[str, dict[str, Any]] = {}
+
+        def fetch_detail(raw: dict[str, Any]) -> tuple[str, dict[str, Any]]:
+            posting_id = str(raw.get("id") or raw.get("uuid") or "")
+            if not posting_id:
+                return "", {}
+            try:
+                detail = _request_json(
+                    f"https://api.smartrecruiters.com/v1/companies/{company_id}/postings/{posting_id}",
+                    timeout=10,
+                    retries=0,
+                )
+            except SourceError:
+                return posting_id, {}
+            return posting_id, detail if isinstance(detail, dict) else {}
+
+        with ThreadPoolExecutor(max_workers=6) as executor:
+            for posting_id, detail in executor.map(fetch_detail, detail_candidates):
+                if posting_id and detail:
+                    details[posting_id] = detail
+
+        roles: list[Role] = []
+        for raw in postings:
+            posting_id = str(raw.get("id") or raw.get("uuid") or "")
+            detail = details.get(posting_id, raw)
+            title = str(detail.get("name") or raw.get("name") or "")
+            location_info = detail.get("location") or raw.get("location") or {}
+            location = ", ".join(
+                str(value)
+                for value in (
+                    location_info.get("city"),
+                    location_info.get("region"),
+                    location_info.get("country"),
+                )
+                if value
+            )
+            job_ad = detail.get("jobAd") or {}
+            sections = job_ad.get("sections") or {}
+            description = _plain_text(
+                " ".join(
+                    str(value)
+                    for value in (
+                        sections.get("jobDescription"),
+                        sections.get("qualifications"),
+                        sections.get("additionalInformation"),
+                    )
+                    if value
+                )
+            )
+            apply_url = str(
+                detail.get("applyUrl")
+                or raw.get("applyUrl")
+                or detail.get("ref")
+                or raw.get("ref")
+                or ""
+            )
+            roles.append(
+                self._role(
+                    id=f"smartrecruiters:{company_id}:{posting_id or title}",
+                    title=title,
+                    location=location,
+                    employment_type=_employment_type(title, description),
+                    url=apply_url,
+                    source="SmartRecruiters official postings API",
+                    description=description,
+                    requirements=description,
+                    posted_date=detail.get("releasedDate") or raw.get("releasedDate"),
+                    role_family=_role_family(title, description),
+                )
+            )
+        return roles
+
+
 ADAPTERS: dict[str, type[SourceAdapter]] = {
     "bytedance": ByteDanceAdapter,
     "greenhouse": GreenhouseAdapter,
     "lever": LeverAdapter,
     "ashby": AshbyAdapter,
     "workday": WorkdayAdapter,
+    "smartrecruiters": SmartRecruitersAdapter,
 }
 
 
@@ -491,12 +610,22 @@ def deduplicate_roles(roles: Iterable[Role]) -> list[Role]:
 
 
 @dataclass(frozen=True)
+class SourceHealth:
+    company: str
+    status: str
+    raw_roles: int = 0
+    internship_roles: int = 0
+    message: str = ""
+
+
+@dataclass(frozen=True)
 class SearchResult:
     roles: list[Role]
     companies_attempted: int
     companies_succeeded: int
     raw_roles_found: int
     failures: tuple[str, ...]
+    source_health: tuple[SourceHealth, ...] = ()
 
 
 class MultiCompanyClient:
@@ -512,13 +641,14 @@ class MultiCompanyClient:
         ]
         roles: list[Role] = []
         failures: list[str] = []
+        source_health: list[SourceHealth] = []
         succeeded = 0
 
         def fetch(source: dict[str, Any]) -> list[Role]:
             adapter_name = str(source["adapter"])
             adapter_type = ADAPTERS.get(adapter_name)
             if adapter_type is None:
-                raise SourceError(f"unknown adapter {adapter_name}")
+                raise SourceUnavailable(f"unknown adapter {adapter_name}")
             return adapter_type(source).fetch(keywords)
 
         with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
@@ -530,17 +660,63 @@ class MultiCompanyClient:
                     company_roles = future.result()
                     roles.extend(company_roles)
                     succeeded += 1
-                    print(f"[SOURCE] {company}: {len(company_roles)} roles")
+                    internship_count = sum(
+                        1
+                        for role in company_roles
+                        if "intern" in f"{role.title} {role.employment_type}".lower()
+                        or "co-op" in f"{role.title} {role.employment_type}".lower()
+                        or "coop" in f"{role.title} {role.employment_type}".lower()
+                    )
+                    if company_roles and internship_count:
+                        status = "success"
+                        print(
+                            f"[SOURCE] {company}: {len(company_roles)} roles, "
+                            f"{internship_count} internship/co-op-like",
+                            flush=True,
+                        )
+                    elif company_roles:
+                        status = "no_open_internships"
+                        print(
+                            f"[SOURCE EMPTY] {company}: {len(company_roles)} roles, "
+                            "no internship/co-op-like postings",
+                            flush=True,
+                        )
+                    else:
+                        status = "no_open_internships"
+                        print(
+                            f"[SOURCE EMPTY] {company}: no open roles returned",
+                            flush=True,
+                        )
+                    source_health.append(
+                        SourceHealth(
+                            company=company,
+                            status=status,
+                            raw_roles=len(company_roles),
+                            internship_roles=internship_count,
+                        )
+                    )
                 except Exception as exc:
                     message = f"{company}: {type(exc).__name__}: {exc}"
                     failures.append(message)
-                    print(f"[SOURCE WARNING] {message}")
+                    status = (
+                        "source_unavailable"
+                        if isinstance(exc, SourceUnavailable)
+                        else "crawler_failed"
+                    )
+                    source_health.append(
+                        SourceHealth(
+                            company=company,
+                            status=status,
+                            message=f"{type(exc).__name__}: {exc}",
+                        )
+                    )
+                    print(f"[SOURCE WARNING] {message}", flush=True)
 
         raw_count = len(roles)
         roles = [
             role
             for role in roles
-            if not _china_based(role) and _target_match(role, keywords)
+            if not _china_based(role)
         ]
         return SearchResult(
             roles=deduplicate_roles(roles),
@@ -548,6 +724,9 @@ class MultiCompanyClient:
             companies_succeeded=succeeded,
             raw_roles_found=raw_count,
             failures=tuple(failures),
+            source_health=tuple(
+                sorted(source_health, key=lambda item: (item.status, item.company))
+            ),
         )
 
 

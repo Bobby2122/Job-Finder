@@ -10,8 +10,9 @@ ranking tuned for Bobby's mathematics, applied AI, optimization, computational
 math, scientific computing, and ML/data-science background. AI Engineer roles
 still matter, but they are no longer the only path; OR/optimization, applied
 science, numerical modeling, scientific computing, and mathematically serious
-data-science internships can rank highly too. Pure SWE roles are rejected unless
-the posting clearly involves AI, ML, modeling, optimization, or research depth.
+data-science internships can rank highly too. Pure SWE roles are penalized
+heavily unless the posting clearly involves AI, ML, modeling, optimization, or
+research depth.
 
 ## Quick start
 
@@ -46,11 +47,16 @@ No third-party Python packages are required.
 - Lever Postings API
 - Ashby Job Postings API
 - Workday public career endpoints
+- SmartRecruiters public postings API
 
 Sources run independently and concurrently. A changed or unavailable company
 career page is logged and cannot stop other sources or the report. The config
-covers big tech/AI, mid-size tech, startups, insurance/risk, healthcare
-analytics, finance/market data, logistics/OR, and research-oriented companies.
+covers 120+ crawlable companies across big tech/AI, mid-size tech, startups,
+AI infrastructure, applied AI startups, insurance/risk, healthcare analytics,
+finance/market data, quant trading, logistics/OR, robotics, defense technology,
+energy/climate, industrial simulation, and research-oriented companies. The
+report distinguishes sources with internships, sources with no open internships,
+crawler failures, and unavailable/mismatched ATS sources.
 
 ## Scoring and buckets
 
@@ -58,13 +64,15 @@ Hard filters run before ranking in this order:
 
 - explicit U.S. location, including U.S.-remote roles
 - explicit internship employment or title
-- Spring 2027, Jan-Jun 2027, or Summer 2027 timing; 2026 seasons are blocked
 - no full-time, new-grad, or ambiguous employment
-- no senior-only, irrelevant marketing/sales, cybersecurity, IT/support,
-  hardware-only, pure product-management, dashboard-only, or pure SWE roles
-  without AI/ML/modeling/optimization scope
 - no Applied, Rejected, Not Interested, dismissed, previously recommended, or
   likely duplicate jobs from `data/job_history.json` and `data/manual_jobs.json`
+
+Timing, title phrasing, preferred qualifications, specific programming language
+requirements, previous-internship preferences, graduate-degree preferences, and
+company popularity are scoring factors rather than early hard filters. Roles
+clearly outside the technical/quantitative target path can still be rejected
+after scoring, but borderline roles are down-ranked instead of silently removed.
 
 Eligible roles receive a career relevance score:
 
@@ -79,11 +87,11 @@ Eligible roles receive a career relevance score:
 
 The relevance score is then blended with:
 
-- internship clarity: 20%
+- internship clarity
 - competition ease
 - requirement ease
 - U.S. stability
-- practical learning value: 5%
+- practical learning value
 - minus large-company/popularity penalties
 
 Selection then enforces a two-role company cap and targets a 5/5/5
