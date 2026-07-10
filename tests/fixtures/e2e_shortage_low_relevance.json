@@ -1,0 +1,17 @@
+[
+  {
+    "id": "low-relevance-1",
+    "company": "MathWorks",
+    "title": "Marketing Operations Intern - Spring 2027",
+    "location": "Natick, MA",
+    "employment_type": "Internship",
+    "url": "https://careers.example.com/mathworks/low-relevance-1",
+    "source": "Fixture official careers API",
+    "description": "Coordinate campaigns, events, copy, and brand operations.",
+    "requirements": "Open to undergraduate BS/MS students in mathematics, statistics, computer science, operations research, or related fields. Python and SQL preferred.",
+    "posted_date": "2026-07-01",
+    "role_family": "Other",
+    "company_size_category": "Mid-size tech",
+    "source_category": "End-to-end fixture"
+  }
+]

@@ -30,6 +30,24 @@ from .tracker import ApplicationTracker, SUPPRESSED_STATUSES
 
 
 ROOT = Path(__file__).resolve().parents[2]
+MAJOR_EMPLOYERS = (
+    "Google",
+    "Apple",
+    "Microsoft",
+    "Amazon",
+    "Meta",
+    "NVIDIA",
+    "IBM",
+    "Adobe",
+    "Salesforce",
+    "Oracle",
+    "Uber",
+    "Airbnb",
+    "LinkedIn",
+    "Tesla",
+    "Autodesk",
+    "MathWorks",
+)
 
 
 def _select_alert_candidates(
@@ -124,6 +142,74 @@ def _diagnostic(
     }
 
 
+def _write_source_health(path: Path, source_health: tuple[object, ...]) -> None:
+    records = [
+        item.as_dict() if hasattr(item, "as_dict") else dict(item)  # type: ignore[arg-type]
+        for item in source_health
+    ]
+    path.write_text(
+        json.dumps(records, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+
+
+def _write_source_coverage(
+    path: Path,
+    sources_config: dict | None,
+    source_health: tuple[object, ...],
+) -> None:
+    configured = {
+        str(source.get("company", "")): source
+        for source in (sources_config or {}).get("sources", [])
+    }
+    health_by_company = {
+        str(getattr(item, "company", "")): item for item in source_health
+    }
+    rows = [
+        "Company | Configured | Enabled | Adapter | Health | Internships found | Notes",
+        "--- | --- | --- | --- | --- | ---: | ---",
+    ]
+    for company in MAJOR_EMPLOYERS:
+        source = configured.get(company)
+        health = health_by_company.get(company)
+        if source:
+            status = str(getattr(health, "status", "not_checked"))
+            internships = int(getattr(health, "internship_roles", 0)) if health else 0
+            note = (
+                str(getattr(health, "recommended_action", ""))
+                if health
+                else "Configured but not checked in this run."
+            )
+            rows.append(
+                " | ".join(
+                    (
+                        company,
+                        "yes",
+                        "yes" if source.get("enabled", True) else "no",
+                        str(source.get("adapter", "")),
+                        status,
+                        str(internships),
+                        note or str(source.get("latest_status", "")),
+                    )
+                )
+            )
+        else:
+            rows.append(
+                " | ".join(
+                    (
+                        company,
+                        "no",
+                        "no",
+                        "",
+                        "not_configured",
+                        "0",
+                        "No maintainable official adapter was added in this task; investigate and add only when an official source can be supported without guessing identifiers.",
+                    )
+                )
+            )
+    path.write_text("\n".join(rows) + "\n", encoding="utf-8")
+
+
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="job-finder",
@@ -171,6 +257,7 @@ def run(
 ) -> int:
     profile = json.loads(config_path.read_text(encoding="utf-8"))
     try:
+        sources_config = None
         if fixture:
             jobs = load_fixture(fixture)
             companies = {job.company for job in jobs}
@@ -434,6 +521,13 @@ def run(
         json.dumps(diagnostics, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
     )
+    if stats.source_health:
+        _write_source_health(report_dir / "source_health.json", stats.source_health)
+        _write_source_coverage(
+            report_dir / "source_coverage.md",
+            sources_config,
+            stats.source_health,
+        )
 
     tracker.upsert_recommendations(tracked_recommendations)
     state = update_state(

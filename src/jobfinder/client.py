@@ -8,7 +8,7 @@ from typing import Any, Iterable
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
-from .models import Job
+from .models import Job, Role
 
 
 class ByteDanceClientError(RuntimeError):
@@ -136,4 +136,30 @@ def load_fixture(path: Path) -> list[Job]:
         raw = raw.get("data", {}).get("job_post_list", [])
     if not isinstance(raw, list):
         raise ValueError("Fixture must be a job list or an API response object")
-    return [Job.from_api(item) for item in raw]
+    jobs: list[Job] = []
+    for item in raw:
+        if not isinstance(item, dict):
+            continue
+        if {"company", "location", "employment_type", "url"}.issubset(item):
+            jobs.append(
+                Role.normalized(
+                    id=str(item["id"]),
+                    company=str(item["company"]),
+                    title=str(item["title"]),
+                    location=str(item["location"]),
+                    employment_type=str(item["employment_type"]),
+                    url=str(item["url"]),
+                    source=str(item.get("source", "Fixture official source")),
+                    description=str(item.get("description", "")),
+                    requirements=str(item.get("requirements", "")),
+                    posted_date=item.get("posted_date"),
+                    role_family=str(item.get("role_family", "")),
+                    company_size_category=str(
+                        item.get("company_size_category", "Mid-size tech")
+                    ),
+                    source_category=str(item.get("source_category", "Fixture")),
+                )
+            )
+        else:
+            jobs.append(Job.from_api(item))
+    return jobs

@@ -6,6 +6,7 @@ import re
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from difflib import SequenceMatcher
 from http.client import IncompleteRead, RemoteDisconnected
 from pathlib import Path
@@ -42,16 +43,35 @@ class SourceUnavailable(SourceError):
     pass
 
 
+HEALTHY_STATUSES = {
+    "healthy_with_internships",
+    "healthy_no_internships",
+    "healthy_no_matching_internships",
+}
+
+TEMPORARY_HTTP_STATUSES = {408, 425, 429, 500, 502, 503, 504}
+
+
 def _source_category_for_http(code: int) -> tuple[str, str]:
+    if code == 429:
+        return "rate_limited", "Retry later with bounded backoff or reduce request volume."
     if code == 404:
-        return "invalid_endpoint", "Verify the ATS provider and board slug against the official careers page."
+        return "invalid_board_identifier", "Verify the ATS provider and board slug against the official careers page."
     if code == 403:
-        return "blocked", "Use an official API endpoint where available or add approved headers for the provider."
+        return "blocked_or_forbidden", "Use an official API endpoint where available or classify the official page as unsupported."
     if code == 422:
-        return "invalid_endpoint", "Verify request body, tenant, site, and pagination parameters."
+        return "invalid_response", "Verify request body, tenant, site, and pagination parameters."
+    if code in {301, 302, 307, 308}:
+        return "invalid_response", "Replace the endpoint with the current canonical official careers URL."
     if 500 <= code < 600:
         return "temporary_network_failure", "Retry later; provider returned a server-side error."
-    return "parser_failure", "Inspect provider response and update the adapter."
+    return "invalid_response", "Inspect provider response and update the adapter."
+
+
+def _sanitize_error_message(message: str, limit: int = 220) -> str:
+    text = re.sub(r"(token|key|secret|signature|password)=([^&\s]+)", r"\1=<redacted>", str(message), flags=re.I)
+    text = re.sub(r"\s+", " ", text).strip()
+    return text[:limit]
 
 
 def _plain_text(value: str | None) -> str:
@@ -126,8 +146,10 @@ def _request_json(
                 return json.load(response)
         except HTTPError as exc:
             last_error = exc
-            if attempt < retries:
+            if exc.code in TEMPORARY_HTTP_STATUSES and attempt < retries:
                 time.sleep(0.4 * (2**attempt))
+                continue
+            break
         except (
             URLError,
             TimeoutError,
@@ -155,6 +177,52 @@ def _request_json(
         error_code=type(last_error).__name__ if last_error else "Unknown",
         category=category,
         suggested_fix="Retry later if this is transient; otherwise inspect the official careers page.",
+    )
+
+
+def _request_text(
+    url: str,
+    *,
+    timeout: float = 15.0,
+    retries: int = 1,
+    accept: str = "text/html,application/xhtml+xml",
+) -> str:
+    request = Request(
+        url,
+        headers={
+            "Accept": accept,
+            "Accept-Language": "en-US,en;q=0.9",
+            "User-Agent": "BobbyOpportunityTracker/0.2",
+        },
+    )
+    last_error: Exception | None = None
+    for attempt in range(retries + 1):
+        try:
+            with urlopen(request, timeout=timeout) as response:
+                return response.read(2_500_000).decode("utf-8", errors="replace")
+        except HTTPError as exc:
+            last_error = exc
+            if exc.code in TEMPORARY_HTTP_STATUSES and attempt < retries:
+                time.sleep(0.4 * (2**attempt))
+                continue
+            break
+        except (URLError, TimeoutError, IncompleteRead, RemoteDisconnected) as exc:
+            last_error = exc
+            if attempt < retries:
+                time.sleep(0.4 * (2**attempt))
+    if isinstance(last_error, HTTPError):
+        category, suggested_fix = _source_category_for_http(last_error.code)
+        raise SourceUnavailable(
+            f"{url}: HTTP {last_error.code}",
+            error_code=f"HTTP {last_error.code}",
+            category=category,
+            suggested_fix=suggested_fix,
+        )
+    raise SourceError(
+        f"{url}: {type(last_error).__name__}",
+        error_code=type(last_error).__name__ if last_error else "Unknown",
+        category="temporary_network_failure",
+        suggested_fix="Retry later or replace with a stable official endpoint if available.",
     )
 
 
@@ -494,34 +562,17 @@ class CareersPageAdapter(SourceAdapter):
             raise SourceUnavailable(
                 "careers_page adapter requires careers_page or endpoint",
                 error_code="CONFIG",
-                category="invalid_endpoint",
+                category="invalid_board_identifier",
                 suggested_fix="Add the company's official careers page URL.",
             )
         try:
-            request = Request(
+            html_text = _request_text(
                 url,
-                headers={
-                    "Accept": "text/html,application/xhtml+xml",
-                    "User-Agent": "BobbyOpportunityTracker/0.2",
-                },
+                timeout=float(self.config.get("timeout", 15)),
+                retries=int(self.config.get("retries", 1)),
             )
-            with urlopen(request, timeout=float(self.config.get("timeout", 15))) as response:
-                html_text = response.read(1_500_000).decode("utf-8", errors="replace")
-        except HTTPError as exc:
-            category, suggested_fix = _source_category_for_http(exc.code)
-            raise SourceUnavailable(
-                f"{url}: HTTP {exc.code}",
-                error_code=f"HTTP {exc.code}",
-                category=category,
-                suggested_fix=suggested_fix,
-            )
-        except (URLError, TimeoutError) as exc:
-            raise SourceError(
-                f"{url}: {type(exc).__name__}",
-                error_code=type(exc).__name__,
-                category="temporary_network_failure",
-                suggested_fix="Retry later or replace with a stable official ATS API if available.",
-            )
+        except SourceError:
+            raise
 
         roles: list[Role] = []
         for match in re.finditer(
@@ -579,9 +630,181 @@ class CareersPageAdapter(SourceAdapter):
         raise SourceError(
             f"{url}: no JobPosting structured data found",
             error_code="NO_STRUCTURED_JOBS",
-            category="parser_failure",
+            category="official_page_unstructured",
             suggested_fix="Add a dedicated adapter for this official careers page or replace it with a stable ATS API.",
         )
+
+
+class GoogleCareersAdapter(SourceAdapter):
+    DEFAULT_URL = (
+        "https://www.google.com/about/careers/applications/jobs/results/"
+        "?q=intern&location=United%20States"
+    )
+
+    def fetch(self, keywords: list[str]) -> list[Role]:
+        url = str(self.config.get("endpoint") or self.config.get("careers_page") or self.DEFAULT_URL)
+        html_text = _request_text(
+            url,
+            timeout=float(self.config.get("timeout", 20)),
+            retries=int(self.config.get("retries", 1)),
+        )
+        roles = self._parse_html(html_text, url)
+        if not roles:
+            raise SourceError(
+                f"{url}: Google careers structured payload was not found",
+                error_code="NO_GOOGLE_PAYLOAD",
+                category="official_page_unstructured",
+                suggested_fix="Re-check the official Google careers page; the app payload shape may have changed.",
+            )
+        return roles
+
+    def _parse_html(self, html_text: str, source_url: str) -> list[Role]:
+        match = re.search(
+            r"AF_initDataCallback\(\{key: 'ds:1'.*?data:(.*?), sideChannel",
+            html_text,
+            flags=re.S,
+        )
+        if not match:
+            return []
+        try:
+            payload = json.loads(match.group(1))
+        except json.JSONDecodeError as exc:
+            raise SourceError(
+                f"{source_url}: invalid Google careers payload",
+                error_code="INVALID_GOOGLE_PAYLOAD",
+                category="parser_failure",
+                suggested_fix="Update the Google careers adapter for the new structured payload shape.",
+            ) from exc
+        raw_jobs = payload[0] if payload and isinstance(payload[0], list) else []
+        roles: list[Role] = []
+        for raw in raw_jobs:
+            if not isinstance(raw, list) or len(raw) < 10:
+                continue
+            job_id = str(raw[0] or "")
+            title = str(raw[1] or "")
+            apply_url = str(raw[2] or "")
+            description = " ".join(
+                _plain_text(block[1])
+                for block in (raw[3], raw[4], raw[10] if len(raw) > 10 else None, raw[15] if len(raw) > 15 else None)
+                if isinstance(block, list) and len(block) > 1 and block[1]
+            )
+            locations = raw[9] if isinstance(raw[9], list) else []
+            us_locations = [
+                str(item[0])
+                for item in locations
+                if isinstance(item, list)
+                and item
+                and (len(item) < 6 or str(item[5]).upper() == "US")
+            ]
+            location = "; ".join(us_locations[:6]) or "United States"
+            classification = "Intern & Apprentice" if "intern" in title.lower() or "student" in title.lower() else ""
+            detail_match = re.search(
+                rf'href="([^"]*{re.escape(job_id)}[^"]*)"',
+                html_text,
+            )
+            if detail_match:
+                detail_url = html.unescape(detail_match.group(1))
+                if detail_url.startswith("jobs/"):
+                    apply_url = "https://www.google.com/about/careers/applications/" + detail_url
+            roles.append(
+                self._role(
+                    id=f"google:{job_id or normalize_job_title(title)}",
+                    title=title,
+                    location=location,
+                    employment_type=classification or _employment_type(title, description),
+                    url=apply_url,
+                    source="Google official careers structured page",
+                    description=description,
+                    requirements=description,
+                    posted_date=None,
+                    role_family=_role_family(title, description),
+                )
+            )
+        return roles
+
+
+class AppleCareersAdapter(SourceAdapter):
+    DEFAULT_URL = (
+        "https://jobs.apple.com/en-us/search?"
+        "search=intern&location=united-states-USA"
+    )
+
+    def fetch(self, keywords: list[str]) -> list[Role]:
+        base_url = str(self.config.get("endpoint") or self.config.get("careers_page") or self.DEFAULT_URL)
+        max_pages = int(self.config.get("max_pages", 2))
+        roles: dict[str, Role] = {}
+        for page in range(1, max_pages + 1):
+            url = base_url if page == 1 else f"{base_url}&page={page}"
+            html_text = _request_text(
+                url,
+                timeout=float(self.config.get("timeout", 20)),
+                retries=int(self.config.get("retries", 1)),
+            )
+            parsed = self._parse_html(html_text, url)
+            for role in parsed:
+                roles[role.id] = role
+            if f"page={page + 1}" not in html_text:
+                break
+        if not roles:
+            if "search-result-set" in html_text or "search-result-count" in html_text:
+                return []
+            raise SourceError(
+                f"{base_url}: no Apple careers roles parsed",
+                error_code="NO_APPLE_ROLES",
+                category="official_page_unstructured",
+                suggested_fix="Re-check the official Apple careers page; the server-rendered search markup may have changed.",
+            )
+        return list(roles.values())
+
+    def _parse_html(self, html_text: str, source_url: str) -> list[Role]:
+        roles: list[Role] = []
+        chunks = re.split(r"<li data-core-accordion-item", html_text)
+        for chunk in chunks[1:]:
+            id_match = re.search(r"PIPE-(\d+)|role-search-job-title-[A-Z]*-(\d+)", chunk)
+            title_match = re.search(
+                r'aria-label="Role description:\s*([^"]+)"',
+                chunk,
+            )
+            link_match = re.search(
+                r'href="(/en-us/details/(\d+)/[^"]+)"',
+                chunk,
+            )
+            if not title_match or not link_match:
+                continue
+            job_id = next((group for group in id_match.groups() if group), "") if id_match else link_match.group(2)
+            title = html.unescape(title_match.group(1)).strip()
+            if not re.search(r"\b(intern|internship|student|co-op|coop)\b", title, re.I):
+                continue
+            url = "https://jobs.apple.com" + html.unescape(link_match.group(1))
+            description_match = re.search(
+                r"job-summary-\d+.*?<span>(.*?)</span>",
+                chunk,
+                flags=re.S,
+            )
+            description = _plain_text(description_match.group(1) if description_match else "")
+            role_number = job_id or normalize_job_title(title)
+            location = "United States"
+            location_match = re.search(
+                r"Where we&#x27;re hiring[^>]+href=\"[^\"]+/locationPicker\"",
+                chunk,
+            )
+            if location_match:
+                location = "United States"
+            roles.append(
+                self._role(
+                    id=f"apple:{role_number}",
+                    title=title,
+                    location=location,
+                    employment_type=_employment_type(title, description),
+                    url=url,
+                    source="Apple official careers search page",
+                    description=description,
+                    requirements=description,
+                    posted_date=None,
+                    role_family=_role_family(title, description),
+                )
+            )
+        return roles
 
 
 class SmartRecruitersAdapter(SourceAdapter):
@@ -700,6 +923,8 @@ ADAPTERS: dict[str, type[SourceAdapter]] = {
     "workday": WorkdayAdapter,
     "smartrecruiters": SmartRecruitersAdapter,
     "careers_page": CareersPageAdapter,
+    "google_careers": GoogleCareersAdapter,
+    "apple_careers": AppleCareersAdapter,
 }
 
 
@@ -774,15 +999,47 @@ def deduplicate_roles(roles: Iterable[Role]) -> list[Role]:
 class SourceHealth:
     company: str
     status: str
-    provider: str = ""
+    adapter: str = ""
     endpoint: str = ""
     board_slug: str = ""
     enabled: bool = True
-    raw_roles: int = 0
-    internship_roles: int = 0
+    http_status: int | None = None
+    roles_found: int = 0
+    internship_roles_found: int = 0
+    error_type: str = ""
+    error_message: str = ""
+    checked_at: str = ""
+    recommended_action: str = ""
     message: str = ""
     error_code: str = ""
     suggested_fix: str = ""
+
+    @property
+    def provider(self) -> str:
+        return self.adapter
+
+    @property
+    def raw_roles(self) -> int:
+        return self.roles_found
+
+    @property
+    def internship_roles(self) -> int:
+        return self.internship_roles_found
+
+    def as_dict(self) -> dict[str, object]:
+        return {
+            "company": self.company,
+            "adapter": self.adapter,
+            "endpoint": self.endpoint,
+            "status": self.status,
+            "http_status": self.http_status,
+            "roles_found": self.roles_found,
+            "internship_roles_found": self.internship_roles_found,
+            "error_type": self.error_type,
+            "error_message": self.error_message,
+            "checked_at": self.checked_at,
+            "recommended_action": self.recommended_action,
+        }
 
 
 @dataclass(frozen=True)
@@ -806,10 +1063,16 @@ class MultiCompanyClient:
             for source in config.get("sources", [])
             if source.get("enabled", True)
         ]
+        disabled_sources = [
+            source
+            for source in config.get("sources", [])
+            if not source.get("enabled", True)
+        ]
         roles: list[Role] = []
         failures: list[str] = []
         source_health: list[SourceHealth] = []
         succeeded = 0
+        checked_at = datetime.now(timezone.utc).isoformat()
 
         def fetch(source: dict[str, Any]) -> list[Role]:
             adapter_name = str(source["adapter"])
@@ -818,10 +1081,24 @@ class MultiCompanyClient:
                 raise SourceUnavailable(
                     f"unknown adapter {adapter_name}",
                     error_code="CONFIG",
-                    category="invalid_endpoint",
+                    category="unsupported_source",
                     suggested_fix="Use one of the supported adapters or implement a new official-source adapter.",
                 )
             return adapter_type(source).fetch(keywords)
+
+        for source in disabled_sources:
+            source_health.append(
+                SourceHealth(
+                    company=str(source.get("company", "Unknown company")),
+                    status="disabled_intentionally",
+                    adapter=str(source.get("ats_type") or source.get("adapter", "unknown")),
+                    endpoint=str(source.get("endpoint") or source.get("careers_page") or ""),
+                    board_slug=str(source.get("board_slug") or source.get("identifier") or ""),
+                    enabled=False,
+                    checked_at=checked_at,
+                    recommended_action=str(source.get("disabled_reason") or "Leave disabled until the official source can be supported."),
+                )
+            )
 
         with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
             futures = {executor.submit(fetch, source): source for source in sources}
@@ -850,21 +1127,21 @@ class MultiCompanyClient:
                         or "coop" in f"{role.title} {role.employment_type}".lower()
                     )
                     if company_roles and internship_count:
-                        status = "working"
+                        status = "healthy_with_internships"
                         print(
                             f"[SOURCE] {company}: {len(company_roles)} roles, "
                             f"{internship_count} internship/co-op-like",
                             flush=True,
                         )
                     elif company_roles:
-                        status = "empty_but_healthy"
+                        status = "healthy_no_internships"
                         print(
                             f"[SOURCE EMPTY] {company}: {len(company_roles)} roles, "
                             "no internship/co-op-like postings",
                             flush=True,
                         )
                     else:
-                        status = "empty_but_healthy"
+                        status = "healthy_no_internships"
                         print(
                             f"[SOURCE EMPTY] {company}: no open roles returned",
                             flush=True,
@@ -873,12 +1150,18 @@ class MultiCompanyClient:
                         SourceHealth(
                             company=company,
                             status=status,
-                            provider=provider,
+                            adapter=provider,
                             endpoint=endpoint,
                             board_slug=board_slug,
                             enabled=bool(source.get("enabled", True)),
-                            raw_roles=len(company_roles),
-                            internship_roles=internship_count,
+                            roles_found=len(company_roles),
+                            internship_roles_found=internship_count,
+                            checked_at=checked_at,
+                            recommended_action=(
+                                "No action needed."
+                                if status == "healthy_with_internships"
+                                else "No current internship/co-op postings; keep source enabled."
+                            ),
                         )
                     )
                 except Exception as exc:
@@ -887,27 +1170,38 @@ class MultiCompanyClient:
                     status = getattr(exc, "category", "")
                     if not status:
                         status = (
-                            "invalid_endpoint"
+                            "invalid_board_identifier"
                             if isinstance(exc, SourceUnavailable)
                             else "parser_failure"
                         )
+                    http_status = None
+                    http_match = re.search(r"HTTP\s+(\d+)", str(getattr(exc, "error_code", "")) or str(exc))
+                    if http_match:
+                        http_status = int(http_match.group(1))
+                    sanitized = _sanitize_error_message(str(exc))
+                    suggested_fix = str(
+                        getattr(
+                            exc,
+                            "suggested_fix",
+                            "Inspect the official careers page and update the source configuration.",
+                        )
+                    )
                     source_health.append(
                         SourceHealth(
                             company=company,
                             status=status,
-                            provider=provider,
+                            adapter=provider,
                             endpoint=endpoint,
                             board_slug=board_slug,
                             enabled=bool(source.get("enabled", True)),
-                            message=f"{type(exc).__name__}: {exc}",
+                            http_status=http_status,
+                            error_type=type(exc).__name__,
+                            error_message=sanitized,
+                            checked_at=checked_at,
+                            recommended_action=suggested_fix,
+                            message=f"{type(exc).__name__}: {sanitized}",
                             error_code=str(getattr(exc, "error_code", "")),
-                            suggested_fix=str(
-                                getattr(
-                                    exc,
-                                    "suggested_fix",
-                                    "Inspect the official careers page and update the source configuration.",
-                                )
-                            ),
+                            suggested_fix=suggested_fix,
                         )
                     )
                     print(f"[SOURCE WARNING] {message}", flush=True)

@@ -48,15 +48,39 @@ No third-party Python packages are required.
 - Ashby Job Postings API
 - Workday public career endpoints
 - SmartRecruiters public postings API
+- Google official careers structured page data
+- Apple official careers server-rendered search pages
 
 Sources run independently and concurrently. A changed or unavailable company
 career page is logged and cannot stop other sources or the report. The config
 covers 120+ crawlable companies across big tech/AI, mid-size tech, startups,
 AI infrastructure, applied AI startups, insurance/risk, healthcare analytics,
 finance/market data, quant trading, logistics/OR, robotics, defense technology,
-energy/climate, industrial simulation, and research-oriented companies. The
-report distinguishes sources with internships, sources with no open internships,
-crawler failures, and unavailable/mismatched ATS sources.
+energy/climate, industrial simulation, and research-oriented companies.
+
+Every run writes normalized source health to `reports/source_health.json` and a
+major-employer coverage table to `reports/source_coverage.md`. Health statuses
+are intentionally specific:
+
+- `healthy_with_internships`
+- `healthy_no_internships`
+- `healthy_no_matching_internships`
+- `temporary_network_failure`
+- `rate_limited`
+- `blocked_or_forbidden`
+- `invalid_board_identifier`
+- `ats_changed`
+- `official_page_unstructured`
+- `parser_failure`
+- `invalid_response`
+- `disabled_intentionally`
+- `unsupported_source`
+- `unknown_failure`
+
+A source that is fetched successfully but has zero internships is counted as a
+successful source, not a crawler failure. Permanent 400/401/403/404-style
+configuration failures are not retried repeatedly; bounded retries are reserved
+for timeouts, 429s, and selected 5xx responses.
 
 ## Scoring and buckets
 
@@ -141,6 +165,24 @@ Applied, Rejected, and Not Interested roles are excluded from later
 recommendations. Previously recommended jobs are also excluded from the default
 daily push so stale or repeated jobs do not fill empty slots. Pass
 `--show-history` to `jobfinder run` to include tracked history.
+
+## Fixture Tests
+
+The offline fixtures exercise the same loader, scorer, selector, report writer,
+and tracker persistence used by the CLI:
+
+```bash
+PYTHONPATH=src python3 -m unittest discover -s tests -v
+PYTHONPATH=src python3 -m jobfinder run --fixture tests/fixtures/e2e_5_5_5_roles.json
+```
+
+`tests/fixtures/e2e_5_5_5_roles.json` contains enough realistic roles to select
+exactly five Reach, five Target, and five Safe recommendations while proving
+U.S.-internship filtering, duplicate suppression, status suppression, Saved-role
+behavior, company caps, stable tracker IDs, report counts, and tracker
+persistence. The shortage fixtures cover insufficient Reach supply, company-cap
+constraints, and low career relevance with counter-based explanations rather
+than generic market claims.
 
 Manual entries are respected the same way as crawler-discovered roles. Add a
 job as Applied, Rejected, or Not Interested if you handled it elsewhere; future

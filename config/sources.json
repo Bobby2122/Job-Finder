@@ -96,6 +96,33 @@
       "latest_status": "official_careers_page_fallback_needs_structured_parser_verification"
     },
     {
+      "company": "Google",
+      "adapter": "google_careers",
+      "company_size_category": "Big tech / famous lab",
+      "source_category": "Big tech / AI labs",
+      "enabled": true,
+      "ats_type": "official_google_careers",
+      "board_slug": "",
+      "endpoint": "https://www.google.com/about/careers/applications/jobs/results/?q=intern&location=United%20States",
+      "timeout": 25,
+      "retries": 1,
+      "latest_status": "official_structured_page_adapter"
+    },
+    {
+      "company": "Apple",
+      "adapter": "apple_careers",
+      "company_size_category": "Big tech / famous lab",
+      "source_category": "Big tech / AI labs",
+      "enabled": true,
+      "ats_type": "official_apple_careers",
+      "board_slug": "",
+      "endpoint": "https://jobs.apple.com/en-us/search?search=intern&location=united-states-USA",
+      "timeout": 25,
+      "retries": 1,
+      "max_pages": 2,
+      "latest_status": "official_server_rendered_search_adapter"
+    },
+    {
       "company": "Anthropic",
       "adapter": "careers_page",
       "company_size_category": "Big tech / famous lab",

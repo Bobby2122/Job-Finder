@@ -23,9 +23,24 @@ class ReportStats:
 
 
 @dataclass(frozen=True)
+class BucketSelectionDiagnostics:
+    requested: int
+    selected: int
+    eligible_before_constraints: int
+    timing_rejected: int = 0
+    history_suppressed: int = 0
+    duplicate_suppressed: int = 0
+    company_cap_blocked: int = 0
+    size_mix_blocked: int = 0
+    relevance_rejected: int = 0
+    available_companies: int = 0
+
+
+@dataclass(frozen=True)
 class BucketSelection:
     roles: tuple[ScoredJob, ...]
     fill_note: str = ""
+    diagnostics: BucketSelectionDiagnostics | None = None
 
 
 @dataclass(frozen=True)
@@ -128,6 +143,7 @@ def select_buckets(
             item
             for item in eligible
             if item.job.id not in used
+            and item.score.bucket == bucket
             and company_counts[item.job.company] < 2
             and (size is None or company_size_group(item.job) == size)
         ]
@@ -188,9 +204,80 @@ def select_buckets(
             ).strip()
 
     return {
-        bucket: BucketSelection(tuple(selected[bucket]), notes[bucket])
+        bucket: BucketSelection(
+            tuple(selected[bucket]),
+            notes[bucket],
+            BucketSelectionDiagnostics(
+                requested=per_bucket,
+                selected=len(selected[bucket]),
+                eligible_before_constraints=sum(
+                    1 for item in eligible if item.score.bucket == bucket
+                ),
+                company_cap_blocked=sum(
+                    1
+                    for item in eligible
+                    if item.job.id not in used and company_counts[item.job.company] >= 2
+                ),
+                size_mix_blocked=notes[bucket].count("planned"),
+                available_companies=len(
+                    {
+                        item.job.company
+                        for item in eligible
+                        if item.score.bucket == bucket
+                    }
+                ),
+            ),
+        )
         for bucket in BUCKETS
     }
+
+
+def _shortage_explanation(
+    buckets: dict[str, BucketSelection],
+    correction_log: CorrectionLog | None,
+) -> list[str]:
+    lines: list[str] = []
+    timing = correction_log.wrong_date_excluded if correction_log else 0
+    history = correction_log.history_excluded if correction_log else 0
+    duplicate = (
+        correction_log.duplicate_jobs_excluded + correction_log.duplicate_history_excluded
+        if correction_log
+        else 0
+    )
+    relevance = correction_log.not_ai_engineer_excluded if correction_log else 0
+    for bucket in BUCKETS:
+        diagnostics = buckets[bucket].diagnostics
+        if not diagnostics or diagnostics.selected >= diagnostics.requested:
+            continue
+        missing = diagnostics.requested - diagnostics.selected
+        reasons: list[str] = []
+        if diagnostics.eligible_before_constraints < diagnostics.requested:
+            reasons.append(
+                f"only {diagnostics.eligible_before_constraints} eligible {bucket} roles remained"
+            )
+        if diagnostics.company_cap_blocked:
+            reasons.append(
+                f"{diagnostics.company_cap_blocked} qualifying role(s) would violate the two-role-per-company cap"
+            )
+        if diagnostics.size_mix_blocked:
+            reasons.append(
+                f"{diagnostics.size_mix_blocked} planned company-size slot(s) could not be filled"
+            )
+        if timing:
+            reasons.append(f"{timing} timing hard reject(s)")
+        if history:
+            reasons.append(f"{history} tracker/history suppression(s)")
+        if duplicate:
+            reasons.append(f"{duplicate} duplicate or near-duplicate suppression(s)")
+        if relevance:
+            reasons.append(f"{relevance} low career-relevance rejection(s)")
+        if not reasons:
+            reasons.append("not enough eligible U.S. internships after hard filters")
+        lines.append(
+            f"{bucket}: selected {diagnostics.selected} of {diagnostics.requested}; "
+            f"missing {missing} because " + "; ".join(reasons) + "."
+        )
+    return lines
 
 
 def _score_line(item: ScoredJob) -> str:
@@ -348,7 +435,6 @@ def build_report(
     source_status_counts = Counter(
         str(getattr(item, "status", "")) for item in stats.source_health
     )
-    insufficiency_reasons: list[str] = []
     internship_postings_found = sum(
         int(getattr(item, "internship_roles", 0)) for item in stats.source_health
     )
@@ -372,8 +458,8 @@ def build_report(
         f"- **Roles reviewed:** {stats.raw_roles_found}",
         f"- **Companies searched:** {stats.companies_searched}",
         f"- **Companies successfully read:** {stats.companies_succeeded}",
-        f"- **Companies failed/unavailable:** {stats.companies_searched - stats.companies_succeeded}",
-        f"- **Companies with no open internships found:** {source_status_counts['empty_but_healthy'] + source_status_counts['no_open_internships']}",
+        f"- **Companies with source errors:** {stats.companies_searched - stats.companies_succeeded}",
+        f"- **Healthy sources with no internships:** {source_status_counts['healthy_no_internships']}",
         f"- **Internship/co-op postings found:** {internship_postings_found}",
         f"- **Unique relevant roles found:** {len(scored)}",
         f"- **Roles selected:** {len(selected)}",
@@ -386,28 +472,15 @@ def build_report(
         "",
     ]
     if len(selected) < 15:
-        failed_sources = stats.companies_searched - stats.companies_succeeded
-        if failed_sources:
-            insufficiency_reasons.append("data source failures")
-        if source_status_counts["empty_but_healthy"] or source_status_counts["no_open_internships"]:
-            insufficiency_reasons.append("current market has not opened enough internships")
-        if correction_log and correction_log.wrong_date_excluded:
-            insufficiency_reasons.append("timing window hard rejects")
-        if correction_log and correction_log.not_ai_engineer_excluded:
-            insufficiency_reasons.append("career relevance")
-        if correction_log and correction_log.history_excluded:
-            insufficiency_reasons.append("history deduplication")
+        shortage_lines = _shortage_explanation(buckets, correction_log)
         lines.extend(
             [
-                "- **Why fewer than 15 roles:** "
-                + (
-                    ", ".join(dict.fromkeys(insufficiency_reasons))
-                    if insufficiency_reasons
-                    else "not enough eligible U.S. internships after relevance and tracker constraints"
-                ),
+                "- **Why fewer than 15 roles:** actual selector diagnostics are listed below; empty slots remain empty rather than weakening U.S.-internship, timing, relevance, company-cap, or tracker constraints.",
                 "",
             ]
         )
+        lines.extend(f"- {reason}" for reason in shortage_lines)
+        lines.append("")
 
     section_names = {
         "Reach": "A",
@@ -457,28 +530,50 @@ def build_report(
         ]
     )
     if stats.source_health or stats.source_failures:
-        crawler_failed = [
-            item for item in stats.source_health
-            if str(getattr(item, "status", "")) in {"parser_failure", "temporary_network_failure"}
-        ]
-        unavailable = [
-            item for item in stats.source_health
-            if str(getattr(item, "status", "")) in {"invalid_endpoint", "blocked"}
+        healthy_statuses = {
+            "healthy_with_internships",
+            "healthy_no_internships",
+            "healthy_no_matching_internships",
+        }
+        healthy = source_status_counts["healthy_with_internships"]
+        healthy_empty = source_status_counts["healthy_no_internships"]
+        temporary = (
+            source_status_counts["temporary_network_failure"]
+            + source_status_counts["rate_limited"]
+        )
+        config_errors = (
+            source_status_counts["invalid_board_identifier"]
+            + source_status_counts["invalid_response"]
+            + source_status_counts["blocked_or_forbidden"]
+        )
+        ats_changed = source_status_counts["ats_changed"]
+        unsupported = (
+            source_status_counts["official_page_unstructured"]
+            + source_status_counts["unsupported_source"]
+            + source_status_counts["disabled_intentionally"]
+        )
+        parser_failures = source_status_counts["parser_failure"]
+        unhealthy = [
+            item
+            for item in stats.source_health
+            if str(getattr(item, "status", "")) not in healthy_statuses
         ]
         no_internships = [
             item for item in stats.source_health
-            if str(getattr(item, "status", "")) in {"empty_but_healthy", "no_open_internships"}
+            if str(getattr(item, "status", "")) == "healthy_no_internships"
         ]
         lines.extend(
             [
                 "## Source Health",
                 "",
-                f"- **Working:** {source_status_counts['working'] + source_status_counts['success']}",
-                f"- **Empty but healthy:** {source_status_counts['empty_but_healthy'] + source_status_counts['no_open_internships']}",
-                f"- **Invalid endpoint:** {source_status_counts['invalid_endpoint']}",
-                f"- **Blocked:** {source_status_counts['blocked']}",
-                f"- **Temporary network failure:** {source_status_counts['temporary_network_failure']}",
-                f"- **Parser failure:** {source_status_counts['parser_failure']}",
+                f"- **Total configured:** {len(stats.source_health) or stats.companies_searched}",
+                f"- **Healthy with internships:** {healthy}",
+                f"- **Healthy but no internships:** {healthy_empty}",
+                f"- **Temporary failures:** {temporary}",
+                f"- **Configuration errors:** {config_errors}",
+                f"- **ATS changed:** {ats_changed}",
+                f"- **Unsupported/unstructured pages:** {unsupported}",
+                f"- **Parser failures:** {parser_failures}",
                 "",
             ]
         )
@@ -494,33 +589,18 @@ def build_report(
                     "",
                 ]
             )
-        if crawler_failed:
-            lines.extend(["**Crawler failed:**", ""])
-            for item in crawler_failed[:12]:
+        if unhealthy:
+            lines.extend(["**Unhealthy sources:**", ""])
+            for item in unhealthy:
                 lines.append(
                     f"- {getattr(item, 'company', 'Unknown')} "
                     f"({getattr(item, 'provider', 'unknown')}): "
+                    f"{getattr(item, 'status', 'unknown')} - "
                     f"{getattr(item, 'endpoint', '')} "
                     f"{getattr(item, 'error_code', '')} - "
                     f"{getattr(item, 'message', '')}. "
                     f"Suggested fix: {getattr(item, 'suggested_fix', '')}"
                 )
-            if len(crawler_failed) > 12:
-                lines.append(f"- ... {len(crawler_failed) - 12} more")
-            lines.append("")
-        if unavailable:
-            lines.extend(["**Company source unavailable / adapter mismatch:**", ""])
-            for item in unavailable[:12]:
-                lines.append(
-                    f"- {getattr(item, 'company', 'Unknown')} "
-                    f"({getattr(item, 'provider', 'unknown')}): "
-                    f"{getattr(item, 'endpoint', '')} "
-                    f"{getattr(item, 'error_code', '')} - "
-                    f"{getattr(item, 'message', '')}. "
-                    f"Suggested fix: {getattr(item, 'suggested_fix', '')}"
-                )
-            if len(unavailable) > 12:
-                lines.append(f"- ... {len(unavailable) - 12} more")
             lines.append("")
     if correction_log:
         lines.extend(

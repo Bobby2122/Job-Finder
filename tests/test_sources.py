@@ -6,9 +6,12 @@ from pathlib import Path
 from unittest.mock import patch
 
 from jobfinder.sources import (
+    AppleCareersAdapter,
     AshbyAdapter,
+    GoogleCareersAdapter,
     GreenhouseAdapter,
     LeverAdapter,
+    MultiCompanyClient,
     WorkdayAdapter,
     load_sources_config,
 )
@@ -175,6 +178,77 @@ class SourceAdapterTests(unittest.TestCase):
         self.assertEqual(search_calls[0]["method"], "POST")
         self.assertIn("appliedFacets", search_calls[0]["payload"])
         self.assertEqual(len(roles), 2)
+
+    def test_google_careers_adapter_parses_official_structured_fixture(self):
+        html = (ROOT / "tests/fixtures/google_careers.html").read_text(
+            encoding="utf-8"
+        )
+        roles = GoogleCareersAdapter(
+            {
+                "company": "Google",
+                "adapter": "google_careers",
+                "ats_type": "official_google_careers",
+                "endpoint": "https://www.google.com/about/careers/applications/jobs/results/?q=intern&location=United%20States",
+                "company_size_category": "Big tech / famous lab",
+            }
+        )._parse_html(html, "fixture")
+        self.assertEqual(len(roles), 1)
+        self.assertEqual(roles[0].company, "Google")
+        self.assertIn("Student Researcher", roles[0].title)
+        self.assertEqual(roles[0].country, "United States")
+        self.assertIn("Mountain View", roles[0].location)
+        self.assertIn("google.com/about/careers", roles[0].url)
+
+    def test_apple_careers_adapter_parses_official_html_fixture(self):
+        html = (ROOT / "tests/fixtures/apple_careers.html").read_text(
+            encoding="utf-8"
+        )
+        roles = AppleCareersAdapter(
+            {
+                "company": "Apple",
+                "adapter": "apple_careers",
+                "ats_type": "official_apple_careers",
+                "endpoint": "https://jobs.apple.com/en-us/search?search=intern&location=united-states-USA",
+                "company_size_category": "Big tech / famous lab",
+            }
+        )._parse_html(html, "fixture")
+        self.assertEqual(len(roles), 1)
+        self.assertEqual(roles[0].company, "Apple")
+        self.assertEqual(roles[0].employment_type, "Internship")
+        self.assertIn("jobs.apple.com/en-us/details/200000001", roles[0].url)
+
+    def test_multicompany_health_distinguishes_empty_success_from_failure(self):
+        config = {
+            "keywords": ["intern"],
+            "sources": [
+                {
+                    "company": "Fixture Empty",
+                    "adapter": "greenhouse",
+                    "ats_type": "greenhouse",
+                    "board_slug": "empty",
+                    "endpoint": "https://example.test/empty",
+                },
+                {
+                    "company": "Fixture Broken",
+                    "adapter": "unknown_adapter",
+                    "ats_type": "unknown_adapter",
+                    "board_slug": "",
+                },
+            ],
+        }
+
+        with patch("jobfinder.sources._request_json", return_value={"jobs": []}):
+            result = MultiCompanyClient(max_workers=1).search(config)
+
+        self.assertEqual(result.companies_succeeded, 1)
+        statuses = {item.company: item.status for item in result.source_health}
+        self.assertEqual(statuses["Fixture Empty"], "healthy_no_internships")
+        self.assertEqual(statuses["Fixture Broken"], "unsupported_source")
+        broken = next(
+            item for item in result.source_health if item.company == "Fixture Broken"
+        )
+        self.assertEqual(broken.error_type, "SourceUnavailable")
+        self.assertTrue(broken.recommended_action)
 
 
 if __name__ == "__main__":
