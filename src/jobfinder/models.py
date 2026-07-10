@@ -412,6 +412,12 @@ class Score:
     quant_relevance_score: float = 0.0
     relevance_total: float = 0.0
     primary_track: str = ""
+    timing_tier: str = "Unknown"
+    timing_reason: str = ""
+    timing_confidence: str = "Low"
+    role_classification: str = "uncertain"
+    role_classification_reason: str = ""
+    role_classification_confidence: str = "Low"
 
 
 @dataclass(frozen=True)

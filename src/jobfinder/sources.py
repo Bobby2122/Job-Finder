@@ -24,11 +24,34 @@ from .scoring import classify_ai_engineer, classify_career_relevance
 
 
 class SourceError(RuntimeError):
-    pass
+    def __init__(
+        self,
+        message: str,
+        *,
+        error_code: str = "",
+        category: str = "parser_failure",
+        suggested_fix: str = "Inspect the official careers page and update the adapter or parser.",
+    ) -> None:
+        super().__init__(message)
+        self.error_code = error_code
+        self.category = category
+        self.suggested_fix = suggested_fix
 
 
 class SourceUnavailable(SourceError):
     pass
+
+
+def _source_category_for_http(code: int) -> tuple[str, str]:
+    if code == 404:
+        return "invalid_endpoint", "Verify the ATS provider and board slug against the official careers page."
+    if code == 403:
+        return "blocked", "Use an official API endpoint where available or add approved headers for the provider."
+    if code == 422:
+        return "invalid_endpoint", "Verify request body, tenant, site, and pagination parameters."
+    if 500 <= code < 600:
+        return "temporary_network_failure", "Retry later; provider returned a server-side error."
+    return "parser_failure", "Inspect provider response and update the adapter."
 
 
 def _plain_text(value: str | None) -> str:
@@ -63,7 +86,7 @@ def _role_family(title: str, text: str = "") -> str:
     if relevance.primary_track == "Quant / Risk Modeling":
         return "Quant / Risk"
     families = (
-        ("Machine Learning / AI", ("machine learning", "artificial intelligence", " ai ", "ml engineer")),
+        ("Machine Learning / AI", ("machine learning", "artificial intelligence", " ai ", "ai platform", "ml engineer", "llm", "rag", "embeddings")),
         ("Data Science", ("data scientist", "data science", "decision scientist")),
         ("Quant / Risk", ("quant", "risk", "actuari", "market data")),
         ("Optimization / OR", ("operations research", "optimization", "supply chain", "forecast")),
@@ -116,8 +139,23 @@ def _request_json(
             if attempt < retries:
                 time.sleep(0.4 * (2**attempt))
     if isinstance(last_error, HTTPError):
-        raise SourceUnavailable(f"{url}: HTTP {last_error.code}")
-    raise SourceError(f"{url}: {type(last_error).__name__}")
+        category, suggested_fix = _source_category_for_http(last_error.code)
+        raise SourceUnavailable(
+            f"{url}: HTTP {last_error.code}",
+            error_code=f"HTTP {last_error.code}",
+            category=category,
+            suggested_fix=suggested_fix,
+        )
+    category = "temporary_network_failure" if isinstance(
+        last_error,
+        (URLError, TimeoutError, IncompleteRead, RemoteDisconnected),
+    ) else "parser_failure"
+    raise SourceError(
+        f"{url}: {type(last_error).__name__}",
+        error_code=type(last_error).__name__ if last_error else "Unknown",
+        category=category,
+        suggested_fix="Retry later if this is transient; otherwise inspect the official careers page.",
+    )
 
 
 class SourceAdapter:
@@ -127,6 +165,22 @@ class SourceAdapter:
     @property
     def company(self) -> str:
         return str(self.config["company"])
+
+    @property
+    def provider(self) -> str:
+        return str(self.config.get("ats_type") or self.config.get("adapter") or "unknown")
+
+    @property
+    def board_slug(self) -> str:
+        return str(self.config.get("board_slug") or self.config.get("identifier") or "")
+
+    @property
+    def endpoint(self) -> str:
+        if self.config.get("endpoint"):
+            return str(self.config["endpoint"])
+        if self.config.get("careers_page"):
+            return str(self.config["careers_page"])
+        return ""
 
     def _role(self, **values: Any) -> Role:
         return Role.normalized(
@@ -185,8 +239,8 @@ class ByteDanceAdapter(SourceAdapter):
 
 class GreenhouseAdapter(SourceAdapter):
     def fetch(self, keywords: list[str]) -> list[Role]:
-        token = self.config["identifier"]
-        url = f"https://boards-api.greenhouse.io/v1/boards/{token}/jobs?content=true"
+        token = self.board_slug
+        url = self.endpoint or f"https://boards-api.greenhouse.io/v1/boards/{token}/jobs?content=true"
         data = _request_json(
             url,
             timeout=float(self.config.get("timeout", 12)),
@@ -231,9 +285,9 @@ class GreenhouseAdapter(SourceAdapter):
 
 class LeverAdapter(SourceAdapter):
     def fetch(self, keywords: list[str]) -> list[Role]:
-        site = self.config["identifier"]
+        site = self.board_slug
         region = "api.eu.lever.co" if self.config.get("region") == "eu" else "api.lever.co"
-        url = f"https://{region}/v0/postings/{site}?mode=json"
+        url = self.endpoint or f"https://{region}/v0/postings/{site}?mode=json"
         data = _request_json(
             url,
             timeout=float(self.config.get("timeout", 12)),
@@ -278,8 +332,8 @@ class LeverAdapter(SourceAdapter):
 
 class AshbyAdapter(SourceAdapter):
     def fetch(self, keywords: list[str]) -> list[Role]:
-        board = self.config["identifier"]
-        url = f"https://api.ashbyhq.com/posting-api/job-board/{board}"
+        board = self.board_slug
+        url = self.endpoint or f"https://api.ashbyhq.com/posting-api/job-board/{board}"
         data = _request_json(
             url,
             timeout=float(self.config.get("timeout", 12)),
@@ -322,21 +376,30 @@ class WorkdayAdapter(SourceAdapter):
         source_keywords = [
             str(value) for value in self.config.get("keywords", keywords)
         ]
+        limit = int(self.config.get("page_size", 20))
+        max_pages = int(self.config.get("max_pages_per_keyword", 3))
         for keyword in source_keywords[: int(self.config.get("keyword_limit", 8))]:
-            data = _request_json(
-                endpoint,
-                method="POST",
-                payload={
-                    "appliedFacets": {},
-                    "limit": 20,
-                    "offset": 0,
-                    "searchText": keyword,
-                },
-            )
-            postings = data.get("jobPostings", []) if isinstance(data, dict) else []
-            for raw in postings:
-                external_path = str(raw.get("externalPath") or "")
-                raw_found[external_path or str(raw.get("title") or "")] = raw
+            for page in range(max_pages):
+                offset = page * limit
+                data = _request_json(
+                    endpoint,
+                    method="POST",
+                    payload={
+                        "appliedFacets": dict(self.config.get("applied_facets", {})),
+                        "limit": limit,
+                        "offset": offset,
+                        "searchText": keyword,
+                    },
+                    timeout=float(self.config.get("timeout", 18)),
+                    retries=int(self.config.get("retries", 1)),
+                )
+                postings = data.get("jobPostings", []) if isinstance(data, dict) else []
+                for raw in postings:
+                    external_path = str(raw.get("externalPath") or "")
+                    raw_found[external_path or str(raw.get("title") or "")] = raw
+                total = int(data.get("total", len(postings))) if isinstance(data, dict) else len(postings)
+                if not postings or offset + limit >= total:
+                    break
 
         detail_terms = (
             "intern",
@@ -422,6 +485,103 @@ class WorkdayAdapter(SourceAdapter):
             )
             found[role.id] = role
         return list(found.values())
+
+
+class CareersPageAdapter(SourceAdapter):
+    def fetch(self, keywords: list[str]) -> list[Role]:
+        url = str(self.config.get("careers_page") or self.config.get("endpoint") or "")
+        if not url:
+            raise SourceUnavailable(
+                "careers_page adapter requires careers_page or endpoint",
+                error_code="CONFIG",
+                category="invalid_endpoint",
+                suggested_fix="Add the company's official careers page URL.",
+            )
+        try:
+            request = Request(
+                url,
+                headers={
+                    "Accept": "text/html,application/xhtml+xml",
+                    "User-Agent": "BobbyOpportunityTracker/0.2",
+                },
+            )
+            with urlopen(request, timeout=float(self.config.get("timeout", 15))) as response:
+                html_text = response.read(1_500_000).decode("utf-8", errors="replace")
+        except HTTPError as exc:
+            category, suggested_fix = _source_category_for_http(exc.code)
+            raise SourceUnavailable(
+                f"{url}: HTTP {exc.code}",
+                error_code=f"HTTP {exc.code}",
+                category=category,
+                suggested_fix=suggested_fix,
+            )
+        except (URLError, TimeoutError) as exc:
+            raise SourceError(
+                f"{url}: {type(exc).__name__}",
+                error_code=type(exc).__name__,
+                category="temporary_network_failure",
+                suggested_fix="Retry later or replace with a stable official ATS API if available.",
+            )
+
+        roles: list[Role] = []
+        for match in re.finditer(
+            r"<script[^>]+type=[\"']application/ld\\+json[\"'][^>]*>(.*?)</script>",
+            html_text,
+            flags=re.I | re.S,
+        ):
+            try:
+                payload = json.loads(html.unescape(match.group(1)).strip())
+            except json.JSONDecodeError:
+                continue
+            entries = payload if isinstance(payload, list) else [payload]
+            for entry in entries:
+                if not isinstance(entry, dict):
+                    continue
+                graph = entry.get("@graph")
+                if isinstance(graph, list):
+                    entries.extend(item for item in graph if isinstance(item, dict))
+                    continue
+                if entry.get("@type") != "JobPosting":
+                    continue
+                title = str(entry.get("title") or "")
+                location_data = entry.get("jobLocation") or {}
+                if isinstance(location_data, list):
+                    location_data = location_data[0] if location_data else {}
+                address = location_data.get("address") if isinstance(location_data, dict) else {}
+                location = ", ".join(
+                    str(value)
+                    for value in (
+                        address.get("addressLocality") if isinstance(address, dict) else "",
+                        address.get("addressRegion") if isinstance(address, dict) else "",
+                        address.get("addressCountry") if isinstance(address, dict) else "",
+                    )
+                    if value
+                )
+                apply_url = str(entry.get("url") or url)
+                description = _plain_text(str(entry.get("description") or ""))
+                roles.append(
+                    self._role(
+                        id=f"careers_page:{self.company}:{apply_url or title}",
+                        title=title,
+                        location=location or "Location not listed",
+                        employment_type=str(entry.get("employmentType") or _employment_type(title, description)),
+                        url=apply_url,
+                        source="Official careers page structured data",
+                        description=description,
+                        requirements=description,
+                        posted_date=entry.get("datePosted"),
+                        role_family=_role_family(title, description),
+                    )
+                )
+        if roles:
+            return roles
+
+        raise SourceError(
+            f"{url}: no JobPosting structured data found",
+            error_code="NO_STRUCTURED_JOBS",
+            category="parser_failure",
+            suggested_fix="Add a dedicated adapter for this official careers page or replace it with a stable ATS API.",
+        )
 
 
 class SmartRecruitersAdapter(SourceAdapter):
@@ -539,6 +699,7 @@ ADAPTERS: dict[str, type[SourceAdapter]] = {
     "ashby": AshbyAdapter,
     "workday": WorkdayAdapter,
     "smartrecruiters": SmartRecruitersAdapter,
+    "careers_page": CareersPageAdapter,
 }
 
 
@@ -613,9 +774,15 @@ def deduplicate_roles(roles: Iterable[Role]) -> list[Role]:
 class SourceHealth:
     company: str
     status: str
+    provider: str = ""
+    endpoint: str = ""
+    board_slug: str = ""
+    enabled: bool = True
     raw_roles: int = 0
     internship_roles: int = 0
     message: str = ""
+    error_code: str = ""
+    suggested_fix: str = ""
 
 
 @dataclass(frozen=True)
@@ -648,7 +815,12 @@ class MultiCompanyClient:
             adapter_name = str(source["adapter"])
             adapter_type = ADAPTERS.get(adapter_name)
             if adapter_type is None:
-                raise SourceUnavailable(f"unknown adapter {adapter_name}")
+                raise SourceUnavailable(
+                    f"unknown adapter {adapter_name}",
+                    error_code="CONFIG",
+                    category="invalid_endpoint",
+                    suggested_fix="Use one of the supported adapters or implement a new official-source adapter.",
+                )
             return adapter_type(source).fetch(keywords)
 
         with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
@@ -656,6 +828,16 @@ class MultiCompanyClient:
             for future in as_completed(futures):
                 source = futures[future]
                 company = str(source.get("company", "Unknown company"))
+                adapter_name = str(source.get("adapter", "unknown"))
+                provider = str(source.get("ats_type") or adapter_name)
+                board_slug = str(source.get("board_slug") or source.get("identifier") or "")
+                endpoint = str(
+                    source.get("endpoint")
+                    or source.get("careers_page")
+                    or (
+                        f"{adapter_name}:{board_slug}" if board_slug else adapter_name
+                    )
+                )
                 try:
                     company_roles = future.result()
                     roles.extend(company_roles)
@@ -668,21 +850,21 @@ class MultiCompanyClient:
                         or "coop" in f"{role.title} {role.employment_type}".lower()
                     )
                     if company_roles and internship_count:
-                        status = "success"
+                        status = "working"
                         print(
                             f"[SOURCE] {company}: {len(company_roles)} roles, "
                             f"{internship_count} internship/co-op-like",
                             flush=True,
                         )
                     elif company_roles:
-                        status = "no_open_internships"
+                        status = "empty_but_healthy"
                         print(
                             f"[SOURCE EMPTY] {company}: {len(company_roles)} roles, "
                             "no internship/co-op-like postings",
                             flush=True,
                         )
                     else:
-                        status = "no_open_internships"
+                        status = "empty_but_healthy"
                         print(
                             f"[SOURCE EMPTY] {company}: no open roles returned",
                             flush=True,
@@ -691,6 +873,10 @@ class MultiCompanyClient:
                         SourceHealth(
                             company=company,
                             status=status,
+                            provider=provider,
+                            endpoint=endpoint,
+                            board_slug=board_slug,
+                            enabled=bool(source.get("enabled", True)),
                             raw_roles=len(company_roles),
                             internship_roles=internship_count,
                         )
@@ -698,16 +884,30 @@ class MultiCompanyClient:
                 except Exception as exc:
                     message = f"{company}: {type(exc).__name__}: {exc}"
                     failures.append(message)
-                    status = (
-                        "source_unavailable"
-                        if isinstance(exc, SourceUnavailable)
-                        else "crawler_failed"
-                    )
+                    status = getattr(exc, "category", "")
+                    if not status:
+                        status = (
+                            "invalid_endpoint"
+                            if isinstance(exc, SourceUnavailable)
+                            else "parser_failure"
+                        )
                     source_health.append(
                         SourceHealth(
                             company=company,
                             status=status,
+                            provider=provider,
+                            endpoint=endpoint,
+                            board_slug=board_slug,
+                            enabled=bool(source.get("enabled", True)),
                             message=f"{type(exc).__name__}: {exc}",
+                            error_code=str(getattr(exc, "error_code", "")),
+                            suggested_fix=str(
+                                getattr(
+                                    exc,
+                                    "suggested_fix",
+                                    "Inspect the official careers page and update the source configuration.",
+                                )
+                            ),
                         )
                     )
                     print(f"[SOURCE WARNING] {message}", flush=True)

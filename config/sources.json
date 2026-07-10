@@ -78,28 +78,45 @@
       "retries": 2,
       "page_size": 20,
       "keyword_limit": 16,
-      "max_pages_per_keyword": 2
+      "max_pages_per_keyword": 2,
+      "enabled": true,
+      "ats_type": "bytedance",
+      "board_slug": "",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "OpenAI",
-      "adapter": "greenhouse",
-      "identifier": "openai",
+      "adapter": "careers_page",
       "company_size_category": "Big tech / famous lab",
-      "source_category": "Big tech / AI labs"
+      "source_category": "Big tech / AI labs",
+      "enabled": true,
+      "ats_type": "official_careers_page",
+      "board_slug": "",
+      "careers_page": "https://openai.com/careers/search/",
+      "latest_status": "official_careers_page_fallback_needs_structured_parser_verification"
     },
     {
       "company": "Anthropic",
-      "adapter": "ashby",
-      "identifier": "anthropic",
+      "adapter": "careers_page",
       "company_size_category": "Big tech / famous lab",
-      "source_category": "Big tech / AI labs"
+      "source_category": "Big tech / AI labs",
+      "enabled": true,
+      "ats_type": "official_careers_page",
+      "board_slug": "",
+      "careers_page": "https://www.anthropic.com/careers",
+      "latest_status": "official_careers_page_fallback_needs_structured_parser_verification"
     },
     {
       "company": "Scale AI",
       "adapter": "greenhouse",
       "identifier": "scaleai",
       "company_size_category": "Big tech / famous lab",
-      "source_category": "SaaS / data infrastructure / ML platform startups"
+      "source_category": "SaaS / data infrastructure / ML platform startups",
+      "enabled": true,
+      "ats_type": "greenhouse",
+      "board_slug": "scaleai",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/scaleai/jobs?content=true",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "Anduril",
@@ -108,252 +125,425 @@
       "company_size_category": "Big tech / famous lab",
       "source_category": "Government contractors / research labs / policy analytics",
       "timeout": 45,
-      "retries": 2
+      "retries": 2,
+      "enabled": true,
+      "ats_type": "greenhouse",
+      "board_slug": "andurilindustries",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/andurilindustries/jobs?content=true",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "Shield AI",
-      "adapter": "greenhouse",
-      "identifier": "shieldai",
+      "adapter": "ashby",
+      "identifier": "shield-ai",
       "company_size_category": "Startup",
-      "source_category": "Government contractors / research labs / policy analytics"
+      "source_category": "Government contractors / research labs / policy analytics",
+      "enabled": true,
+      "ats_type": "ashby",
+      "board_slug": "shield-ai",
+      "endpoint": "https://api.ashbyhq.com/posting-api/job-board/shield-ai",
+      "latest_status": "verified_official_api_200"
     },
     {
       "company": "Applied Intuition",
-      "adapter": "greenhouse",
-      "identifier": "appliedintuition",
+      "adapter": "careers_page",
       "company_size_category": "Startup",
-      "source_category": "Climate / energy / transportation analytics"
+      "source_category": "Climate / energy / transportation analytics",
+      "enabled": true,
+      "ats_type": "official_careers_page",
+      "board_slug": "",
+      "careers_page": "https://www.appliedintuition.com/careers",
+      "latest_status": "official_careers_page_fallback_needs_structured_parser_verification"
     },
     {
       "company": "Zipline",
       "adapter": "greenhouse",
       "identifier": "flyzipline",
       "company_size_category": "Startup",
-      "source_category": "Climate / energy / transportation analytics"
+      "source_category": "Climate / energy / transportation analytics",
+      "enabled": true,
+      "ats_type": "greenhouse",
+      "board_slug": "flyzipline",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/flyzipline/jobs?content=true",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "Samsara",
       "adapter": "greenhouse",
       "identifier": "samsara",
       "company_size_category": "Mid-size tech",
-      "source_category": "Logistics / operations research / supply chain analytics"
+      "source_category": "Logistics / operations research / supply chain analytics",
+      "enabled": true,
+      "ats_type": "greenhouse",
+      "board_slug": "samsara",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/samsara/jobs?content=true",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "Flexport",
       "adapter": "greenhouse",
       "identifier": "flexport",
       "company_size_category": "Mid-size tech",
-      "source_category": "Logistics / operations research / supply chain analytics"
+      "source_category": "Logistics / operations research / supply chain analytics",
+      "enabled": true,
+      "ats_type": "greenhouse",
+      "board_slug": "flexport",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/flexport/jobs?content=true",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "Flock Safety",
-      "adapter": "greenhouse",
-      "identifier": "flocksafety",
+      "adapter": "careers_page",
       "company_size_category": "Startup",
-      "source_category": "Smaller startups with ML/data/optimization roles"
+      "source_category": "Smaller startups with ML/data/optimization roles",
+      "enabled": true,
+      "ats_type": "official_careers_page",
+      "board_slug": "",
+      "careers_page": "https://www.flocksafety.com/careers",
+      "latest_status": "official_careers_page_fallback_needs_structured_parser_verification"
     },
     {
       "company": "Verkada",
       "adapter": "greenhouse",
       "identifier": "verkada",
       "company_size_category": "Mid-size tech",
-      "source_category": "Smaller startups with ML/data/optimization roles"
+      "source_category": "Smaller startups with ML/data/optimization roles",
+      "enabled": true,
+      "ats_type": "greenhouse",
+      "board_slug": "verkada",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/verkada/jobs?content=true",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "Ramp",
       "adapter": "ashby",
       "identifier": "ramp",
       "company_size_category": "Startup",
-      "source_category": "Quant finance / trading"
+      "source_category": "Quant finance / trading",
+      "enabled": true,
+      "ats_type": "ashby",
+      "board_slug": "ramp",
+      "endpoint": "https://api.ashbyhq.com/posting-api/job-board/ramp",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "Mercury",
       "adapter": "ashby",
       "identifier": "mercury",
       "company_size_category": "Startup",
-      "source_category": "Quant finance / trading"
+      "source_category": "Quant finance / trading",
+      "enabled": true,
+      "ats_type": "ashby",
+      "board_slug": "mercury",
+      "endpoint": "https://api.ashbyhq.com/posting-api/job-board/mercury",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "Brex",
       "adapter": "greenhouse",
       "identifier": "brex",
       "company_size_category": "Mid-size tech",
-      "source_category": "Quant finance / trading"
+      "source_category": "Quant finance / trading",
+      "enabled": true,
+      "ats_type": "greenhouse",
+      "board_slug": "brex",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/brex/jobs?content=true",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "Datadog",
       "adapter": "greenhouse",
       "identifier": "datadog",
       "company_size_category": "Mid-size tech",
-      "source_category": "SaaS / data infrastructure / ML platform startups"
+      "source_category": "SaaS / data infrastructure / ML platform startups",
+      "enabled": true,
+      "ats_type": "greenhouse",
+      "board_slug": "datadog",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/datadog/jobs?content=true",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "MongoDB",
       "adapter": "greenhouse",
       "identifier": "mongodb",
       "company_size_category": "Mid-size tech",
-      "source_category": "SaaS / data infrastructure / ML platform startups"
+      "source_category": "SaaS / data infrastructure / ML platform startups",
+      "enabled": true,
+      "ats_type": "greenhouse",
+      "board_slug": "mongodb",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/mongodb/jobs?content=true",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "Confluent",
-      "adapter": "greenhouse",
-      "identifier": "confluent",
+      "adapter": "careers_page",
       "company_size_category": "Mid-size tech",
-      "source_category": "SaaS / data infrastructure / ML platform startups"
+      "source_category": "SaaS / data infrastructure / ML platform startups",
+      "enabled": true,
+      "ats_type": "official_careers_page",
+      "board_slug": "",
+      "careers_page": "https://www.confluent.io/careers/",
+      "latest_status": "official_careers_page_fallback_needs_structured_parser_verification"
     },
     {
       "company": "dbt Labs",
       "adapter": "greenhouse",
       "identifier": "dbtlabsinc",
       "company_size_category": "Mid-size tech",
-      "source_category": "SaaS / data infrastructure / ML platform startups"
+      "source_category": "SaaS / data infrastructure / ML platform startups",
+      "enabled": true,
+      "ats_type": "greenhouse",
+      "board_slug": "dbtlabsinc",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/dbtlabsinc/jobs?content=true",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "Databricks",
       "adapter": "greenhouse",
       "identifier": "databricks",
       "company_size_category": "Big tech / famous lab",
-      "source_category": "SaaS / data infrastructure / ML platform startups"
+      "source_category": "SaaS / data infrastructure / ML platform startups",
+      "enabled": true,
+      "ats_type": "greenhouse",
+      "board_slug": "databricks",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/databricks/jobs?content=true",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "Snowflake",
-      "adapter": "greenhouse",
-      "identifier": "snowflake",
+      "adapter": "careers_page",
       "company_size_category": "Big tech / famous lab",
-      "source_category": "SaaS / data infrastructure / ML platform startups"
+      "source_category": "SaaS / data infrastructure / ML platform startups",
+      "enabled": true,
+      "ats_type": "official_careers_page",
+      "board_slug": "",
+      "careers_page": "https://careers.snowflake.com/us/en/search-results",
+      "latest_status": "official_careers_page_fallback_needs_structured_parser_verification"
     },
     {
       "company": "Figma",
       "adapter": "greenhouse",
       "identifier": "figma",
       "company_size_category": "Mid-size tech",
-      "source_category": "SaaS / data infrastructure / ML platform startups"
+      "source_category": "SaaS / data infrastructure / ML platform startups",
+      "enabled": true,
+      "ats_type": "greenhouse",
+      "board_slug": "figma",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/figma/jobs?content=true",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "Notion",
       "adapter": "ashby",
       "identifier": "notion",
       "company_size_category": "Mid-size tech",
-      "source_category": "SaaS / data infrastructure / ML platform startups"
+      "source_category": "SaaS / data infrastructure / ML platform startups",
+      "enabled": true,
+      "ats_type": "ashby",
+      "board_slug": "notion",
+      "endpoint": "https://api.ashbyhq.com/posting-api/job-board/notion",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "Asana",
       "adapter": "greenhouse",
       "identifier": "asana",
       "company_size_category": "Mid-size tech",
-      "source_category": "SaaS / data infrastructure / ML platform startups"
+      "source_category": "SaaS / data infrastructure / ML platform startups",
+      "enabled": true,
+      "ats_type": "greenhouse",
+      "board_slug": "asana",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/asana/jobs?content=true",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "Airtable",
       "adapter": "greenhouse",
       "identifier": "airtable",
       "company_size_category": "Mid-size tech",
-      "source_category": "SaaS / data infrastructure / ML platform startups"
+      "source_category": "SaaS / data infrastructure / ML platform startups",
+      "enabled": true,
+      "ats_type": "greenhouse",
+      "board_slug": "airtable",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/airtable/jobs?content=true",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "Plaid",
-      "adapter": "greenhouse",
+      "adapter": "lever",
       "identifier": "plaid",
       "company_size_category": "Mid-size tech",
-      "source_category": "Quant finance / trading"
+      "source_category": "Quant finance / trading",
+      "enabled": true,
+      "ats_type": "lever",
+      "board_slug": "plaid",
+      "endpoint": "https://api.lever.co/v0/postings/plaid?mode=json",
+      "latest_status": "verified_official_api_200"
     },
     {
       "company": "Chime",
       "adapter": "greenhouse",
       "identifier": "chime",
       "company_size_category": "Mid-size tech",
-      "source_category": "Quant finance / trading"
+      "source_category": "Quant finance / trading",
+      "enabled": true,
+      "ats_type": "greenhouse",
+      "board_slug": "chime",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/chime/jobs?content=true",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "Affirm",
       "adapter": "greenhouse",
       "identifier": "affirm",
       "company_size_category": "Mid-size tech",
-      "source_category": "Quant finance / trading"
+      "source_category": "Quant finance / trading",
+      "enabled": true,
+      "ats_type": "greenhouse",
+      "board_slug": "affirm",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/affirm/jobs?content=true",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "Oscar Health",
       "adapter": "greenhouse",
       "identifier": "oscar",
       "company_size_category": "Healthcare analytics",
-      "source_category": "Healthcare analytics / biotech data"
+      "source_category": "Healthcare analytics / biotech data",
+      "enabled": true,
+      "ats_type": "greenhouse",
+      "board_slug": "oscar",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/oscar/jobs?content=true",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "Flatiron Health",
       "adapter": "greenhouse",
       "identifier": "flatironhealth",
       "company_size_category": "Healthcare analytics",
-      "source_category": "Healthcare analytics / biotech data"
+      "source_category": "Healthcare analytics / biotech data",
+      "enabled": true,
+      "ats_type": "greenhouse",
+      "board_slug": "flatironhealth",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/flatironhealth/jobs?content=true",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "Tempus",
-      "adapter": "greenhouse",
-      "identifier": "tempus",
+      "adapter": "careers_page",
       "company_size_category": "Healthcare analytics",
-      "source_category": "Healthcare analytics / biotech data"
+      "source_category": "Healthcare analytics / biotech data",
+      "enabled": true,
+      "ats_type": "official_careers_page",
+      "board_slug": "",
+      "careers_page": "https://www.tempus.com/careers/",
+      "latest_status": "official_careers_page_fallback_needs_structured_parser_verification"
     },
     {
       "company": "Komodo Health",
       "adapter": "greenhouse",
       "identifier": "komodohealth",
       "company_size_category": "Healthcare analytics",
-      "source_category": "Healthcare analytics / biotech data"
+      "source_category": "Healthcare analytics / biotech data",
+      "enabled": true,
+      "ats_type": "greenhouse",
+      "board_slug": "komodohealth",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/komodohealth/jobs?content=true",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "Datavant",
-      "adapter": "greenhouse",
-      "identifier": "datavant",
+      "adapter": "careers_page",
       "company_size_category": "Healthcare analytics",
-      "source_category": "Healthcare analytics / biotech data"
+      "source_category": "Healthcare analytics / biotech data",
+      "enabled": true,
+      "ats_type": "official_careers_page",
+      "board_slug": "",
+      "careers_page": "https://www.datavant.com/careers",
+      "latest_status": "official_careers_page_fallback_needs_structured_parser_verification"
     },
     {
       "company": "Zocdoc",
       "adapter": "greenhouse",
       "identifier": "zocdoc",
       "company_size_category": "Healthcare analytics",
-      "source_category": "Healthcare analytics / biotech data"
+      "source_category": "Healthcare analytics / biotech data",
+      "enabled": true,
+      "ats_type": "greenhouse",
+      "board_slug": "zocdoc",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/zocdoc/jobs?content=true",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "The Trade Desk",
       "adapter": "greenhouse",
       "identifier": "thetradedesk",
       "company_size_category": "Mid-size tech",
-      "source_category": "Smaller startups with ML/data/optimization roles"
+      "source_category": "Smaller startups with ML/data/optimization roles",
+      "enabled": true,
+      "ats_type": "greenhouse",
+      "board_slug": "thetradedesk",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/thetradedesk/jobs?content=true",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "Ibotta",
-      "adapter": "greenhouse",
-      "identifier": "ibotta",
+      "adapter": "careers_page",
       "company_size_category": "Mid-size tech",
-      "source_category": "Smaller startups with ML/data/optimization roles"
+      "source_category": "Smaller startups with ML/data/optimization roles",
+      "enabled": true,
+      "ats_type": "official_careers_page",
+      "board_slug": "",
+      "careers_page": "https://ibotta.com/careers",
+      "latest_status": "official_careers_page_fallback_needs_structured_parser_verification"
     },
     {
       "company": "Faire",
       "adapter": "greenhouse",
       "identifier": "faire",
       "company_size_category": "Startup",
-      "source_category": "Smaller startups with ML/data/optimization roles"
+      "source_category": "Smaller startups with ML/data/optimization roles",
+      "enabled": true,
+      "ats_type": "greenhouse",
+      "board_slug": "faire",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/faire/jobs?content=true",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "Toast",
       "adapter": "greenhouse",
       "identifier": "toast",
       "company_size_category": "Mid-size tech",
-      "source_category": "Smaller startups with ML/data/optimization roles"
+      "source_category": "Smaller startups with ML/data/optimization roles",
+      "enabled": true,
+      "ats_type": "greenhouse",
+      "board_slug": "toast",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/toast/jobs?content=true",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "project44",
       "adapter": "greenhouse",
       "identifier": "project44",
       "company_size_category": "Startup",
-      "source_category": "Logistics / operations research / supply chain analytics"
+      "source_category": "Logistics / operations research / supply chain analytics",
+      "enabled": true,
+      "ats_type": "greenhouse",
+      "board_slug": "project44",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/project44/jobs?content=true",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "FourKites",
       "adapter": "greenhouse",
       "identifier": "fourkites",
       "company_size_category": "Startup",
-      "source_category": "Logistics / operations research / supply chain analytics"
+      "source_category": "Logistics / operations research / supply chain analytics",
+      "enabled": true,
+      "ats_type": "greenhouse",
+      "board_slug": "fourkites",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/fourkites/jobs?content=true",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "Palantir",
@@ -362,546 +552,908 @@
       "company_size_category": "Big tech / famous lab",
       "source_category": "Government contractors / research labs / policy analytics",
       "timeout": 45,
-      "retries": 2
+      "retries": 2,
+      "enabled": true,
+      "ats_type": "lever",
+      "board_slug": "palantir",
+      "endpoint": "https://api.lever.co/v0/postings/palantir?mode=json",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "Instacart",
       "adapter": "greenhouse",
       "identifier": "instacart",
       "company_size_category": "Mid-size tech",
-      "source_category": "Logistics / operations research / supply chain analytics"
+      "source_category": "Logistics / operations research / supply chain analytics",
+      "enabled": true,
+      "ats_type": "greenhouse",
+      "board_slug": "instacart",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/instacart/jobs?content=true",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "DoorDash",
       "adapter": "greenhouse",
       "identifier": "doordashusa",
       "company_size_category": "Big tech / famous lab",
-      "source_category": "Logistics / operations research / supply chain analytics"
+      "source_category": "Logistics / operations research / supply chain analytics",
+      "enabled": true,
+      "ats_type": "greenhouse",
+      "board_slug": "doordashusa",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/doordashusa/jobs?content=true",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "Roblox",
       "adapter": "greenhouse",
       "identifier": "roblox",
       "company_size_category": "Big tech / famous lab",
-      "source_category": "Big tech / AI labs"
+      "source_category": "Big tech / AI labs",
+      "enabled": true,
+      "ats_type": "greenhouse",
+      "board_slug": "roblox",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/roblox/jobs?content=true",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "Stripe",
       "adapter": "greenhouse",
       "identifier": "stripe",
       "company_size_category": "Big tech / famous lab",
-      "source_category": "Quant finance / trading"
+      "source_category": "Quant finance / trading",
+      "enabled": true,
+      "ats_type": "greenhouse",
+      "board_slug": "stripe",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/stripe/jobs?content=true",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "Aledade",
       "adapter": "lever",
       "identifier": "aledade",
       "company_size_category": "Healthcare analytics",
-      "source_category": "Healthcare analytics / biotech data"
+      "source_category": "Healthcare analytics / biotech data",
+      "enabled": true,
+      "ats_type": "lever",
+      "board_slug": "aledade",
+      "endpoint": "https://api.lever.co/v0/postings/aledade?mode=json",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "Crest Industries",
       "adapter": "lever",
       "identifier": "crestoperations",
       "company_size_category": "Mid-size tech",
-      "source_category": "Finance / risk analytics"
+      "source_category": "Finance / risk analytics",
+      "enabled": true,
+      "ats_type": "lever",
+      "board_slug": "crestoperations",
+      "endpoint": "https://api.lever.co/v0/postings/crestoperations?mode=json",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "EV Realty",
       "adapter": "lever",
       "identifier": "evrealty-us",
       "company_size_category": "Startup",
-      "source_category": "Climate / energy / transportation analytics"
+      "source_category": "Climate / energy / transportation analytics",
+      "enabled": true,
+      "ats_type": "lever",
+      "board_slug": "evrealty-us",
+      "endpoint": "https://api.lever.co/v0/postings/evrealty-us?mode=json",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "Zettabyte",
       "adapter": "ashby",
       "identifier": "zettabyte-space",
       "company_size_category": "Startup",
-      "source_category": "SaaS / data infrastructure / ML platform startups"
+      "source_category": "SaaS / data infrastructure / ML platform startups",
+      "enabled": true,
+      "ats_type": "ashby",
+      "board_slug": "zettabyte-space",
+      "endpoint": "https://api.ashbyhq.com/posting-api/job-board/zettabyte-space",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "Cohere",
       "adapter": "ashby",
       "identifier": "cohere",
       "company_size_category": "Big tech / famous lab",
-      "source_category": "Big tech / AI labs"
+      "source_category": "Big tech / AI labs",
+      "enabled": true,
+      "ats_type": "ashby",
+      "board_slug": "cohere",
+      "endpoint": "https://api.ashbyhq.com/posting-api/job-board/cohere",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "Skydio",
       "adapter": "ashby",
       "identifier": "skydio",
       "company_size_category": "Mid-size tech",
-      "source_category": "Climate / energy / transportation analytics"
+      "source_category": "Climate / energy / transportation analytics",
+      "enabled": true,
+      "ats_type": "ashby",
+      "board_slug": "skydio",
+      "endpoint": "https://api.ashbyhq.com/posting-api/job-board/skydio",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "Age of Learning",
       "adapter": "lever",
       "identifier": "aofl",
       "company_size_category": "Mid-size tech",
-      "source_category": "SaaS / data infrastructure / ML platform startups"
+      "source_category": "SaaS / data infrastructure / ML platform startups",
+      "enabled": true,
+      "ats_type": "lever",
+      "board_slug": "aofl",
+      "endpoint": "https://api.lever.co/v0/postings/aofl?mode=json",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "OnePay",
       "adapter": "ashby",
       "identifier": "oneapp",
       "company_size_category": "Mid-size tech",
-      "source_category": "Quant finance / trading"
+      "source_category": "Quant finance / trading",
+      "enabled": true,
+      "ats_type": "ashby",
+      "board_slug": "oneapp",
+      "endpoint": "https://api.ashbyhq.com/posting-api/job-board/oneapp",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "Hugging Face",
-      "adapter": "greenhouse",
-      "identifier": "huggingface",
+      "adapter": "careers_page",
       "company_size_category": "Big tech / famous lab",
-      "source_category": "Big tech / AI labs"
+      "source_category": "Big tech / AI labs",
+      "enabled": true,
+      "ats_type": "official_careers_page",
+      "board_slug": "",
+      "careers_page": "https://huggingface.co/jobs",
+      "latest_status": "official_careers_page_fallback_needs_structured_parser_verification"
     },
     {
       "company": "Together AI",
       "adapter": "greenhouse",
       "identifier": "togetherai",
       "company_size_category": "Startup",
-      "source_category": "AI infrastructure companies"
+      "source_category": "AI infrastructure companies",
+      "enabled": true,
+      "ats_type": "greenhouse",
+      "board_slug": "togetherai",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/togetherai/jobs?content=true",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "Anyscale",
-      "adapter": "greenhouse",
+      "adapter": "ashby",
       "identifier": "anyscale",
       "company_size_category": "Mid-size tech",
-      "source_category": "AI infrastructure companies"
+      "source_category": "AI infrastructure companies",
+      "enabled": true,
+      "ats_type": "ashby",
+      "board_slug": "anyscale",
+      "endpoint": "https://api.ashbyhq.com/posting-api/job-board/anyscale",
+      "latest_status": "verified_official_api_200"
     },
     {
       "company": "Weights & Biases",
-      "adapter": "greenhouse",
-      "identifier": "weightsandbiases",
+      "adapter": "careers_page",
       "company_size_category": "Mid-size tech",
-      "source_category": "AI infrastructure companies"
+      "source_category": "AI infrastructure companies",
+      "enabled": true,
+      "ats_type": "official_careers_page",
+      "board_slug": "",
+      "careers_page": "https://wandb.ai/site/careers/",
+      "latest_status": "official_careers_page_fallback_needs_structured_parser_verification"
     },
     {
       "company": "Runway",
-      "adapter": "greenhouse",
-      "identifier": "runwayml",
+      "adapter": "ashby",
+      "identifier": "runway",
       "company_size_category": "Startup",
-      "source_category": "Applied AI startups"
+      "source_category": "Applied AI startups",
+      "enabled": true,
+      "ats_type": "ashby",
+      "board_slug": "runway",
+      "endpoint": "https://api.ashbyhq.com/posting-api/job-board/runway",
+      "latest_status": "verified_official_api_200"
     },
     {
       "company": "Perplexity AI",
-      "adapter": "greenhouse",
-      "identifier": "perplexityai",
+      "adapter": "careers_page",
       "company_size_category": "Startup",
-      "source_category": "Applied AI startups"
+      "source_category": "Applied AI startups",
+      "enabled": true,
+      "ats_type": "official_careers_page",
+      "board_slug": "",
+      "careers_page": "https://www.perplexity.ai/careers",
+      "latest_status": "official_careers_page_fallback_needs_structured_parser_verification"
     },
     {
       "company": "Harvey",
       "adapter": "ashby",
       "identifier": "harvey",
       "company_size_category": "Startup",
-      "source_category": "Applied AI startups"
+      "source_category": "Applied AI startups",
+      "enabled": true,
+      "ats_type": "ashby",
+      "board_slug": "harvey",
+      "endpoint": "https://api.ashbyhq.com/posting-api/job-board/harvey",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "Cursor",
       "adapter": "ashby",
       "identifier": "cursor",
       "company_size_category": "Startup",
-      "source_category": "Applied AI startups"
+      "source_category": "Applied AI startups",
+      "enabled": true,
+      "ats_type": "ashby",
+      "board_slug": "cursor",
+      "endpoint": "https://api.ashbyhq.com/posting-api/job-board/cursor",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "Modal",
       "adapter": "ashby",
       "identifier": "modal",
       "company_size_category": "Startup",
-      "source_category": "AI infrastructure companies"
+      "source_category": "AI infrastructure companies",
+      "enabled": true,
+      "ats_type": "ashby",
+      "board_slug": "modal",
+      "endpoint": "https://api.ashbyhq.com/posting-api/job-board/modal",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "Baseten",
-      "adapter": "greenhouse",
-      "identifier": "baseten",
+      "adapter": "careers_page",
       "company_size_category": "Startup",
-      "source_category": "AI infrastructure companies"
+      "source_category": "AI infrastructure companies",
+      "enabled": true,
+      "ats_type": "official_careers_page",
+      "board_slug": "",
+      "careers_page": "https://www.baseten.co/careers/",
+      "latest_status": "official_careers_page_fallback_needs_structured_parser_verification"
     },
     {
       "company": "LangChain",
-      "adapter": "greenhouse",
-      "identifier": "langchain",
+      "adapter": "careers_page",
       "company_size_category": "Startup",
-      "source_category": "Applied AI startups"
+      "source_category": "Applied AI startups",
+      "enabled": true,
+      "ats_type": "official_careers_page",
+      "board_slug": "",
+      "careers_page": "https://www.langchain.com/careers",
+      "latest_status": "official_careers_page_fallback_needs_structured_parser_verification"
     },
     {
       "company": "Glean",
       "adapter": "greenhouse",
       "identifier": "gleanwork",
       "company_size_category": "Mid-size tech",
-      "source_category": "Applied AI startups"
+      "source_category": "Applied AI startups",
+      "enabled": true,
+      "ats_type": "greenhouse",
+      "board_slug": "gleanwork",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/gleanwork/jobs?content=true",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "Cerebras",
-      "adapter": "greenhouse",
-      "identifier": "cerebras",
+      "adapter": "careers_page",
       "company_size_category": "Mid-size tech",
-      "source_category": "AI infrastructure companies"
+      "source_category": "AI infrastructure companies",
+      "enabled": true,
+      "ats_type": "official_careers_page",
+      "board_slug": "",
+      "careers_page": "https://www.cerebras.ai/careers",
+      "latest_status": "official_careers_page_fallback_needs_structured_parser_verification"
     },
     {
       "company": "Sierra",
-      "adapter": "greenhouse",
-      "identifier": "sierra",
+      "adapter": "careers_page",
       "company_size_category": "Startup",
-      "source_category": "Applied AI startups"
+      "source_category": "Applied AI startups",
+      "enabled": true,
+      "ats_type": "official_careers_page",
+      "board_slug": "",
+      "careers_page": "https://sierra.ai/careers",
+      "latest_status": "official_careers_page_fallback_needs_structured_parser_verification"
     },
     {
       "company": "Factory",
       "adapter": "ashby",
       "identifier": "factory",
       "company_size_category": "Startup",
-      "source_category": "Applied AI startups"
+      "source_category": "Applied AI startups",
+      "enabled": true,
+      "ats_type": "ashby",
+      "board_slug": "factory",
+      "endpoint": "https://api.ashbyhq.com/posting-api/job-board/factory",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "Windsurf",
-      "adapter": "greenhouse",
-      "identifier": "codeium",
+      "adapter": "careers_page",
       "company_size_category": "Startup",
-      "source_category": "Applied AI startups"
+      "source_category": "Applied AI startups",
+      "enabled": true,
+      "ats_type": "official_careers_page",
+      "board_slug": "",
+      "careers_page": "https://windsurf.com/careers",
+      "latest_status": "official_careers_page_fallback_needs_structured_parser_verification"
     },
     {
       "company": "Vannevar Labs",
-      "adapter": "lever",
+      "adapter": "greenhouse",
       "identifier": "vannevarlabs",
       "company_size_category": "Startup",
-      "source_category": "Government contractors / research labs / policy analytics"
+      "source_category": "Government contractors / research labs / policy analytics",
+      "enabled": true,
+      "ats_type": "greenhouse",
+      "board_slug": "vannevarlabs",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/vannevarlabs/jobs?content=true",
+      "latest_status": "verified_official_api_200"
     },
     {
       "company": "Epirus",
       "adapter": "greenhouse",
       "identifier": "epirus",
       "company_size_category": "Startup",
-      "source_category": "Government contractors / research labs / policy analytics"
+      "source_category": "Government contractors / research labs / policy analytics",
+      "enabled": true,
+      "ats_type": "greenhouse",
+      "board_slug": "epirus",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/epirus/jobs?content=true",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "Gecko Robotics",
-      "adapter": "greenhouse",
-      "identifier": "geckorobotics",
+      "adapter": "careers_page",
       "company_size_category": "Startup",
-      "source_category": "Robotics companies"
+      "source_category": "Robotics companies",
+      "enabled": true,
+      "ats_type": "official_careers_page",
+      "board_slug": "",
+      "careers_page": "https://www.geckorobotics.com/careers",
+      "latest_status": "official_careers_page_fallback_needs_structured_parser_verification"
     },
     {
       "company": "Saildrone",
-      "adapter": "greenhouse",
-      "identifier": "saildrone",
+      "adapter": "careers_page",
       "company_size_category": "Startup",
-      "source_category": "Robotics companies"
+      "source_category": "Robotics companies",
+      "enabled": true,
+      "ats_type": "official_careers_page",
+      "board_slug": "",
+      "careers_page": "https://www.saildrone.com/careers",
+      "latest_status": "official_careers_page_fallback_needs_structured_parser_verification"
     },
     {
       "company": "Nuro",
       "adapter": "greenhouse",
       "identifier": "nuro",
       "company_size_category": "Mid-size tech",
-      "source_category": "Robotics companies"
+      "source_category": "Robotics companies",
+      "enabled": true,
+      "ats_type": "greenhouse",
+      "board_slug": "nuro",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/nuro/jobs?content=true",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "Aurora",
-      "adapter": "greenhouse",
-      "identifier": "aurora",
+      "adapter": "careers_page",
       "company_size_category": "Mid-size tech",
-      "source_category": "Robotics companies"
+      "source_category": "Robotics companies",
+      "enabled": true,
+      "ats_type": "official_careers_page",
+      "board_slug": "",
+      "careers_page": "https://aurora.tech/careers",
+      "latest_status": "official_careers_page_fallback_needs_structured_parser_verification"
     },
     {
       "company": "Kodiak Robotics",
       "adapter": "greenhouse",
       "identifier": "kodiak",
       "company_size_category": "Startup",
-      "source_category": "Robotics companies"
+      "source_category": "Robotics companies",
+      "enabled": true,
+      "ats_type": "greenhouse",
+      "board_slug": "kodiak",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/kodiak/jobs?content=true",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "Gatik",
-      "adapter": "greenhouse",
-      "identifier": "gatik",
+      "adapter": "careers_page",
       "company_size_category": "Startup",
-      "source_category": "Robotics companies"
+      "source_category": "Robotics companies",
+      "enabled": true,
+      "ats_type": "official_careers_page",
+      "board_slug": "",
+      "careers_page": "https://gatik.ai/careers/",
+      "latest_status": "official_careers_page_fallback_needs_structured_parser_verification"
     },
     {
       "company": "Motive",
       "adapter": "greenhouse",
       "identifier": "gomotive",
       "company_size_category": "Mid-size tech",
-      "source_category": "Supply chain/logistics optimization companies"
+      "source_category": "Supply chain/logistics optimization companies",
+      "enabled": true,
+      "ats_type": "greenhouse",
+      "board_slug": "gomotive",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/gomotive/jobs?content=true",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "Zoox",
-      "adapter": "greenhouse",
-      "identifier": "zoox",
+      "adapter": "careers_page",
       "company_size_category": "Mid-size tech",
-      "source_category": "Robotics companies"
+      "source_category": "Robotics companies",
+      "enabled": true,
+      "ats_type": "official_careers_page",
+      "board_slug": "",
+      "careers_page": "https://zoox.com/careers/",
+      "latest_status": "official_careers_page_fallback_needs_structured_parser_verification"
     },
     {
       "company": "Rivian",
-      "adapter": "greenhouse",
-      "identifier": "rivian",
+      "adapter": "careers_page",
       "company_size_category": "Big tech / famous lab",
-      "source_category": "Industrial/engineering AI and simulation"
+      "source_category": "Industrial/engineering AI and simulation",
+      "enabled": true,
+      "ats_type": "official_careers_page",
+      "board_slug": "",
+      "careers_page": "https://careers.rivian.com/careers-home/jobs",
+      "latest_status": "official_careers_page_fallback_needs_structured_parser_verification"
     },
     {
       "company": "Lucid Motors",
       "adapter": "greenhouse",
       "identifier": "lucidmotors",
       "company_size_category": "Mid-size tech",
-      "source_category": "Industrial/engineering AI and simulation"
+      "source_category": "Industrial/engineering AI and simulation",
+      "enabled": true,
+      "ats_type": "greenhouse",
+      "board_slug": "lucidmotors",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/lucidmotors/jobs?content=true",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "Form Energy",
-      "adapter": "greenhouse",
-      "identifier": "formenergy",
+      "adapter": "careers_page",
       "company_size_category": "Startup",
-      "source_category": "Climate / energy / transportation analytics"
+      "source_category": "Climate / energy / transportation analytics",
+      "enabled": true,
+      "ats_type": "official_careers_page",
+      "board_slug": "",
+      "careers_page": "https://formenergy.com/careers/",
+      "latest_status": "official_careers_page_fallback_needs_structured_parser_verification"
     },
     {
       "company": "Redwood Materials",
       "adapter": "greenhouse",
       "identifier": "redwoodmaterials",
       "company_size_category": "Startup",
-      "source_category": "Climate / energy / transportation analytics"
+      "source_category": "Climate / energy / transportation analytics",
+      "enabled": true,
+      "ats_type": "greenhouse",
+      "board_slug": "redwoodmaterials",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/redwoodmaterials/jobs?content=true",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "Sila Nanotechnologies",
       "adapter": "greenhouse",
-      "identifier": "silanano",
+      "identifier": "silananotechnologies",
       "company_size_category": "Startup",
-      "source_category": "Industrial/engineering AI and simulation"
+      "source_category": "Industrial/engineering AI and simulation",
+      "enabled": true,
+      "ats_type": "greenhouse",
+      "board_slug": "silananotechnologies",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/silananotechnologies/jobs?content=true",
+      "latest_status": "verified_official_api_200"
     },
     {
       "company": "Fivetran",
       "adapter": "greenhouse",
       "identifier": "fivetran",
       "company_size_category": "Mid-size tech",
-      "source_category": "Data science companies"
+      "source_category": "Data science companies",
+      "enabled": true,
+      "ats_type": "greenhouse",
+      "board_slug": "fivetran",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/fivetran/jobs?content=true",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "Tecton",
-      "adapter": "greenhouse",
+      "adapter": "lever",
       "identifier": "tecton",
       "company_size_category": "Startup",
-      "source_category": "AI infrastructure companies"
+      "source_category": "AI infrastructure companies",
+      "enabled": true,
+      "ats_type": "lever",
+      "board_slug": "tecton",
+      "endpoint": "https://api.lever.co/v0/postings/tecton?mode=json",
+      "latest_status": "verified_official_api_200"
     },
     {
       "company": "Astronomer",
-      "adapter": "greenhouse",
-      "identifier": "astronomer",
+      "adapter": "careers_page",
       "company_size_category": "Mid-size tech",
-      "source_category": "Data science companies"
+      "source_category": "Data science companies",
+      "enabled": true,
+      "ats_type": "official_careers_page",
+      "board_slug": "",
+      "careers_page": "https://www.astronomer.io/careers/",
+      "latest_status": "official_careers_page_fallback_needs_structured_parser_verification"
     },
     {
       "company": "Sigma Computing",
       "adapter": "greenhouse",
       "identifier": "sigmacomputing",
       "company_size_category": "Mid-size tech",
-      "source_category": "Data science companies"
+      "source_category": "Data science companies",
+      "enabled": true,
+      "ats_type": "greenhouse",
+      "board_slug": "sigmacomputing",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/sigmacomputing/jobs?content=true",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "Hex",
-      "adapter": "greenhouse",
+      "adapter": "ashby",
       "identifier": "hex",
       "company_size_category": "Startup",
-      "source_category": "Data science companies"
+      "source_category": "Data science companies",
+      "enabled": true,
+      "ats_type": "ashby",
+      "board_slug": "hex",
+      "endpoint": "https://api.ashbyhq.com/posting-api/job-board/hex",
+      "latest_status": "verified_official_api_200"
     },
     {
       "company": "Retool",
-      "adapter": "greenhouse",
-      "identifier": "retool",
+      "adapter": "careers_page",
       "company_size_category": "Mid-size tech",
-      "source_category": "Data science companies"
+      "source_category": "Data science companies",
+      "enabled": true,
+      "ats_type": "official_careers_page",
+      "board_slug": "",
+      "careers_page": "https://retool.com/careers",
+      "latest_status": "official_careers_page_fallback_needs_structured_parser_verification"
     },
     {
       "company": "Amplitude",
       "adapter": "greenhouse",
       "identifier": "amplitude",
       "company_size_category": "Mid-size tech",
-      "source_category": "Data science companies"
+      "source_category": "Data science companies",
+      "enabled": true,
+      "ats_type": "greenhouse",
+      "board_slug": "amplitude",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/amplitude/jobs?content=true",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "Mixpanel",
       "adapter": "greenhouse",
       "identifier": "mixpanel",
       "company_size_category": "Mid-size tech",
-      "source_category": "Data science companies"
+      "source_category": "Data science companies",
+      "enabled": true,
+      "ats_type": "greenhouse",
+      "board_slug": "mixpanel",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/mixpanel/jobs?content=true",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "Hudson River Trading",
-      "adapter": "greenhouse",
+      "adapter": "ashby",
       "identifier": "hrt",
       "company_size_category": "Big tech / famous lab",
-      "source_category": "Quant finance / trading"
+      "source_category": "Quant finance / trading",
+      "enabled": true,
+      "ats_type": "ashby",
+      "board_slug": "hrt",
+      "endpoint": "https://api.ashbyhq.com/posting-api/job-board/hrt",
+      "latest_status": "verified_official_api_200"
     },
     {
       "company": "Akuna Capital",
       "adapter": "greenhouse",
       "identifier": "akunacapital",
       "company_size_category": "Mid-size tech",
-      "source_category": "Quant finance / trading"
+      "source_category": "Quant finance / trading",
+      "enabled": true,
+      "ats_type": "greenhouse",
+      "board_slug": "akunacapital",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/akunacapital/jobs?content=true",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "DRW",
-      "adapter": "greenhouse",
-      "identifier": "drw",
+      "adapter": "careers_page",
       "company_size_category": "Big tech / famous lab",
-      "source_category": "Quant finance / trading"
+      "source_category": "Quant finance / trading",
+      "enabled": true,
+      "ats_type": "official_careers_page",
+      "board_slug": "",
+      "careers_page": "https://drw.com/work-at-drw/listings/",
+      "latest_status": "official_careers_page_fallback_needs_structured_parser_verification"
     },
     {
       "company": "The Voleon Group",
-      "adapter": "greenhouse",
+      "adapter": "lever",
       "identifier": "voleon",
       "company_size_category": "Mid-size tech",
-      "source_category": "Quant finance / trading"
+      "source_category": "Quant finance / trading",
+      "enabled": true,
+      "ats_type": "lever",
+      "board_slug": "voleon",
+      "endpoint": "https://api.lever.co/v0/postings/voleon?mode=json",
+      "latest_status": "verified_official_api_200"
     },
     {
       "company": "Point72",
       "adapter": "greenhouse",
       "identifier": "point72",
       "company_size_category": "Big tech / famous lab",
-      "source_category": "Quant finance / trading"
+      "source_category": "Quant finance / trading",
+      "enabled": true,
+      "ats_type": "greenhouse",
+      "board_slug": "point72",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/point72/jobs?content=true",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "Belvedere Trading",
-      "adapter": "greenhouse",
+      "adapter": "lever",
       "identifier": "belvederetrading",
       "company_size_category": "Mid-size tech",
-      "source_category": "Quant finance / trading"
+      "source_category": "Quant finance / trading",
+      "enabled": true,
+      "ats_type": "lever",
+      "board_slug": "belvederetrading",
+      "endpoint": "https://api.lever.co/v0/postings/belvederetrading?mode=json",
+      "latest_status": "verified_official_api_200"
     },
     {
       "company": "Headlands Technologies",
-      "adapter": "greenhouse",
-      "identifier": "headlandstechnologies",
+      "adapter": "careers_page",
       "company_size_category": "Mid-size tech",
-      "source_category": "Quant finance / trading"
+      "source_category": "Quant finance / trading",
+      "enabled": true,
+      "ats_type": "official_careers_page",
+      "board_slug": "",
+      "careers_page": "https://www.headlandstech.com/careers/",
+      "latest_status": "official_careers_page_fallback_needs_structured_parser_verification"
     },
     {
       "company": "Benchling",
-      "adapter": "greenhouse",
-      "identifier": "benchling",
+      "adapter": "careers_page",
       "company_size_category": "Healthcare analytics",
-      "source_category": "Healthcare AI companies"
+      "source_category": "Healthcare AI companies",
+      "enabled": true,
+      "ats_type": "official_careers_page",
+      "board_slug": "",
+      "careers_page": "https://www.benchling.com/careers",
+      "latest_status": "official_careers_page_fallback_needs_structured_parser_verification"
     },
     {
       "company": "Color Health",
-      "adapter": "greenhouse",
-      "identifier": "color",
+      "adapter": "ashby",
+      "identifier": "color-health",
       "company_size_category": "Healthcare analytics",
-      "source_category": "Healthcare AI companies"
+      "source_category": "Healthcare AI companies",
+      "enabled": true,
+      "ats_type": "ashby",
+      "board_slug": "color-health",
+      "endpoint": "https://api.ashbyhq.com/posting-api/job-board/color-health",
+      "latest_status": "verified_official_api_200"
     },
     {
       "company": "Included Health",
-      "adapter": "greenhouse",
-      "identifier": "includedhealth",
+      "adapter": "careers_page",
       "company_size_category": "Healthcare analytics",
-      "source_category": "Healthcare AI companies"
+      "source_category": "Healthcare AI companies",
+      "enabled": true,
+      "ats_type": "official_careers_page",
+      "board_slug": "",
+      "careers_page": "https://includedhealth.com/careers/",
+      "latest_status": "official_careers_page_fallback_needs_structured_parser_verification"
     },
     {
       "company": "Ro",
-      "adapter": "greenhouse",
-      "identifier": "ro",
+      "adapter": "careers_page",
       "company_size_category": "Healthcare analytics",
-      "source_category": "Healthcare AI companies"
+      "source_category": "Healthcare AI companies",
+      "enabled": true,
+      "ats_type": "official_careers_page",
+      "board_slug": "",
+      "careers_page": "https://ro.co/careers/",
+      "latest_status": "official_careers_page_fallback_needs_structured_parser_verification"
     },
     {
       "company": "Abridge",
       "adapter": "ashby",
       "identifier": "abridge",
       "company_size_category": "Healthcare analytics",
-      "source_category": "Healthcare AI companies"
+      "source_category": "Healthcare AI companies",
+      "enabled": true,
+      "ats_type": "ashby",
+      "board_slug": "abridge",
+      "endpoint": "https://api.ashbyhq.com/posting-api/job-board/abridge",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "Ambience Healthcare",
       "adapter": "ashby",
       "identifier": "ambiencehealthcare",
       "company_size_category": "Healthcare analytics",
-      "source_category": "Healthcare AI companies"
+      "source_category": "Healthcare AI companies",
+      "enabled": true,
+      "ats_type": "ashby",
+      "board_slug": "ambiencehealthcare",
+      "endpoint": "https://api.ashbyhq.com/posting-api/job-board/ambiencehealthcare",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "Insitro",
-      "adapter": "greenhouse",
-      "identifier": "insitro",
+      "adapter": "careers_page",
       "company_size_category": "Healthcare analytics",
-      "source_category": "Healthcare AI companies"
+      "source_category": "Healthcare AI companies",
+      "enabled": true,
+      "ats_type": "official_careers_page",
+      "board_slug": "",
+      "careers_page": "https://www.insitro.com/careers",
+      "latest_status": "official_careers_page_fallback_needs_structured_parser_verification"
     },
     {
       "company": "Recursion",
-      "adapter": "greenhouse",
-      "identifier": "recursion",
+      "adapter": "careers_page",
       "company_size_category": "Healthcare analytics",
-      "source_category": "Healthcare AI companies"
+      "source_category": "Healthcare AI companies",
+      "enabled": true,
+      "ats_type": "official_careers_page",
+      "board_slug": "",
+      "careers_page": "https://www.recursion.com/careers",
+      "latest_status": "official_careers_page_fallback_needs_structured_parser_verification"
     },
     {
       "company": "Freenome",
       "adapter": "greenhouse",
       "identifier": "freenome",
       "company_size_category": "Healthcare analytics",
-      "source_category": "Healthcare AI companies"
+      "source_category": "Healthcare AI companies",
+      "enabled": true,
+      "ats_type": "greenhouse",
+      "board_slug": "freenome",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/freenome/jobs?content=true",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "GRAIL",
-      "adapter": "greenhouse",
-      "identifier": "grail",
+      "adapter": "careers_page",
       "company_size_category": "Healthcare analytics",
-      "source_category": "Healthcare AI companies"
+      "source_category": "Healthcare AI companies",
+      "enabled": true,
+      "ats_type": "official_careers_page",
+      "board_slug": "",
+      "careers_page": "https://www.grail.com/careers/",
+      "latest_status": "official_careers_page_fallback_needs_structured_parser_verification"
     },
     {
       "company": "PathAI",
       "adapter": "greenhouse",
       "identifier": "pathai",
       "company_size_category": "Healthcare analytics",
-      "source_category": "Healthcare AI companies"
+      "source_category": "Healthcare AI companies",
+      "enabled": true,
+      "ats_type": "greenhouse",
+      "board_slug": "pathai",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/pathai/jobs?content=true",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "Fractal",
-      "adapter": "greenhouse",
-      "identifier": "fractal",
+      "adapter": "careers_page",
       "company_size_category": "Mid-size tech",
-      "source_category": "Consulting and analytics companies"
+      "source_category": "Consulting and analytics companies",
+      "enabled": true,
+      "ats_type": "official_careers_page",
+      "board_slug": "",
+      "careers_page": "https://fractal.ai/careers/",
+      "latest_status": "official_careers_page_fallback_needs_structured_parser_verification"
     },
     {
       "company": "Nielsen",
-      "adapter": "greenhouse",
+      "adapter": "lever",
       "identifier": "nielsen",
       "company_size_category": "Mid-size tech",
-      "source_category": "Consulting and analytics companies"
+      "source_category": "Consulting and analytics companies",
+      "enabled": true,
+      "ats_type": "lever",
+      "board_slug": "nielsen",
+      "endpoint": "https://api.lever.co/v0/postings/nielsen?mode=json",
+      "latest_status": "verified_official_api_200"
     },
     {
       "company": "Verisk",
-      "adapter": "greenhouse",
-      "identifier": "verisk",
+      "adapter": "careers_page",
       "company_size_category": "Insurance/risk",
-      "source_category": "Insurance and risk analytics companies"
+      "source_category": "Insurance and risk analytics companies",
+      "enabled": true,
+      "ats_type": "official_careers_page",
+      "board_slug": "",
+      "careers_page": "https://www.verisk.com/careers/",
+      "latest_status": "official_careers_page_fallback_needs_structured_parser_verification"
     },
     {
       "company": "Esri",
       "adapter": "greenhouse",
       "identifier": "esri",
       "company_size_category": "Mid-size tech",
-      "source_category": "Industrial/engineering AI and simulation"
+      "source_category": "Industrial/engineering AI and simulation",
+      "enabled": true,
+      "ats_type": "greenhouse",
+      "board_slug": "esri",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/esri/jobs?content=true",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "EnergyHub",
       "adapter": "greenhouse",
       "identifier": "energyhub",
       "company_size_category": "Startup",
-      "source_category": "Climate / energy / transportation analytics"
+      "source_category": "Climate / energy / transportation analytics",
+      "enabled": true,
+      "ats_type": "greenhouse",
+      "board_slug": "energyhub",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/energyhub/jobs?content=true",
+      "latest_status": "not_recently_verified"
     },
     {
       "company": "Aurora Solar",
-      "adapter": "greenhouse",
+      "adapter": "ashby",
       "identifier": "aurorasolar",
       "company_size_category": "Mid-size tech",
-      "source_category": "Climate / energy / transportation analytics"
+      "source_category": "Climate / energy / transportation analytics",
+      "enabled": true,
+      "ats_type": "ashby",
+      "board_slug": "aurorasolar",
+      "endpoint": "https://api.ashbyhq.com/posting-api/job-board/aurorasolar",
+      "latest_status": "verified_official_api_200"
     },
     {
       "company": "Gridware",
-      "adapter": "greenhouse",
-      "identifier": "gridware",
+      "adapter": "careers_page",
       "company_size_category": "Startup",
-      "source_category": "Climate / energy / transportation analytics"
+      "source_category": "Climate / energy / transportation analytics",
+      "enabled": true,
+      "ats_type": "official_careers_page",
+      "board_slug": "",
+      "careers_page": "https://gridware.io/careers",
+      "latest_status": "official_careers_page_fallback_needs_structured_parser_verification"
     },
     {
       "company": "Voltus",
-      "adapter": "greenhouse",
+      "adapter": "lever",
       "identifier": "voltus",
       "company_size_category": "Startup",
-      "source_category": "Climate / energy / transportation analytics"
+      "source_category": "Climate / energy / transportation analytics",
+      "enabled": true,
+      "ats_type": "lever",
+      "board_slug": "voltus",
+      "endpoint": "https://api.lever.co/v0/postings/voltus?mode=json",
+      "latest_status": "verified_official_api_200"
     },
     {
       "company": "Travelers",
@@ -919,7 +1471,13 @@
         "operations"
       ],
       "company_size_category": "Insurance/risk",
-      "source_category": "Insurance / reinsurance / risk analytics"
+      "source_category": "Insurance / reinsurance / risk analytics",
+      "enabled": true,
+      "ats_type": "workday",
+      "board_slug": "",
+      "latest_status": "not_recently_verified",
+      "page_size": 20,
+      "max_pages_per_keyword": 3
     },
     {
       "company": "Chubb",
@@ -937,7 +1495,13 @@
         "operations"
       ],
       "company_size_category": "Insurance/risk",
-      "source_category": "Insurance / reinsurance / risk analytics"
+      "source_category": "Insurance / reinsurance / risk analytics",
+      "enabled": true,
+      "ats_type": "workday",
+      "board_slug": "",
+      "latest_status": "not_recently_verified",
+      "page_size": 20,
+      "max_pages_per_keyword": 3
     },
     {
       "company": "Liberty Mutual",
@@ -955,7 +1519,13 @@
         "operations"
       ],
       "company_size_category": "Insurance/risk",
-      "source_category": "Insurance / reinsurance / risk analytics"
+      "source_category": "Insurance / reinsurance / risk analytics",
+      "enabled": true,
+      "ats_type": "workday",
+      "board_slug": "",
+      "latest_status": "not_recently_verified",
+      "page_size": 20,
+      "max_pages_per_keyword": 3
     },
     {
       "company": "The Hartford",
@@ -973,7 +1543,13 @@
         "operations"
       ],
       "company_size_category": "Insurance/risk",
-      "source_category": "Insurance / reinsurance / risk analytics"
+      "source_category": "Insurance / reinsurance / risk analytics",
+      "enabled": true,
+      "ats_type": "workday",
+      "board_slug": "",
+      "latest_status": "not_recently_verified",
+      "page_size": 20,
+      "max_pages_per_keyword": 3
     }
   ],
   "watchlist_without_public_adapter": [

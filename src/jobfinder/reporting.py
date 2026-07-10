@@ -226,6 +226,10 @@ def _job_block(item: ScoredJob, bucket: str, urgent_threshold: float) -> list[st
     badges: list[str] = []
     if item.tracking_status == "New":
         badges.append("NEW")
+    elif item.tracking_status == "NEWLY QUALIFIED":
+        badges.append("NEWLY QUALIFIED")
+    elif item.tracking_status == "PREVIOUSLY RECOMMENDED":
+        badges.append("PREVIOUSLY RECOMMENDED")
     elif item.tracking_status != "New":
         badges.append(item.tracking_status.upper())
     if score.overall >= urgent_threshold:
@@ -245,7 +249,13 @@ def _job_block(item: ScoredJob, bucket: str, urgent_threshold: float) -> list[st
         f"- **Application link:** {job.url}",
         f"- **Source link:** {job.url}",
         f"- **Start timing:** {job.start_year_or_season}",
+        f"- **Timing:** Tier {score.timing_tier}",
+        f"- **Timing reason:** {score.timing_reason or 'No timing concern detected'}",
+        f"- **Timing confidence:** {score.timing_confidence}",
         f"- **Role family:** {job.role_family or 'Not classified'}",
+        f"- **Role classification:** {score.role_classification}",
+        f"- **Role classification reason:** {score.role_classification_reason}",
+        f"- **Role classification confidence:** {score.role_classification_confidence}",
         f"- **Source:** {job.source}",
         "",
         _score_line(item),
@@ -338,6 +348,7 @@ def build_report(
     source_status_counts = Counter(
         str(getattr(item, "status", "")) for item in stats.source_health
     )
+    insufficiency_reasons: list[str] = []
     internship_postings_found = sum(
         int(getattr(item, "internship_roles", 0)) for item in stats.source_health
     )
@@ -362,7 +373,7 @@ def build_report(
         f"- **Companies searched:** {stats.companies_searched}",
         f"- **Companies successfully read:** {stats.companies_succeeded}",
         f"- **Companies failed/unavailable:** {stats.companies_searched - stats.companies_succeeded}",
-        f"- **Companies with no open internships found:** {source_status_counts['no_open_internships']}",
+        f"- **Companies with no open internships found:** {source_status_counts['empty_but_healthy'] + source_status_counts['no_open_internships']}",
         f"- **Internship/co-op postings found:** {internship_postings_found}",
         f"- **Unique relevant roles found:** {len(scored)}",
         f"- **Roles selected:** {len(selected)}",
@@ -374,6 +385,29 @@ def build_report(
         ),
         "",
     ]
+    if len(selected) < 15:
+        failed_sources = stats.companies_searched - stats.companies_succeeded
+        if failed_sources:
+            insufficiency_reasons.append("data source failures")
+        if source_status_counts["empty_but_healthy"] or source_status_counts["no_open_internships"]:
+            insufficiency_reasons.append("current market has not opened enough internships")
+        if correction_log and correction_log.wrong_date_excluded:
+            insufficiency_reasons.append("timing window hard rejects")
+        if correction_log and correction_log.not_ai_engineer_excluded:
+            insufficiency_reasons.append("career relevance")
+        if correction_log and correction_log.history_excluded:
+            insufficiency_reasons.append("history deduplication")
+        lines.extend(
+            [
+                "- **Why fewer than 15 roles:** "
+                + (
+                    ", ".join(dict.fromkeys(insufficiency_reasons))
+                    if insufficiency_reasons
+                    else "not enough eligible U.S. internships after relevance and tracker constraints"
+                ),
+                "",
+            ]
+        )
 
     section_names = {
         "Reach": "A",
@@ -425,24 +459,26 @@ def build_report(
     if stats.source_health or stats.source_failures:
         crawler_failed = [
             item for item in stats.source_health
-            if str(getattr(item, "status", "")) == "crawler_failed"
+            if str(getattr(item, "status", "")) in {"parser_failure", "temporary_network_failure"}
         ]
         unavailable = [
             item for item in stats.source_health
-            if str(getattr(item, "status", "")) == "source_unavailable"
+            if str(getattr(item, "status", "")) in {"invalid_endpoint", "blocked"}
         ]
         no_internships = [
             item for item in stats.source_health
-            if str(getattr(item, "status", "")) == "no_open_internships"
+            if str(getattr(item, "status", "")) in {"empty_but_healthy", "no_open_internships"}
         ]
         lines.extend(
             [
                 "## Source Health",
                 "",
-                f"- **Successful with internship/co-op-like postings:** {source_status_counts['success']}",
-                f"- **No open internships found:** {len(no_internships)}",
-                f"- **Crawler failed:** {len(crawler_failed)}",
-                f"- **Company source unavailable / adapter mismatch:** {len(unavailable)}",
+                f"- **Working:** {source_status_counts['working'] + source_status_counts['success']}",
+                f"- **Empty but healthy:** {source_status_counts['empty_but_healthy'] + source_status_counts['no_open_internships']}",
+                f"- **Invalid endpoint:** {source_status_counts['invalid_endpoint']}",
+                f"- **Blocked:** {source_status_counts['blocked']}",
+                f"- **Temporary network failure:** {source_status_counts['temporary_network_failure']}",
+                f"- **Parser failure:** {source_status_counts['parser_failure']}",
                 "",
             ]
         )
@@ -462,8 +498,12 @@ def build_report(
             lines.extend(["**Crawler failed:**", ""])
             for item in crawler_failed[:12]:
                 lines.append(
-                    f"- {getattr(item, 'company', 'Unknown')}: "
-                    f"{getattr(item, 'message', '')}"
+                    f"- {getattr(item, 'company', 'Unknown')} "
+                    f"({getattr(item, 'provider', 'unknown')}): "
+                    f"{getattr(item, 'endpoint', '')} "
+                    f"{getattr(item, 'error_code', '')} - "
+                    f"{getattr(item, 'message', '')}. "
+                    f"Suggested fix: {getattr(item, 'suggested_fix', '')}"
                 )
             if len(crawler_failed) > 12:
                 lines.append(f"- ... {len(crawler_failed) - 12} more")
@@ -472,8 +512,12 @@ def build_report(
             lines.extend(["**Company source unavailable / adapter mismatch:**", ""])
             for item in unavailable[:12]:
                 lines.append(
-                    f"- {getattr(item, 'company', 'Unknown')}: "
-                    f"{getattr(item, 'message', '')}"
+                    f"- {getattr(item, 'company', 'Unknown')} "
+                    f"({getattr(item, 'provider', 'unknown')}): "
+                    f"{getattr(item, 'endpoint', '')} "
+                    f"{getattr(item, 'error_code', '')} - "
+                    f"{getattr(item, 'message', '')}. "
+                    f"Suggested fix: {getattr(item, 'suggested_fix', '')}"
                 )
             if len(unavailable) > 12:
                 lines.append(f"- ... {len(unavailable) - 12} more")

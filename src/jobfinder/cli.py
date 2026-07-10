@@ -20,13 +20,12 @@ from .models import (
 from .reporting import CorrectionLog, ReportStats, build_report, select_buckets
 from .scoring import (
     is_internship_role,
-    is_pure_swe_title,
     is_us_internship,
     is_us_location,
     score_job,
 )
 from .sources import MultiCompanyClient, load_sources_config
-from .state import load_state, save_state
+from .state import load_state, recommendation_state, save_state, update_state
 from .tracker import ApplicationTracker, SUPPRESSED_STATUSES
 
 
@@ -74,8 +73,15 @@ def _same_direction(first: ScoredJob, second: ScoredJob) -> bool:
 
 
 def _deduplicate_scored(scored: list[ScoredJob]) -> tuple[list[ScoredJob], int]:
+    selected, excluded_items = _deduplicate_scored_with_exclusions(scored)
+    return selected, len(excluded_items)
+
+
+def _deduplicate_scored_with_exclusions(
+    scored: list[ScoredJob],
+) -> tuple[list[ScoredJob], list[ScoredJob]]:
     selected: list[ScoredJob] = []
-    excluded = 0
+    excluded: list[ScoredJob] = []
     for item in sorted(scored, key=lambda entry: entry.score.overall, reverse=True):
         duplicate_index = next(
             (
@@ -88,11 +94,34 @@ def _deduplicate_scored(scored: list[ScoredJob]) -> tuple[list[ScoredJob], int]:
         if duplicate_index is None:
             selected.append(item)
             continue
-        excluded += 1
+        excluded.append(item)
         existing = selected[duplicate_index]
         if item.score.overall > existing.score.overall:
+            excluded[-1] = existing
             selected[duplicate_index] = item
     return selected, excluded
+
+
+def _diagnostic(
+    item: ScoredJob,
+    *,
+    stage: str,
+    primary_reason: str,
+    secondary_reasons: list[str] | None = None,
+) -> dict[str, object]:
+    score = item.score
+    return {
+        "company": item.job.company,
+        "title": item.job.title,
+        "url": item.job.url,
+        "stage": stage,
+        "primary_reason": primary_reason,
+        "secondary_reasons": secondary_reasons or [],
+        "timing_tier": score.timing_tier,
+        "role_classification": score.role_classification,
+        "relevance_score": score.relevance_total,
+        "overall_score": score.overall,
+    }
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -170,6 +199,7 @@ def run(
     low_relevance_excluded = 0
     pure_swe_excluded = 0
     wrong_date_excluded = 0
+    diagnostics: list[dict[str, object]] = []
     non_us_excluded = sum(1 for job in jobs if not is_us_location(job))
     full_time_excluded = sum(
         1 for job in jobs if is_us_location(job) and not is_internship_role(job)
@@ -188,23 +218,55 @@ def run(
     tracker_path = ROOT / "data" / "applications.json"
     tracker = ApplicationTracker(tracker_path)
     state = load_state(state_path)
-    seen = set(str(value) for value in state["seen_ids"])
     tracked_statuses = tracker.status_map()
     scored: list[ScoredJob] = []
     suppressed = 0
     inactive_suppressed = 0
     duplicate_suppressed = 0
-    for job in hard_filtered_jobs:
+    internship_like_roles = 0
+    timing_counts: Counter[str] = Counter()
+    seen_hard_filter_ids: set[str] = set()
+    for job in jobs:
+        if is_internship_role(job):
+            internship_like_roles += 1
+        if job in hard_filtered_jobs:
+            continue
         score = score_job(job, profile)
+        stage = "non_us_hard_filter" if not is_us_location(job) else "non_internship_hard_filter"
+        diagnostics.append(
+            _diagnostic(
+                ScoredJob(job, score),
+                stage=stage,
+                primary_reason=score.rejection_reason
+                or (
+                    "Outside the U.S."
+                    if stage == "non_us_hard_filter"
+                    else "Not an explicit internship or is full-time/new-grad"
+                ),
+            )
+        )
+    for job in hard_filtered_jobs:
+        seen_hard_filter_ids.add(job.tracking_id)
+        score = score_job(job, profile)
+        timing_counts[score.timing_tier] += 1
         if score.rejection_reason:
-            low_relevance_excluded += 1
-            if score.timing_fit < 7.0:
+            if score.timing_tier == "Hard reject":
                 wrong_date_excluded += 1
-            if (
-                "Pure SWE" in score.rejection_reason
-                or is_pure_swe_title(job)
-            ):
+                stage = "timing_hard_rejected"
+            elif score.role_classification == "pure_swe":
                 pure_swe_excluded += 1
+                stage = "pure_swe_hard_rejected"
+            else:
+                low_relevance_excluded += 1
+                stage = "low_relevance_hard_rejected"
+            diagnostics.append(
+                _diagnostic(
+                    ScoredJob(job, score),
+                    stage=stage,
+                    primary_reason=score.rejection_reason,
+                    secondary_reasons=list(score.concerns),
+                )
+            )
             continue
         suppressing_record = tracker.suppression_match(
             job,
@@ -221,13 +283,23 @@ def run(
                 inactive_suppressed += 1
             else:
                 duplicate_suppressed += 1
+            diagnostics.append(
+                _diagnostic(
+                    ScoredJob(job, score, tracking_status=status),
+                    stage="history_suppressed",
+                    primary_reason=f"Suppressed by tracker/history status: {status}",
+                )
+            )
             continue
+        display_status = status
+        if status == "New":
+            display_status = recommendation_state(state, job.tracking_id, status)
         scored.append(
             ScoredJob(
                 job,
                 score,
-                is_new=status == "New" and job.tracking_id not in seen,
-                tracking_status=status,
+                is_new=display_status in {"New", "NEWLY QUALIFIED"},
+                tracking_status=display_status,
             )
         )
     if suppressed:
@@ -236,7 +308,16 @@ def run(
             f"{inactive_suppressed} inactive and {duplicate_suppressed} previous/duplicate. "
             "Use --show-history to include tracked history."
         )
-    scored, current_duplicate_excluded = _deduplicate_scored(scored)
+    scored, duplicate_items = _deduplicate_scored_with_exclusions(scored)
+    current_duplicate_excluded = len(duplicate_items)
+    for item in duplicate_items:
+        diagnostics.append(
+            _diagnostic(
+                item,
+                stage="current_duplicates",
+                primary_reason="Duplicate or near-duplicate role in current run",
+            )
+        )
     print(f"[DEBUG] excluded_already_applied_or_inactive = {inactive_suppressed}")
     print(f"[DEBUG] excluded_duplicate_jobs = {current_duplicate_excluded}")
     print(f"[DEBUG] excluded_similar_previous_recommendations = {duplicate_suppressed}")
@@ -253,6 +334,19 @@ def run(
     print(f"[RUN STATS] internship_postings_found = {internship_postings_found}")
     print(f"[RUN STATS] surviving_hard_filters = {len(hard_filtered_jobs)}")
     print(f"[RUN STATS] selected_for_ranking = {len(scored)}")
+    print(f"[FUNNEL] raw_roles = {len(jobs)}")
+    print(f"[FUNNEL] internship_like_roles = {internship_like_roles}")
+    print(f"[FUNNEL] us_internships = {len(hard_filtered_jobs)}")
+    print(f"[FUNNEL] timing_hard_rejected = {wrong_date_excluded}")
+    print(f"[FUNNEL] pure_swe_hard_rejected = {pure_swe_excluded}")
+    print(f"[FUNNEL] low_relevance_hard_rejected = {low_relevance_excluded}")
+    print(f"[FUNNEL] history_suppressed = {suppressed}")
+    print(f"[FUNNEL] current_duplicates = {current_duplicate_excluded}")
+    print(f"[FUNNEL] eligible_for_ranking = {len(scored)}")
+    print(f"[FUNNEL] timing_tier_a_count = {timing_counts['A']}")
+    print(f"[FUNNEL] timing_tier_b_count = {timing_counts['B']}")
+    print(f"[FUNNEL] timing_tier_c_count = {timing_counts['C']}")
+    print(f"[FUNNEL] timing_unknown_count = {timing_counts['Unknown']}")
     top_floor = float(profile["thresholds"]["top_opportunity"])
     qualifying_counts = Counter(
         item.job.company
@@ -300,6 +394,22 @@ def run(
         suggestions=tuple(suggestions),
     )
     buckets = select_buckets(scored, top_floor, per_bucket=per_bucket)
+    tracked_recommendations = [
+        (item, bucket)
+        for bucket in ("Reach", "Target", "Safe")
+        for item in buckets[bucket].roles
+    ]
+    alert_candidates = [item for item, _bucket in tracked_recommendations]
+    new_recommendations = sum(1 for item in alert_candidates if item.tracking_status == "New")
+    newly_qualified_recommendations = sum(
+        1 for item in alert_candidates if item.tracking_status == "NEWLY QUALIFIED"
+    )
+    print(f"[FUNNEL] selected_for_report = {len(alert_candidates)}")
+    print(f"[FUNNEL] new_recommendations = {new_recommendations}")
+    print(
+        "[FUNNEL] newly_qualified_recommendations = "
+        f"{newly_qualified_recommendations}"
+    )
     report = build_report(
         scored,
         profile,
@@ -319,17 +429,19 @@ def run(
     latest_path = report_dir / "latest.md"
     dated_path.write_text(report, encoding="utf-8")
     latest_path.write_text(report, encoding="utf-8")
-    save_state(
-        state_path,
-        seen | {job.tracking_id for job in hard_filtered_jobs},
+    diagnostics_path = report_dir / "filter_diagnostics.json"
+    diagnostics_path.write_text(
+        json.dumps(diagnostics, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
     )
 
-    tracked_recommendations = [
-        (item, bucket)
-        for bucket in ("Reach", "Target", "Safe")
-        for item in buckets[bucket].roles
-    ]
     tracker.upsert_recommendations(tracked_recommendations)
+    state = update_state(
+        state,
+        discovered_ids=(job.tracking_id for job in jobs),
+        recommended_ids=(item.job.tracking_id for item, _bucket in tracked_recommendations),
+    )
+    save_state(state_path, state)
 
     summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
     if summary_path:
@@ -337,7 +449,6 @@ def run(
             handle.write(report)
 
     urgent_threshold = float(thresholds["urgent_apply"])
-    alert_candidates = [item for item, _bucket in tracked_recommendations]
     print(f"[DEBUG] alert_candidates count = {len(alert_candidates)}")
     discord_sent = send_discord_notification(
         len(hard_filtered_jobs),

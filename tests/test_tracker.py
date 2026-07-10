@@ -10,6 +10,12 @@ from unittest.mock import patch
 from jobfinder.client import load_fixture
 from jobfinder.models import Role, ScoredJob, stable_job_id
 from jobfinder.scoring import score_job
+from jobfinder.state import (
+    load_state,
+    recommendation_state,
+    save_state,
+    update_state,
+)
 from jobfinder.tracker import ApplicationTracker
 
 
@@ -330,6 +336,86 @@ class TrackerTests(unittest.TestCase):
             )
 
         self.assertEqual(record["status"], "Not Interested")
+
+    def test_state_first_discovered_but_not_recommended(self):
+        state = update_state(
+            load_state(Path("/missing/state.json")),
+            discovered_ids=["job_a"],
+            recommended_ids=[],
+        )
+        self.assertIn("job_a", state["discovered_ids"])
+        self.assertNotIn("job_a", state["recommended_ids"])
+        self.assertEqual(recommendation_state(state, "job_b"), "New")
+
+    def test_state_second_run_first_recommended_is_newly_qualified(self):
+        state = update_state(
+            load_state(Path("/missing/state.json")),
+            discovered_ids=["job_a"],
+            recommended_ids=[],
+        )
+        self.assertEqual(
+            recommendation_state(state, "job_a"),
+            "NEWLY QUALIFIED",
+        )
+        updated = update_state(
+            state,
+            discovered_ids=["job_a"],
+            recommended_ids=["job_a"],
+        )
+        self.assertIn("job_a", updated["recommended_ids"])
+
+    def test_state_previously_recommended(self):
+        state = update_state(
+            load_state(Path("/missing/state.json")),
+            discovered_ids=["job_a"],
+            recommended_ids=["job_a"],
+        )
+        self.assertEqual(
+            recommendation_state(state, "job_a"),
+            "PREVIOUSLY RECOMMENDED",
+        )
+
+    def test_state_tracker_applied_status_wins_over_new_badges(self):
+        state = update_state(
+            load_state(Path("/missing/state.json")),
+            discovered_ids=["job_a"],
+            recommended_ids=[],
+        )
+        self.assertEqual(
+            recommendation_state(state, "job_a", "Applied"),
+            "APPLIED",
+        )
+
+    def test_legacy_seen_ids_state_migrates(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "state.json"
+            path.write_text(
+                json.dumps({"seen_ids": ["job_a"]}),
+                encoding="utf-8",
+            )
+            state = load_state(path)
+            save_state(path, state)
+            persisted = json.loads(path.read_text(encoding="utf-8"))
+
+        self.assertIn("job_a", state["discovered_ids"])
+        self.assertIn("job_a", state["recommended_ids"])
+        self.assertNotIn("seen_ids", persisted)
+
+    def test_started_status_is_preserved_when_recommended_again(self):
+        with tempfile.TemporaryDirectory() as directory:
+            tracker = ApplicationTracker(Path(directory) / "applications.json")
+            tracker.upsert_recommendations([(self.item, "Target")])
+            tracker.update_status(self.job.tracking_id, "Started")
+            later_item = replace(
+                self.item,
+                tracking_status="Started",
+                is_new=False,
+            )
+            tracker.upsert_recommendations([(later_item, "Reach")])
+            record = tracker.get(self.job.tracking_id)
+
+        self.assertEqual(record["status"], "Started")
+        self.assertEqual(record["bucket"], "Reach")
 
 
 if __name__ == "__main__":

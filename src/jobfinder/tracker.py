@@ -22,6 +22,7 @@ from .scoring import company_size_group
 DISPLAY_STATUSES = (
     "New",
     "Viewed",
+    "Started",
     "Saved",
     "Applied",
     "Rejected",
@@ -31,6 +32,7 @@ STATUSES = DISPLAY_STATUSES
 STORAGE_STATUS = {
     "New": "new",
     "Viewed": "viewed",
+    "Started": "started",
     "Saved": "saved",
     "Applied": "applied",
     "Rejected": "rejected",
@@ -38,7 +40,7 @@ STORAGE_STATUS = {
 }
 SUPPRESSED_STATUSES = frozenset({"Applied", "Rejected", "Not Interested"})
 PERMANENT_BLOCK_STATUSES = SUPPRESSED_STATUSES
-PREVIOUS_RECOMMENDATION_STATUSES = frozenset({"New", "Viewed"})
+PREVIOUS_RECOMMENDATION_STATUSES = frozenset({"New", "Viewed", "Started"})
 HISTORY_SUPPRESSION_DAYS = 365
 INACTIVE_STATUSES = SUPPRESSED_STATUSES
 REJECTION_REASONS = (

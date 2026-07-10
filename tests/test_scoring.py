@@ -284,7 +284,7 @@ class ScoringTests(unittest.TestCase):
         self.assertFalse(score.relevant)
         self.assertTrue(score.pure_swe_signal)
         self.assertLess(score.overall, 4.5)
-        self.assertIn("Insufficient relevance", score.rejection_reason)
+        self.assertIn("Pure SWE", score.rejection_reason)
 
     def test_agentic_ai_intern_records_keywords_and_focus(self):
         from dataclasses import replace
@@ -318,6 +318,166 @@ class ScoringTests(unittest.TestCase):
         self.assertFalse(score.ai_engineer)
         self.assertFalse(score.relevant)
         self.assertIn("Insufficient relevance", score.rejection_reason)
+
+    def test_unspecified_start_date_is_tier_b_not_rejected(self):
+        from dataclasses import replace
+
+        job = replace(
+            self.jobs["ml-intern-1"],
+            id="unspecified-start",
+            title="AI Agent Engineer Intern",
+        )
+        score = score_job(job, self.profile)
+        self.assertEqual(score.timing_tier, "B")
+        self.assertTrue(score.relevant)
+        self.assertIn("Start date not stated", score.timing_reason)
+
+    def test_summer_2027_is_tier_b_and_kept(self):
+        from dataclasses import replace
+
+        summer = replace(
+            self.jobs["ml-intern-1"],
+            id="summer-2027",
+            title="Machine Learning Intern - Summer 2027",
+        )
+        score = score_job(summer, self.profile)
+        self.assertEqual(score.timing_tier, "B")
+        self.assertTrue(score.relevant)
+
+    def test_fall_2026_is_tier_c_not_hard_rejected(self):
+        from dataclasses import replace
+
+        fall = replace(
+            self.jobs["ml-intern-1"],
+            id="fall-2026",
+            title="AI Intern - Fall 2026",
+            description="Build LLM agents and model evaluation systems.",
+        )
+        score = score_job(fall, self.profile)
+        self.assertEqual(score.timing_tier, "C")
+        self.assertTrue(score.relevant)
+
+    def test_fall_2027_is_hard_rejected(self):
+        from dataclasses import replace
+
+        fall = replace(
+            self.jobs["ml-intern-1"],
+            id="fall-2027",
+            title="AI Intern - Fall 2027",
+        )
+        score = score_job(fall, self.profile)
+        self.assertEqual(score.timing_tier, "Hard reject")
+        self.assertFalse(score.relevant)
+
+    def test_rolling_off_cycle_and_six_month_timing_are_tier_b(self):
+        from dataclasses import replace
+
+        variants = [
+            "Rolling internship with flexible start date",
+            "Off-cycle internship for 3-6 month projects",
+            "Six month co-op building AI systems",
+        ]
+        for index, description in enumerate(variants):
+            job = replace(
+                self.jobs["ml-intern-1"],
+                id=f"timing-flex-{index}",
+                title="AI Agent Engineer Intern",
+                description=description + " with LLM model evaluation.",
+            )
+            self.assertEqual(score_job(job, self.profile).timing_tier, "B")
+
+    def test_software_engineer_ml_scope_is_not_pure_swe(self):
+        from dataclasses import replace
+
+        job = replace(
+            self.jobs["ml-intern-1"],
+            id="swe-ml",
+            title="Software Engineer Intern, Machine Learning",
+            description="Build and evaluate machine learning models, train pipelines, and deploy model evaluation tools.",
+        )
+        score = score_job(job, self.profile)
+        self.assertEqual(score.role_classification, "ai_ml_engineering")
+        self.assertTrue(score.relevant)
+
+    def test_software_engineer_ai_platform_is_kept(self):
+        from dataclasses import replace
+
+        job = replace(
+            self.jobs["ml-intern-1"],
+            id="swe-ai-platform",
+            title="Software Engineer Intern, AI Platform",
+            description="Develop AI platform services for LLM evaluation, RAG workflows, embeddings, and deployment.",
+        )
+        score = score_job(job, self.profile)
+        self.assertEqual(score.role_classification, "ai_ml_engineering")
+        self.assertTrue(score.relevant)
+
+    def test_software_engineer_optimization_is_kept(self):
+        from dataclasses import replace
+
+        job = replace(
+            self.jobs["ml-intern-1"],
+            id="swe-optimization",
+            title="Software Engineer Intern, Optimization",
+            description="Build optimization algorithms, simulation tools, forecasting models, and decision science systems.",
+        )
+        score = score_job(job, self.profile)
+        self.assertEqual(score.role_classification, "optimization_modeling")
+        self.assertTrue(score.relevant)
+
+    def test_software_engineer_robotics_is_kept(self):
+        from dataclasses import replace
+
+        job = replace(
+            self.jobs["ml-intern-1"],
+            id="swe-robotics",
+            title="Software Engineer Intern, Robotics",
+            description="Develop robotics autonomy software with computer vision, simulation, and autonomous systems experiments.",
+        )
+        score = score_job(job, self.profile)
+        self.assertEqual(score.role_classification, "optimization_modeling")
+        self.assertTrue(score.relevant)
+
+    def test_frontend_role_is_pure_swe(self):
+        from dataclasses import replace
+
+        job = replace(
+            self.jobs["ml-intern-1"],
+            id="frontend",
+            title="Frontend Software Engineer Intern",
+            description="Build frontend web UI, React components, mobile interfaces, and backend CRUD APIs.",
+            requirement="JavaScript and CSS.",
+        )
+        score = score_job(job, self.profile)
+        self.assertEqual(score.role_classification, "pure_swe")
+        self.assertFalse(score.relevant)
+
+    def test_data_engineering_for_ml_is_kept(self):
+        from dataclasses import replace
+
+        job = replace(
+            self.jobs["ml-intern-1"],
+            id="data-eng-ml",
+            title="Data Engineer Intern",
+            description="Build data pipelines for ML platform training data, feature store workflows, and experimentation.",
+        )
+        score = score_job(job, self.profile)
+        self.assertEqual(score.role_classification, "data_engineering_for_ml")
+        self.assertTrue(score.relevant)
+
+    def test_ambiguous_software_role_is_uncertain_not_pure_swe(self):
+        from dataclasses import replace
+
+        job = replace(
+            self.jobs["ml-intern-1"],
+            id="ambiguous-swe",
+            title="Software Engineer Intern",
+            description="Build internal tools and collaborate with product teams.",
+            requirement="Python experience preferred.",
+        )
+        score = score_job(job, self.profile)
+        self.assertEqual(score.role_classification, "uncertain")
+        self.assertFalse(score.pure_swe_signal)
 
 
 if __name__ == "__main__":

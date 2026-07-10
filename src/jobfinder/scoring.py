@@ -5,6 +5,8 @@ from dataclasses import dataclass
 from typing import Any, Iterable
 
 from .models import Job, Score
+from .role_classification import classify_role
+from .timing import classify_timing
 
 
 AI_TITLE_TERMS = (
@@ -274,40 +276,17 @@ def geography_allowed(job: Job, profile: dict[str, Any]) -> bool:
 
 
 def _timing_fit(job: Job, profile: dict[str, Any]) -> tuple[float, str]:
-    period = job.start_year_or_season.lower()
-    years = set(re.findall(r"\b20\d{2}\b", period))
-    if years and "2027" not in years:
-        return 1.0, f"Advertised for {'/'.join(sorted(years))}, not 2027"
-    if "fall 2027" in period or "autumn 2027" in period:
-        return 2.0, "Starts when graduate school begins"
-    if "2027" in years and "summer" in period:
-        return 7.5, "Confirm Summer 2027 ends before graduate school"
-    if "2027" in years:
-        return 10.0, ""
-    return 7.0, "Start date is not stated; verify Jan-Jun 2027"
+    timing = classify_timing(job)
+    concern = "" if timing.tier == "A" else timing.reason
+    return timing.score, concern
 
 
 def is_target_timing(job: Job, profile: dict[str, Any]) -> bool:
-    timing_fit, _concern = _timing_fit(job, profile)
-    return timing_fit >= 7.0
+    return not classify_timing(job).hard_reject
 
 
 def is_pure_swe_title(job: Job) -> bool:
-    title = job.title.lower()
-    return _contains(title, PURE_SWE_TERMS) or (
-        _contains(
-            title,
-            (
-                "software engineer",
-                "backend engineer",
-                "frontend engineer",
-                "android engineer",
-                "ios engineer",
-                "mobile engineer",
-            ),
-        )
-        and not _contains(title, AI_TITLE_TERMS)
-    )
+    return classify_role(job).classification == "pure_swe"
 
 
 def classify_career_relevance(job: Job) -> CareerRelevance:
@@ -343,6 +322,8 @@ def classify_career_relevance(job: Job) -> CareerRelevance:
             "prompt engineering",
             "ml pipeline",
             "ml pipelines",
+            "ml platform",
+            "feature store",
             "deep learning",
             "nlp",
             "computer vision",
@@ -435,6 +416,10 @@ def classify_career_relevance(job: Job) -> CareerRelevance:
             "python",
             "statistics",
             "machine learning",
+            "data pipeline",
+            "data pipelines",
+            "feature store",
+            "ml platform",
             "experimentation",
             "predictive modeling",
             "optimization",
@@ -883,8 +868,10 @@ def score_job(job: Job, profile: dict[str, Any]) -> Score:
     clarity = _internship_clarity(job)
     us_eligible = is_us_location(job)
     internship_eligible = is_internship_role(job)
+    timing_classification = classify_timing(job)
     timing_fit, timing_concern = _timing_fit(job, profile)
-    timing_eligible = is_target_timing(job, profile)
+    timing_eligible = not timing_classification.hard_reject
+    role_classification = classify_role(job)
     ai_classification = classify_ai_engineer(job)
     career_relevance = classify_career_relevance(job)
     relevance, matches = _relevance(job)
@@ -930,8 +917,10 @@ def score_job(job: Job, profile: dict[str, Any]) -> Score:
         overall += 0.3
     if ai_classification.is_ai_engineer:
         overall += 0.7
-    if pure_swe_signal and career_relevance.ai < 10 and career_relevance.data < 8:
+    if role_classification.classification == "pure_swe":
         overall -= 2.5
+    elif role_classification.classification == "uncertain":
+        overall -= 0.6
     if career_relevance.business_dashboard_signal:
         overall -= 2.0
     overall = _clamp(overall)
@@ -950,6 +939,8 @@ def score_job(job: Job, profile: dict[str, Any]) -> Score:
         reason = "Role is outside the target analytical/technical path"
     elif career_relevance.business_dashboard_signal:
         reason = "Business analytics/dashboard-only role without modeling, ML, optimization, or research depth"
+    elif role_classification.classification == "pure_swe" and career_relevance.total < 12.0:
+        reason = "Pure SWE internship without AI/ML/optimization/modeling scope"
     elif career_relevance.total < 12.0:
         reason = "Insufficient relevance to AI, applied science, OR/optimization, applied math, modeling, data science, or quant/risk"
     elif phd_only and requirement_ease <= 3.0:
@@ -962,8 +953,10 @@ def score_job(job: Job, profile: dict[str, Any]) -> Score:
         concerns.append(timing_concern)
     if not concerns:
         concerns.append("Confirm project scope, mentorship, and interview expectations")
-    if pure_swe_signal and career_relevance.ai < 10 and career_relevance.data < 8:
+    if role_classification.classification == "pure_swe":
         concerns.insert(0, "Verify this is not a pure SWE role before applying")
+    elif role_classification.classification == "uncertain":
+        concerns.insert(0, "Role scope is ambiguous; manually verify AI/ML/modeling relevance")
     if not matches:
         matches.append("Provides adjacent analytical or technical internship experience")
 
@@ -1011,4 +1004,10 @@ def score_job(job: Job, profile: dict[str, Any]) -> Score:
         quant_relevance_score=career_relevance.quant,
         relevance_total=career_relevance.total,
         primary_track=career_relevance.primary_track,
+        timing_tier=timing_classification.tier,
+        timing_reason=timing_classification.reason,
+        timing_confidence=timing_classification.confidence,
+        role_classification=role_classification.classification,
+        role_classification_reason=role_classification.reason,
+        role_classification_confidence=role_classification.confidence,
     )
