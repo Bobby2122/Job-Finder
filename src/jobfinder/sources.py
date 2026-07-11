@@ -2,15 +2,16 @@ from __future__ import annotations
 
 import html
 import json
+import random
 import re
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from dataclasses import dataclass
-from datetime import datetime, timezone
+from dataclasses import asdict, dataclass, field
+from datetime import datetime, timedelta, timezone
 from difflib import SequenceMatcher
 from http.client import IncompleteRead, RemoteDisconnected
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any, Iterable, Protocol
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
@@ -43,12 +44,29 @@ class SourceUnavailable(SourceError):
     pass
 
 
-HEALTHY_STATUSES = {
-    "healthy_complete",
-    "healthy_complete_no_internships",
-}
+SUCCESS_STATUSES = {"success", "success_no_jobs", "partial_success", "stale_cache"}
+FAILURE_STATUSES = {"source_failure", "configuration_error"}
+SOURCE_CACHE_VERSION = 1
+CACHE_TTL_DAYS = 7
 
 TEMPORARY_HTTP_STATUSES = {408, 425, 429, 500, 502, 503, 504}
+
+
+@dataclass(frozen=True)
+class SourceResult:
+    company: str
+    source_type: str
+    status: str
+    jobs: list[Role] = field(default_factory=list)
+    error_message: str | None = None
+    fetched_at: datetime | None = None
+    endpoint: str | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+
+class JobSource(Protocol):
+    def fetch_jobs(self, company: dict[str, Any]) -> SourceResult:
+        ...
 
 
 def _source_category_for_http(code: int) -> tuple[str, str]:
@@ -67,10 +85,134 @@ def _source_category_for_http(code: int) -> tuple[str, str]:
     return "invalid_configuration", "Inspect provider response and update the adapter."
 
 
+def _retry_delay(exc: HTTPError | None, attempt: int) -> float:
+    retry_after = ""
+    if exc is not None:
+        retry_after = str(exc.headers.get("Retry-After") or "").strip()
+    if retry_after.isdigit():
+        return min(float(retry_after), 8.0)
+    return min(8.0, 0.4 * (2**attempt) + random.uniform(0.0, 0.2))
+
+
 def _sanitize_error_message(message: str, limit: int = 220) -> str:
     text = re.sub(r"(token|key|secret|signature|password)=([^&\s]+)", r"\1=<redacted>", str(message), flags=re.I)
     text = re.sub(r"\s+", " ", text).strip()
     return text[:limit]
+
+
+def detect_ats_from_url(url: str) -> dict[str, str]:
+    text = url.strip()
+    lowered = text.lower()
+    detected: dict[str, str] = {}
+    if "boards.greenhouse.io/" in lowered or "job-boards.greenhouse.io/" in lowered:
+        token = re.search(r"(?:boards|job-boards)\.greenhouse\.io/([^/?#]+)", text, re.I)
+        detected["type"] = "greenhouse"
+        if token:
+            detected["board_token"] = token.group(1)
+    elif "jobs.lever.co/" in lowered:
+        token = re.search(r"jobs\.lever\.co/([^/?#]+)", text, re.I)
+        detected["type"] = "lever"
+        if token:
+            detected["site_token"] = token.group(1)
+    elif "jobs.ashbyhq.com/" in lowered:
+        token = re.search(r"jobs\.ashbyhq\.com/([^/?#]+)", text, re.I)
+        detected["type"] = "ashby"
+        if token:
+            detected["board_name"] = token.group(1)
+    elif "myworkdayjobs.com" in lowered:
+        match = re.search(
+            r"https?://([^/]+)/(?:(?:[^/]+)/)?([^/?#]+)(?:/)?",
+            text,
+            re.I,
+        )
+        detected["type"] = "workday"
+        if match:
+            detected["workday_host"] = match.group(1)
+            path_site = match.group(2)
+            detected["site"] = path_site
+            detected["tenant"] = match.group(1).split(".", 1)[0]
+    return detected
+
+
+def _canonical_source_config(source: dict[str, Any]) -> dict[str, Any]:
+    config = dict(source)
+    if config.get("name") and not config.get("company"):
+        config["company"] = config["name"]
+    nested = config.get("source")
+    if isinstance(nested, dict):
+        source_type = str(nested.get("type") or config.get("adapter") or "")
+        config.setdefault("adapter", source_type)
+        config.setdefault("ats_type", source_type)
+        for target, aliases in {
+            "board_slug": ("board_token", "site_token", "board_name", "token"),
+            "identifier": ("board_token", "site_token", "board_name", "token"),
+            "workday_host": ("workday_host",),
+            "tenant": ("tenant",),
+            "site": ("site",),
+        }.items():
+            for alias in aliases:
+                if nested.get(alias) and not config.get(target):
+                    config[target] = nested[alias]
+                    break
+    if not config.get("adapter") and config.get("ats_type"):
+        config["adapter"] = config["ats_type"]
+    if not config.get("ats_type") and config.get("adapter"):
+        config["ats_type"] = config["adapter"]
+    url = str(config.get("careers_url") or config.get("careers_page") or config.get("endpoint") or "")
+    detected = detect_ats_from_url(url)
+    if detected and not config.get("adapter"):
+        config["adapter"] = detected["type"]
+        config["ats_type"] = detected["type"]
+    if detected.get("type") and not config.get("detected_ats_type"):
+        config["detected_ats_type"] = detected["type"]
+    for source_key in ("board_token", "site_token", "board_name"):
+        if detected.get(source_key) and not config.get("board_slug"):
+            config["board_slug"] = detected[source_key]
+            config["identifier"] = detected[source_key]
+    if detected.get("type") == "workday":
+        for key in ("workday_host", "tenant", "site"):
+            if detected.get(key) and not config.get(key):
+                config[key] = detected[key]
+    adapter = str(config.get("adapter") or "")
+    if adapter == "greenhouse" and not config.get("endpoint") and config.get("board_slug"):
+        config["endpoint"] = f"https://boards-api.greenhouse.io/v1/boards/{config['board_slug']}/jobs?content=true"
+    elif adapter == "lever" and not config.get("endpoint") and config.get("board_slug"):
+        region = "api.eu.lever.co" if config.get("region") == "eu" else "api.lever.co"
+        config["endpoint"] = f"https://{region}/v0/postings/{config['board_slug']}?mode=json"
+    elif adapter == "ashby" and not config.get("endpoint") and config.get("board_slug"):
+        config["endpoint"] = f"https://api.ashbyhq.com/posting-api/job-board/{config['board_slug']}"
+    elif adapter == "workday" and not config.get("endpoint"):
+        host = config.get("workday_host")
+        tenant = config.get("tenant")
+        site = config.get("site")
+        if host and tenant and site:
+            config["endpoint"] = f"https://{host}/wday/cxs/{tenant}/{site}/jobs"
+    return config
+
+
+def validate_source_config(source: dict[str, Any]) -> list[str]:
+    problems: list[str] = []
+    if not source.get("company"):
+        problems.append("missing company")
+    adapter = str(source.get("adapter") or source.get("ats_type") or "")
+    if not adapter:
+        problems.append("missing adapter/source type")
+        return problems
+    if adapter not in ADAPTERS:
+        problems.append(f"unsupported adapter {adapter}")
+        return problems
+    if adapter in {"greenhouse", "lever", "ashby"} and not source.get("board_slug"):
+        problems.append(f"{adapter} source requires board_slug/token")
+    if adapter == "workday":
+        if not source.get("endpoint") and not (
+            source.get("workday_host") and source.get("tenant") and source.get("site")
+        ):
+            problems.append("workday source requires endpoint or host/tenant/site")
+    if adapter == "careers_page" and not (
+        source.get("careers_page") or source.get("endpoint")
+    ):
+        problems.append("careers_page source requires careers_page or endpoint")
+    return problems
 
 
 def _plain_text(value: str | None) -> str:
@@ -146,7 +288,7 @@ def _request_json(
         except HTTPError as exc:
             last_error = exc
             if exc.code in TEMPORARY_HTTP_STATUSES and attempt < retries:
-                time.sleep(0.4 * (2**attempt))
+                time.sleep(_retry_delay(exc, attempt))
                 continue
             break
         except (
@@ -158,7 +300,7 @@ def _request_json(
         ) as exc:
             last_error = exc
             if attempt < retries:
-                time.sleep(0.4 * (2**attempt))
+                time.sleep(_retry_delay(None, attempt))
     if isinstance(last_error, HTTPError):
         category, suggested_fix = _source_category_for_http(last_error.code)
         raise SourceUnavailable(
@@ -202,13 +344,13 @@ def _request_text(
         except HTTPError as exc:
             last_error = exc
             if exc.code in TEMPORARY_HTTP_STATUSES and attempt < retries:
-                time.sleep(0.4 * (2**attempt))
+                time.sleep(_retry_delay(exc, attempt))
                 continue
             break
         except (URLError, TimeoutError, IncompleteRead, RemoteDisconnected) as exc:
             last_error = exc
             if attempt < retries:
-                time.sleep(0.4 * (2**attempt))
+                time.sleep(_retry_delay(None, attempt))
     if isinstance(last_error, HTTPError):
         category, suggested_fix = _source_category_for_http(last_error.code)
         raise SourceUnavailable(
@@ -249,7 +391,15 @@ class SourceAdapter:
             return str(self.config["careers_page"])
         return ""
 
+    @property
+    def source_type(self) -> str:
+        return str(self.config.get("ats_type") or self.config.get("adapter") or "unknown")
+
     def _role(self, **values: Any) -> Role:
+        now = datetime.now(timezone.utc).isoformat()
+        location = str(values.get("location") or "")
+        employment_type = str(values.get("employment_type") or "")
+        source_job_id = str(values.pop("source_job_id", "") or values.get("id") or "")
         return Role.normalized(
             company=self.company,
             company_size_category=str(
@@ -258,11 +408,41 @@ class SourceAdapter:
             source_category=str(
                 self.config.get("source_category", "Mid-size tech")
             ),
+            source_type=self.source_type,
+            source_company_key=self.board_slug,
+            source_job_id=source_job_id,
+            source_endpoint=self.endpoint,
+            source_url=self.endpoint,
+            fetched_at=now,
+            last_verified_at=now,
+            raw_location=str(values.pop("raw_location", location)),
+            raw_employment_type=str(
+                values.pop("raw_employment_type", employment_type)
+            ),
             **values,
         )
 
     def fetch(self, keywords: list[str]) -> list[Role]:
         raise NotImplementedError
+
+    def fetch_result(self, keywords: list[str]) -> SourceResult:
+        fetched_at = datetime.now(timezone.utc)
+        started = time.monotonic()
+        roles = self.fetch(keywords)
+        status = "success" if roles else "success_no_jobs"
+        return SourceResult(
+            company=self.company,
+            source_type=self.source_type,
+            status=status,
+            jobs=roles,
+            fetched_at=fetched_at,
+            endpoint=self.endpoint,
+            metadata={
+                "duration_seconds": round(time.monotonic() - started, 3),
+                "attempt_count": int(self.config.get("retries", 1)) + 1,
+                "source_company_key": self.board_slug,
+            },
+        )
 
 
 class ByteDanceAdapter(SourceAdapter):
@@ -333,9 +513,11 @@ class GreenhouseAdapter(SourceAdapter):
                 str(item.get("name") or "") for item in raw.get("departments", [])
             )
             title = str(raw.get("title") or "")
+            job_id = str(raw.get("id") or "")
             roles.append(
                 self._role(
-                    id=f"greenhouse:{token}:{raw.get('id')}",
+                    id=f"greenhouse:{token}:{job_id or normalize_job_title(title)}",
+                    source_job_id=job_id,
                     title=title,
                     location=location,
                     employment_type=_employment_type(title, ""),
@@ -377,9 +559,11 @@ class LeverAdapter(SourceAdapter):
                 if part
             )
             title = str(raw.get("text") or "")
+            posting_id = str(raw.get("id") or "")
             roles.append(
                 self._role(
-                    id=f"lever:{site}:{raw.get('id')}",
+                    id=f"lever:{site}:{posting_id or normalize_job_title(title)}",
+                    source_job_id=posting_id,
                     title=title,
                     location=str(categories.get("location") or ""),
                     employment_type=str(categories.get("commitment") or ""),
@@ -412,12 +596,14 @@ class AshbyAdapter(SourceAdapter):
             if raw.get("isListed") is False:
                 continue
             title = str(raw.get("title") or "")
+            job_id = str(raw.get("id") or raw.get("jobId") or raw.get("jobUrl") or raw.get("applyUrl") or "")
             description = _plain_text(
                 raw.get("descriptionPlain") or raw.get("descriptionHtml")
             )
             roles.append(
                 self._role(
-                    id=f"ashby:{board}:{raw.get('jobUrl') or raw.get('applyUrl')}",
+                    id=f"ashby:{board}:{job_id or normalize_job_title(title)}",
+                    source_job_id=job_id,
                     title=title,
                     location=str(raw.get("location") or ""),
                     employment_type=str(raw.get("employmentType") or ""),
@@ -437,6 +623,7 @@ class AshbyAdapter(SourceAdapter):
 
 class WorkdayAdapter(SourceAdapter):
     def fetch(self, keywords: list[str]) -> list[Role]:
+        self._detail_failures = 0
         endpoint = str(self.config["endpoint"]).rstrip("/")
         site_root = endpoint.removesuffix("/jobs")
         raw_found: dict[str, dict[str, Any]] = {}
@@ -512,6 +699,7 @@ class WorkdayAdapter(SourceAdapter):
                 )
                 return external_path, info
             except SourceError:
+                self._detail_failures += 1
                 return external_path, {}
 
         with ThreadPoolExecutor(max_workers=6) as executor:
@@ -538,6 +726,7 @@ class WorkdayAdapter(SourceAdapter):
             )
             role = self._role(
                 id=f"workday:{self.company}:{external_path or title}",
+                source_job_id=f"workday:{self.company}:{external_path or title}",
                 title=title,
                 location=location,
                 employment_type=str(
@@ -552,6 +741,24 @@ class WorkdayAdapter(SourceAdapter):
             )
             found[role.id] = role
         return list(found.values())
+
+    def fetch_result(self, keywords: list[str]) -> SourceResult:
+        result = super().fetch_result(keywords)
+        failures = int(getattr(self, "_detail_failures", 0))
+        if failures:
+            metadata = dict(result.metadata)
+            metadata["detail_failures"] = failures
+            return SourceResult(
+                company=result.company,
+                source_type=result.source_type,
+                status="partial_success",
+                jobs=result.jobs,
+                error_message=f"{failures} Workday detail request(s) failed",
+                fetched_at=result.fetched_at,
+                endpoint=result.endpoint,
+                metadata=metadata,
+            )
+        return result
 
 
 class CareersPageAdapter(SourceAdapter):
@@ -967,8 +1174,32 @@ def _normalized_url(url: str) -> str:
 
 def deduplicate_roles(roles: Iterable[Role]) -> list[Role]:
     unique: list[Role] = []
+    source_ids: dict[tuple[str, str, str], Role] = {}
+    urls: dict[str, Role] = {}
     exact: dict[tuple[str, str, str], Role] = {}
     for role in roles:
+        source_key = (
+            normalize_company_name(role.company),
+            role.source_type,
+            role.source_job_id,
+        )
+        if role.source_type and role.source_job_id and source_key in source_ids:
+            existing = source_ids[source_key]
+            if len(role.description) > len(existing.description):
+                index = unique.index(existing)
+                unique[index] = role
+                source_ids[source_key] = role
+            continue
+        url_key = _normalized_url(role.url)
+        if url_key and url_key in urls:
+            existing = urls[url_key]
+            if len(role.description) > len(existing.description):
+                index = unique.index(existing)
+                unique[index] = role
+                urls[url_key] = role
+                if role.source_type and role.source_job_id:
+                    source_ids[source_key] = role
+            continue
         key = (
             normalize_company_name(role.company),
             normalize_job_title(role.title),
@@ -989,9 +1220,100 @@ def deduplicate_roles(roles: Iterable[Role]) -> list[Role]:
                     unique[index] = role
                     exact[key] = role
                 continue
+        if role.source_type and role.source_job_id:
+            source_ids[source_key] = role
+        if url_key:
+            urls[url_key] = role
         exact[key] = role
         unique.append(role)
     return unique
+
+
+def _cache_key(source: dict[str, Any]) -> str:
+    raw = "|".join(
+        str(source.get(key) or "")
+        for key in ("company", "adapter", "board_slug", "endpoint", "careers_page")
+    )
+    return re.sub(r"[^a-zA-Z0-9_.-]+", "_", raw).strip("_")[:160] or "unknown"
+
+
+def _role_from_cache(raw: dict[str, Any], *, stale: bool = False) -> Role:
+    data = dict(raw)
+    if stale:
+        data["source"] = f"{data.get('source', 'Cached source')} (stale cache)"
+    allowed = Role.__dataclass_fields__.keys()
+    return Role(**{key: data[key] for key in allowed if key in data})
+
+
+def _load_source_cache(cache_path: Path, source: dict[str, Any]) -> SourceResult | None:
+    try:
+        data = json.loads(cache_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    if data.get("version") != SOURCE_CACHE_VERSION:
+        return None
+    entry = data.get("sources", {}).get(_cache_key(source))
+    if not isinstance(entry, dict):
+        return None
+    fetched = entry.get("fetched_at") or entry.get("last_success")
+    try:
+        fetched_at = datetime.fromisoformat(str(fetched).replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if fetched_at.tzinfo is None:
+        fetched_at = fetched_at.replace(tzinfo=timezone.utc)
+    if datetime.now(timezone.utc) - fetched_at > timedelta(days=CACHE_TTL_DAYS):
+        return None
+    roles = [
+        _role_from_cache(item, stale=True)
+        for item in entry.get("jobs", [])
+        if isinstance(item, dict)
+    ]
+    if not roles:
+        return None
+    return SourceResult(
+        company=str(source.get("company", "")),
+        source_type=str(source.get("ats_type") or source.get("adapter") or ""),
+        status="stale_cache",
+        jobs=roles,
+        fetched_at=datetime.now(timezone.utc),
+        endpoint=str(source.get("endpoint") or source.get("careers_page") or ""),
+        metadata={
+            "last_success": fetched_at.isoformat(),
+            "fallback_used": "stale_cache",
+            "cache_age_days": (datetime.now(timezone.utc) - fetched_at).days,
+        },
+    )
+
+
+def _save_source_cache(
+    cache_path: Path,
+    source: dict[str, Any],
+    result: SourceResult,
+) -> None:
+    if result.status not in {"success", "success_no_jobs", "partial_success"}:
+        return
+    cache_path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        data = json.loads(cache_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        data = {"version": SOURCE_CACHE_VERSION, "sources": {}}
+    data.setdefault("version", SOURCE_CACHE_VERSION)
+    data.setdefault("sources", {})
+    now = (result.fetched_at or datetime.now(timezone.utc)).isoformat()
+    data["sources"][_cache_key(source)] = {
+        "company": result.company,
+        "source_type": result.source_type,
+        "status": result.status,
+        "endpoint": result.endpoint,
+        "fetched_at": now,
+        "last_success": now,
+        "jobs": [asdict(role) for role in result.jobs],
+    }
+    cache_path.write_text(
+        json.dumps(data, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
 
 
 @dataclass(frozen=True)
@@ -1012,6 +1334,14 @@ class SourceHealth:
     message: str = ""
     error_code: str = ""
     suggested_fix: str = ""
+    duration_seconds: float = 0.0
+    attempt_count: int = 0
+    last_success: str = ""
+    consecutive_failures: int = 0
+    failure_category: str = ""
+    fallback_used: str = ""
+    detected_source_type: str = ""
+    configuration_problems: tuple[str, ...] = ()
 
     @property
     def provider(self) -> str:
@@ -1038,6 +1368,17 @@ class SourceHealth:
             "error_message": self.error_message,
             "checked_at": self.checked_at,
             "recommended_action": self.recommended_action,
+            "message": self.message,
+            "error_code": self.error_code,
+            "suggested_fix": self.suggested_fix,
+            "duration_seconds": self.duration_seconds,
+            "attempt_count": self.attempt_count,
+            "last_success": self.last_success,
+            "consecutive_failures": self.consecutive_failures,
+            "failure_category": self.failure_category,
+            "fallback_used": self.fallback_used,
+            "detected_source_type": self.detected_source_type,
+            "configuration_problems": list(self.configuration_problems),
         }
 
 
@@ -1052,18 +1393,109 @@ class SearchResult:
 
 
 class MultiCompanyClient:
-    def __init__(self, max_workers: int = 8) -> None:
+    def __init__(self, max_workers: int = 8, cache_path: Path | None = None) -> None:
         self.max_workers = max_workers
+        self.cache_path = cache_path or Path("data/source_cache.json")
+
+    def _failure_category(self, exc: Exception) -> str:
+        category = str(getattr(exc, "category", "") or "")
+        if category == "rate_limited":
+            return "rate_limited"
+        if category in {"invalid_configuration", "blocked"}:
+            return "http_4xx" if str(getattr(exc, "error_code", "")).startswith("HTTP 4") else category
+        if category in {"partial_results"}:
+            text = str(exc).lower()
+            if "timed out" in text or "timeout" in text:
+                return "timeout"
+            if "nodename" in text or "name or service" in text or "dns" in text:
+                return "dns_error"
+            return "connection_error"
+        if category == "parser_suspected_broken":
+            code = str(getattr(exc, "error_code", ""))
+            if "JSON" in code or "json" in str(exc).lower():
+                return "invalid_json"
+            return "schema_changed"
+        return "unknown"
+
+    def _result_health(
+        self,
+        source: dict[str, Any],
+        result: SourceResult,
+        checked_at: str,
+        *,
+        configuration_problems: tuple[str, ...] = (),
+    ) -> SourceHealth:
+        internship_count = sum(
+            1
+            for role in result.jobs
+            if "intern" in f"{role.title} {role.employment_type}".lower()
+            or "co-op" in f"{role.title} {role.employment_type}".lower()
+            or "coop" in f"{role.title} {role.employment_type}".lower()
+        )
+        metadata = result.metadata
+        if result.status in {"success", "partial_success"}:
+            action = "No action needed." if internship_count else "No current internship/co-op postings; keep source enabled."
+        elif result.status == "success_no_jobs":
+            action = "Zero jobs returned; verify completeness before treating as no openings."
+        elif result.status == "stale_cache":
+            action = "Using recent cached jobs because today's source fetch failed; repair or revalidate source."
+        else:
+            action = result.error_message or "Inspect source configuration."
+        return SourceHealth(
+            company=result.company,
+            status=result.status,
+            adapter=result.source_type,
+            endpoint=result.endpoint or "",
+            board_slug=str(source.get("board_slug") or source.get("identifier") or ""),
+            enabled=bool(source.get("enabled", True)),
+            roles_found=len(result.jobs),
+            internship_roles_found=internship_count,
+            error_message=result.error_message or "",
+            checked_at=checked_at,
+            recommended_action=action,
+            message=result.error_message or "",
+            duration_seconds=float(metadata.get("duration_seconds", 0.0) or 0.0),
+            attempt_count=int(metadata.get("attempt_count", 0) or 0),
+            last_success=str(metadata.get("last_success", "")),
+            consecutive_failures=int(metadata.get("consecutive_failures", 0) or 0),
+            failure_category=str(metadata.get("failure_category", "")),
+            fallback_used=str(metadata.get("fallback_used", "")),
+            detected_source_type=str(source.get("detected_ats_type", "")),
+            configuration_problems=configuration_problems,
+        )
+
+    def _failure_result(
+        self,
+        source: dict[str, Any],
+        exc: Exception,
+        *,
+        status: str = "source_failure",
+    ) -> SourceResult:
+        metadata = {
+            "failure_category": self._failure_category(exc),
+            "attempt_count": int(source.get("retries", 1)) + 1,
+            "fallback_used": "",
+        }
+        return SourceResult(
+            company=str(source.get("company", "Unknown company")),
+            source_type=str(source.get("ats_type") or source.get("adapter") or "unknown"),
+            status=status,
+            jobs=[],
+            error_message=f"{type(exc).__name__}: {_sanitize_error_message(str(exc))}",
+            fetched_at=datetime.now(timezone.utc),
+            endpoint=str(source.get("endpoint") or source.get("careers_page") or ""),
+            metadata=metadata,
+        )
 
     def search(self, config: dict[str, Any]) -> SearchResult:
         keywords = [str(value) for value in config.get("keywords", [])]
         sources = [
-            source
+            _canonical_source_config(source)
             for source in config.get("sources", [])
             if source.get("enabled", True)
         ]
         disabled_sources = [
-            source
+            _canonical_source_config(source)
             for source in config.get("sources", [])
             if not source.get("enabled", True)
         ]
@@ -1073,7 +1505,15 @@ class MultiCompanyClient:
         succeeded = 0
         checked_at = datetime.now(timezone.utc).isoformat()
 
-        def fetch(source: dict[str, Any]) -> list[Role]:
+        def fetch(source: dict[str, Any]) -> SourceResult:
+            problems = validate_source_config(source)
+            if problems:
+                raise SourceUnavailable(
+                    "; ".join(problems),
+                    error_code="CONFIG",
+                    category="invalid_configuration",
+                    suggested_fix="Fix the company source configuration.",
+                )
             adapter_name = str(source["adapter"])
             adapter_type = ADAPTERS.get(adapter_name)
             if adapter_type is None:
@@ -1083,7 +1523,7 @@ class MultiCompanyClient:
                     category="invalid_configuration",
                     suggested_fix="Use one of the supported adapters or implement a new official-source adapter.",
                 )
-            return adapter_type(source).fetch(keywords)
+            return adapter_type(source).fetch_result(keywords)
 
         for source in disabled_sources:
             source_health.append(
@@ -1096,6 +1536,7 @@ class MultiCompanyClient:
                     enabled=False,
                     checked_at=checked_at,
                     recommended_action=str(source.get("disabled_reason") or "Leave disabled until the official source can be supported."),
+                    detected_source_type=str(source.get("detected_ats_type", "")),
                 )
             )
 
@@ -1115,9 +1556,11 @@ class MultiCompanyClient:
                     )
                 )
                 try:
-                    company_roles = future.result()
+                    result = future.result()
+                    company_roles = result.jobs
                     roles.extend(company_roles)
                     succeeded += 1
+                    _save_source_cache(self.cache_path, source, result)
                     internship_count = sum(
                         1
                         for role in company_roles
@@ -1125,88 +1568,79 @@ class MultiCompanyClient:
                         or "co-op" in f"{role.title} {role.employment_type}".lower()
                         or "coop" in f"{role.title} {role.employment_type}".lower()
                     )
-                    if company_roles and internship_count:
-                        status = "healthy_complete"
+                    if result.status in {"success", "partial_success"} and internship_count:
                         print(
                             f"[SOURCE] {company}: {len(company_roles)} roles, "
                             f"{internship_count} internship/co-op-like",
                             flush=True,
                         )
-                    elif company_roles:
-                        status = "healthy_complete_no_internships"
+                    elif result.status in {"success", "partial_success"} and company_roles:
                         print(
                             f"[SOURCE EMPTY] {company}: {len(company_roles)} roles, "
                             "no internship/co-op-like postings",
                             flush=True,
                         )
                     else:
-                        status = "partial_results"
                         print(
                             f"[SOURCE EMPTY] {company}: no open roles returned",
                             flush=True,
                         )
-                    source_health.append(
-                        SourceHealth(
-                            company=company,
-                            status=status,
-                            adapter=provider,
-                            endpoint=endpoint,
-                            board_slug=board_slug,
-                            enabled=bool(source.get("enabled", True)),
-                            roles_found=len(company_roles),
-                            internship_roles_found=internship_count,
-                            checked_at=checked_at,
-                            recommended_action=(
-                                "No action needed."
-                                if status == "healthy_complete"
-                                else (
-                                    "No current internship/co-op postings; keep source enabled."
-                                    if status == "healthy_complete_no_internships"
-                                    else "Zero roles returned; verify pagination and parser completeness before treating as healthy."
-                                )
-                            ),
-                        )
-                    )
+                    source_health.append(self._result_health(source, result, checked_at))
                 except Exception as exc:
                     message = f"{company}: {type(exc).__name__}: {exc}"
                     failures.append(message)
-                    status = getattr(exc, "category", "")
-                    if not status:
-                        status = (
-                            "invalid_configuration"
-                            if isinstance(exc, SourceUnavailable)
-                            else "parser_suspected_broken"
-                        )
+                    status = (
+                        "configuration_error"
+                        if getattr(exc, "category", "") == "invalid_configuration"
+                        else "source_failure"
+                    )
                     http_status = None
                     http_match = re.search(r"HTTP\s+(\d+)", str(getattr(exc, "error_code", "")) or str(exc))
                     if http_match:
                         http_status = int(http_match.group(1))
-                    sanitized = _sanitize_error_message(str(exc))
-                    suggested_fix = str(
-                        getattr(
-                            exc,
-                            "suggested_fix",
-                            "Inspect the official careers page and update the source configuration.",
+                    fallback = _load_source_cache(self.cache_path, source)
+                    if fallback:
+                        roles.extend(fallback.jobs)
+                        metadata = dict(fallback.metadata)
+                        metadata["failure_category"] = self._failure_category(exc)
+                        metadata["fallback_used"] = "stale_cache"
+                        fallback = SourceResult(
+                            company=fallback.company,
+                            source_type=fallback.source_type,
+                            status="stale_cache",
+                            jobs=fallback.jobs,
+                            error_message=f"Live fetch failed: {type(exc).__name__}: {_sanitize_error_message(str(exc))}",
+                            fetched_at=fallback.fetched_at,
+                            endpoint=fallback.endpoint,
+                            metadata=metadata,
                         )
-                    )
-                    source_health.append(
-                        SourceHealth(
-                            company=company,
-                            status=status,
-                            adapter=provider,
-                            endpoint=endpoint,
-                            board_slug=board_slug,
-                            enabled=bool(source.get("enabled", True)),
-                            http_status=http_status,
-                            error_type=type(exc).__name__,
-                            error_message=sanitized,
-                            checked_at=checked_at,
-                            recommended_action=suggested_fix,
-                            message=f"{type(exc).__name__}: {sanitized}",
-                            error_code=str(getattr(exc, "error_code", "")),
-                            suggested_fix=suggested_fix,
+                        succeeded += 1
+                        source_health.append(self._result_health(source, fallback, checked_at))
+                    else:
+                        result = self._failure_result(source, exc, status=status)
+                        health = self._result_health(
+                            source,
+                            result,
+                            checked_at,
+                            configuration_problems=tuple(validate_source_config(source)),
                         )
-                    )
+                        source_health.append(
+                            SourceHealth(
+                                **{
+                                    **health.__dict__,
+                                    "http_status": http_status,
+                                    "error_type": type(exc).__name__,
+                                    "error_code": str(getattr(exc, "error_code", "")),
+                                    "suggested_fix": str(
+                                        getattr(
+                                            exc,
+                                            "suggested_fix",
+                                            "Inspect the official careers page and update the source configuration.",
+                                        )
+                                    ),
+                                }
+                            )
+                        )
                     print(f"[SOURCE WARNING] {message}", flush=True)
 
         raw_count = len(roles)
@@ -1228,4 +1662,23 @@ class MultiCompanyClient:
 
 
 def load_sources_config(path: Path) -> dict[str, Any]:
-    return json.loads(path.read_text(encoding="utf-8"))
+    data = json.loads(path.read_text(encoding="utf-8"))
+    if "companies" in data and "sources" not in data:
+        data["sources"] = data.pop("companies")
+    data["sources"] = [
+        _canonical_source_config(source)
+        for source in data.get("sources", [])
+        if isinstance(source, dict)
+    ]
+    return data
+
+
+def validate_sources(
+    config: dict[str, Any],
+    *,
+    max_workers: int = 8,
+    cache_path: Path | None = None,
+) -> tuple[SourceHealth, ...]:
+    client = MultiCompanyClient(max_workers=max_workers, cache_path=cache_path)
+    result = client.search(config)
+    return result.source_health

@@ -230,6 +230,15 @@ class Role:
     role_family: str = ""
     company_size_category: str = "Big tech / famous lab"
     source_category: str = "Big tech / AI labs"
+    source_type: str = ""
+    source_company_key: str = ""
+    source_job_id: str = ""
+    source_endpoint: str = ""
+    source_url: str = ""
+    fetched_at: str = ""
+    last_verified_at: str = ""
+    raw_location: str = ""
+    raw_employment_type: str = ""
 
     @property
     def text(self) -> str:
@@ -346,6 +355,15 @@ class Role:
         role_family: str = "",
         company_size_category: str = "Mid-size tech",
         source_category: str = "Mid-size tech",
+        source_type: str = "",
+        source_company_key: str = "",
+        source_job_id: str = "",
+        source_endpoint: str = "",
+        source_url: str = "",
+        fetched_at: str = "",
+        last_verified_at: str = "",
+        raw_location: str = "",
+        raw_employment_type: str = "",
     ) -> "Role":
         country = _infer_country(location)
         path = tuple(
@@ -371,6 +389,15 @@ class Role:
             role_family=role_family,
             company_size_category=company_size_category,
             source_category=source_category,
+            source_type=source_type,
+            source_company_key=source_company_key,
+            source_job_id=source_job_id,
+            source_endpoint=source_endpoint,
+            source_url=source_url,
+            fetched_at=fetched_at,
+            last_verified_at=last_verified_at,
+            raw_location=raw_location,
+            raw_employment_type=raw_employment_type,
         )
 
 

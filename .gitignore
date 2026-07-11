@@ -6,6 +6,7 @@ __pycache__/
 tmp/
 data/state.json
 data/applications.json
+data/source_cache.json
 
 *.zip
 reports/*.md

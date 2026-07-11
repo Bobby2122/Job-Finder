@@ -32,6 +32,7 @@ Useful commands:
 ```bash
 PYTHONPATH=src python3 -m jobfinder run --dry-run
 PYTHONPATH=src python3 -m jobfinder run --fixture tests/fixtures/jobs.json
+PYTHONPATH=src python3 -m jobfinder validate-sources
 PYTHONPATH=src python3 -m jobfinder tracker
 PYTHONPATH=src python3 -m unittest discover -s tests -v
 ```
@@ -40,7 +41,8 @@ No third-party Python packages are required.
 
 ## Sources
 
-`config/sources.json` defines company metadata and official ATS adapters:
+`config/sources.json` defines company metadata and official ATS adapters. Prefer
+structured official ATS/API sources over company-specific HTML selectors.
 
 - ByteDance official careers API
 - Greenhouse Job Board API
@@ -62,22 +64,107 @@ Every run writes normalized source health to `reports/source_health.json` and a
 major-employer coverage table to `reports/source_coverage.md`. Health statuses
 are intentionally specific:
 
-- `healthy_complete`
-- `healthy_complete_no_internships`
-- `partial_results`
-- `rate_limited`
-- `blocked`
-- `invalid_configuration`
-- `official_source_changed`
-- `parser_suspected_broken`
+- `success`
+- `success_no_jobs`
+- `partial_success`
+- `source_failure`
+- `stale_cache`
+- `configuration_error`
 - `disabled_intentionally`
 
-A source that returns a non-empty complete feed but has zero internships is
-counted as `healthy_complete_no_internships`. A zero-role response is treated
-as `partial_results` until pagination and parser completeness are verified.
+`success_no_jobs` means the structured source responded successfully but has no
+current postings. A `source_failure` is never treated as proof that the company
+has no jobs. Successful source results are cached in `data/source_cache.json`;
+if a source fails later, jobs from a successful run within the last seven days
+can be reused as `stale_cache`. Cached jobs keep the pipeline alive but are
+marked as stale and should not be treated as newly verified.
+
 Permanent 400/401/403/404-style configuration failures are not retried
-repeatedly; bounded retries are reserved for timeouts, 429s, and selected 5xx
-responses.
+repeatedly; bounded retries with backoff and `Retry-After` support are reserved
+for timeouts, 429s, and selected 5xx responses.
+
+### ATS configuration examples
+
+Greenhouse:
+
+```json
+{
+  "company": "Example Greenhouse Company",
+  "careers_url": "https://boards.greenhouse.io/example",
+  "source": {
+    "type": "greenhouse",
+    "board_token": "example"
+  }
+}
+```
+
+Lever:
+
+```json
+{
+  "company": "Example Lever Company",
+  "careers_url": "https://jobs.lever.co/example",
+  "source": {
+    "type": "lever",
+    "site_token": "example"
+  }
+}
+```
+
+Ashby:
+
+```json
+{
+  "company": "Example Ashby Company",
+  "careers_url": "https://jobs.ashbyhq.com/example",
+  "source": {
+    "type": "ashby",
+    "board_name": "example"
+  }
+}
+```
+
+Workday:
+
+```json
+{
+  "company": "Example Workday Company",
+  "careers_url": "https://example.wd5.myworkdayjobs.com/External",
+  "source": {
+    "type": "workday",
+    "tenant": "example",
+    "site": "External",
+    "workday_host": "example.wd5.myworkdayjobs.com"
+  }
+}
+```
+
+The loader also supports the older flat shape with `adapter`, `ats_type`,
+`board_slug`, and `endpoint`. Auto-detection fills missing ATS hints for
+`boards.greenhouse.io`, `jobs.lever.co`, `jobs.ashbyhq.com`, and
+`*.myworkdayjobs.com`, but it does not overwrite manually configured values.
+
+Run source diagnostics without ranking jobs:
+
+```bash
+PYTHONPATH=src python3 -m jobfinder validate-sources
+```
+
+The diagnostic table includes company, configured and detected source type,
+status, jobs returned, endpoint, and configuration/failure category. Workday
+tenants vary; keep `page_size`, `max_pages_per_keyword`, `detail_limit`,
+`tenant`, `site`, and `workday_host` configurable, and expect some tenants to
+return `configuration_error` or `partial_success` if their public CXS endpoint
+shape differs.
+
+### Contributor source guide
+
+When adding companies, first look for an official Greenhouse, Lever, Ashby,
+Workday, SmartRecruiters, or first-party JSON endpoint. Do not add LinkedIn,
+Handshake, login-gated sources, personal cookies, CAPTCHA bypasses, or paid
+scraping APIs. Test every new token with `validate-sources`; if it cannot be
+verified, leave the company out or mark it as an explicit fallback rather than
+guessing.
 
 ## Scoring and buckets
 

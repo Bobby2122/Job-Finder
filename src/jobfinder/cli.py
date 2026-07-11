@@ -24,7 +24,7 @@ from .scoring import (
     is_us_location,
     score_job,
 )
-from .sources import MultiCompanyClient, load_sources_config
+from .sources import MultiCompanyClient, load_sources_config, validate_sources
 from .state import load_state, recommendation_state, save_state, update_state
 from .tracker import ApplicationTracker, SUPPRESSED_STATUSES
 
@@ -261,6 +261,20 @@ def _parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Allow Applied, Rejected, and Not Interested jobs into recommendations",
     )
+    validate = sub.add_parser(
+        "validate-sources",
+        help="Validate configured company ATS/API sources without scoring jobs",
+    )
+    validate.add_argument(
+        "--sources",
+        type=Path,
+        default=ROOT / "config" / "sources.json",
+    )
+    validate.add_argument(
+        "--max-workers",
+        type=int,
+        default=8,
+    )
     tracker = sub.add_parser(
         "tracker",
         help="Open the persistent local application tracker",
@@ -273,6 +287,39 @@ def _parser() -> argparse.ArgumentParser:
         default=ROOT / "data" / "applications.json",
     )
     return parser
+
+
+def validate_sources_command(sources_path: Path, max_workers: int = 8) -> int:
+    try:
+        config = load_sources_config(sources_path)
+        health = validate_sources(
+            config,
+            max_workers=max_workers,
+            cache_path=ROOT / "data" / "source_cache.json",
+        )
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        print(f"ERROR: {exc}")
+        return 1
+    rows = [
+        "Company | Configured | Detected | Status | Jobs | Endpoint | Problems",
+        "--- | --- | --- | --- | ---: | --- | ---",
+    ]
+    for item in health:
+        rows.append(
+            " | ".join(
+                (
+                    str(item.company),
+                    str(item.adapter),
+                    str(item.detected_source_type or ""),
+                    str(item.status),
+                    str(item.roles_found),
+                    str(item.endpoint),
+                    ", ".join(item.configuration_problems) or item.failure_category or "",
+                )
+            )
+        )
+    print("\n".join(rows))
+    return 0
 
 
 def run(
@@ -669,6 +716,8 @@ def main() -> None:
         from .web import serve_tracker
 
         serve_tracker(args.data, args.host, args.port)
+    if args.command == "validate-sources":
+        raise SystemExit(validate_sources_command(args.sources, args.max_workers))
 
 
 if __name__ == "__main__":

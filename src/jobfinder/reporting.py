@@ -551,8 +551,8 @@ def build_report(
         f"- **Companies successfully read:** {stats.companies_succeeded}",
         f"- **Companies with source errors:** {stats.companies_searched - stats.companies_succeeded}",
         (
-            "- **Healthy complete sources with no internships:** "
-            f"{source_status_counts['healthy_complete_no_internships'] + source_status_counts['healthy_no_internships']}"
+            "- **Sources with no current jobs:** "
+            f"{source_status_counts['success_no_jobs'] + source_status_counts['healthy_complete_no_internships'] + source_status_counts['healthy_no_internships']}"
         ),
         f"- **Internship/co-op postings found:** {internship_postings_found}",
         f"- **Unique relevant roles found:** {len(scored)}",
@@ -648,25 +648,30 @@ def build_report(
     )
     if stats.source_health or stats.source_failures:
         healthy_statuses = {
+            "success",
+            "success_no_jobs",
+            "partial_success",
+            "stale_cache",
             "healthy_complete",
             "healthy_complete_no_internships",
             "healthy_with_internships",
             "healthy_no_internships",
         }
         healthy = (
-            source_status_counts["healthy_complete"]
+            source_status_counts["success"]
+            + source_status_counts["healthy_complete"]
             + source_status_counts["healthy_with_internships"]
         )
         healthy_empty = (
-            source_status_counts["healthy_complete_no_internships"]
+            source_status_counts["success_no_jobs"]
+            + source_status_counts["healthy_complete_no_internships"]
             + source_status_counts["healthy_no_internships"]
         )
-        temporary = (
-            source_status_counts["partial_results"]
-            + source_status_counts["rate_limited"]
-        )
+        partial = source_status_counts["partial_success"]
+        stale = source_status_counts["stale_cache"]
         config_errors = (
-            source_status_counts["invalid_configuration"]
+            source_status_counts["configuration_error"]
+            + source_status_counts["invalid_configuration"]
             + source_status_counts["invalid_board_identifier"]
             + source_status_counts["invalid_response"]
         )
@@ -678,7 +683,8 @@ def build_report(
             + source_status_counts["disabled_intentionally"]
         )
         parser_failures = (
-            source_status_counts["parser_suspected_broken"]
+            source_status_counts["source_failure"]
+            + source_status_counts["parser_suspected_broken"]
             + source_status_counts["parser_failure"]
         )
         unhealthy = [
@@ -698,14 +704,15 @@ def build_report(
                 "## Source Health",
                 "",
                 f"- **Total configured:** {len(stats.source_health) or stats.companies_searched}",
-                f"- **Healthy complete with internships:** {healthy}",
-                f"- **Healthy complete but no internships:** {healthy_empty}",
-                f"- **Partial/rate-limited results:** {temporary}",
+                f"- **Sources succeeded:** {healthy}",
+                f"- **Returned no current jobs:** {healthy_empty}",
+                f"- **Partially succeeded:** {partial}",
+                f"- **Used recent cache:** {stale}",
                 f"- **Blocked:** {source_status_counts['blocked'] + source_status_counts['blocked_or_forbidden']}",
-                f"- **Invalid configuration:** {config_errors}",
+                f"- **Configuration errors:** {config_errors}",
                 f"- **Official source changed:** {ats_changed}",
                 f"- **Unsupported/unstructured pages:** {unsupported}",
-                f"- **Parser suspected broken:** {parser_failures}",
+                f"- **Failed and need repair:** {parser_failures}",
                 "",
             ]
         )
