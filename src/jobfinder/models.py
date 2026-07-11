@@ -418,6 +418,10 @@ class Score:
     role_classification: str = "uncertain"
     role_classification_reason: str = ""
     role_classification_confidence: str = "Low"
+    work_authorization_status: str = "not_checked"
+    work_authorization_reason: str = ""
+    degree_status: str = "not_checked"
+    degree_reason: str = ""
 
 
 @dataclass(frozen=True)

@@ -30,7 +30,7 @@ class SourceError(RuntimeError):
         message: str,
         *,
         error_code: str = "",
-        category: str = "parser_failure",
+        category: str = "parser_suspected_broken",
         suggested_fix: str = "Inspect the official careers page and update the adapter or parser.",
     ) -> None:
         super().__init__(message)
@@ -44,9 +44,8 @@ class SourceUnavailable(SourceError):
 
 
 HEALTHY_STATUSES = {
-    "healthy_with_internships",
-    "healthy_no_internships",
-    "healthy_no_matching_internships",
+    "healthy_complete",
+    "healthy_complete_no_internships",
 }
 
 TEMPORARY_HTTP_STATUSES = {408, 425, 429, 500, 502, 503, 504}
@@ -56,16 +55,16 @@ def _source_category_for_http(code: int) -> tuple[str, str]:
     if code == 429:
         return "rate_limited", "Retry later with bounded backoff or reduce request volume."
     if code == 404:
-        return "invalid_board_identifier", "Verify the ATS provider and board slug against the official careers page."
+        return "invalid_configuration", "Verify the ATS provider and board slug against the official careers page."
     if code == 403:
-        return "blocked_or_forbidden", "Use an official API endpoint where available or classify the official page as unsupported."
+        return "blocked", "Use an official API endpoint where available or classify the official page as unsupported."
     if code == 422:
-        return "invalid_response", "Verify request body, tenant, site, and pagination parameters."
+        return "invalid_configuration", "Verify request body, tenant, site, and pagination parameters."
     if code in {301, 302, 307, 308}:
-        return "invalid_response", "Replace the endpoint with the current canonical official careers URL."
+        return "invalid_configuration", "Replace the endpoint with the current canonical official careers URL."
     if 500 <= code < 600:
-        return "temporary_network_failure", "Retry later; provider returned a server-side error."
-    return "invalid_response", "Inspect provider response and update the adapter."
+        return "rate_limited", "Retry later; provider returned a server-side error."
+    return "invalid_configuration", "Inspect provider response and update the adapter."
 
 
 def _sanitize_error_message(message: str, limit: int = 220) -> str:
@@ -168,10 +167,10 @@ def _request_json(
             category=category,
             suggested_fix=suggested_fix,
         )
-    category = "temporary_network_failure" if isinstance(
+    category = "partial_results" if isinstance(
         last_error,
         (URLError, TimeoutError, IncompleteRead, RemoteDisconnected),
-    ) else "parser_failure"
+    ) else "parser_suspected_broken"
     raise SourceError(
         f"{url}: {type(last_error).__name__}",
         error_code=type(last_error).__name__ if last_error else "Unknown",
@@ -221,7 +220,7 @@ def _request_text(
     raise SourceError(
         f"{url}: {type(last_error).__name__}",
         error_code=type(last_error).__name__ if last_error else "Unknown",
-        category="temporary_network_failure",
+        category="partial_results",
         suggested_fix="Retry later or replace with a stable official endpoint if available.",
     )
 
@@ -562,7 +561,7 @@ class CareersPageAdapter(SourceAdapter):
             raise SourceUnavailable(
                 "careers_page adapter requires careers_page or endpoint",
                 error_code="CONFIG",
-                category="invalid_board_identifier",
+                category="invalid_configuration",
                 suggested_fix="Add the company's official careers page URL.",
             )
         try:
@@ -630,7 +629,7 @@ class CareersPageAdapter(SourceAdapter):
         raise SourceError(
             f"{url}: no JobPosting structured data found",
             error_code="NO_STRUCTURED_JOBS",
-            category="official_page_unstructured",
+            category="parser_suspected_broken",
             suggested_fix="Add a dedicated adapter for this official careers page or replace it with a stable ATS API.",
         )
 
@@ -653,7 +652,7 @@ class GoogleCareersAdapter(SourceAdapter):
             raise SourceError(
                 f"{url}: Google careers structured payload was not found",
                 error_code="NO_GOOGLE_PAYLOAD",
-                category="official_page_unstructured",
+                category="parser_suspected_broken",
                 suggested_fix="Re-check the official Google careers page; the app payload shape may have changed.",
             )
         return roles
@@ -672,7 +671,7 @@ class GoogleCareersAdapter(SourceAdapter):
             raise SourceError(
                 f"{source_url}: invalid Google careers payload",
                 error_code="INVALID_GOOGLE_PAYLOAD",
-                category="parser_failure",
+                category="parser_suspected_broken",
                 suggested_fix="Update the Google careers adapter for the new structured payload shape.",
             ) from exc
         raw_jobs = payload[0] if payload and isinstance(payload[0], list) else []
@@ -1081,7 +1080,7 @@ class MultiCompanyClient:
                 raise SourceUnavailable(
                     f"unknown adapter {adapter_name}",
                     error_code="CONFIG",
-                    category="unsupported_source",
+                    category="invalid_configuration",
                     suggested_fix="Use one of the supported adapters or implement a new official-source adapter.",
                 )
             return adapter_type(source).fetch(keywords)
@@ -1127,21 +1126,21 @@ class MultiCompanyClient:
                         or "coop" in f"{role.title} {role.employment_type}".lower()
                     )
                     if company_roles and internship_count:
-                        status = "healthy_with_internships"
+                        status = "healthy_complete"
                         print(
                             f"[SOURCE] {company}: {len(company_roles)} roles, "
                             f"{internship_count} internship/co-op-like",
                             flush=True,
                         )
                     elif company_roles:
-                        status = "healthy_no_internships"
+                        status = "healthy_complete_no_internships"
                         print(
                             f"[SOURCE EMPTY] {company}: {len(company_roles)} roles, "
                             "no internship/co-op-like postings",
                             flush=True,
                         )
                     else:
-                        status = "healthy_no_internships"
+                        status = "partial_results"
                         print(
                             f"[SOURCE EMPTY] {company}: no open roles returned",
                             flush=True,
@@ -1159,8 +1158,12 @@ class MultiCompanyClient:
                             checked_at=checked_at,
                             recommended_action=(
                                 "No action needed."
-                                if status == "healthy_with_internships"
-                                else "No current internship/co-op postings; keep source enabled."
+                                if status == "healthy_complete"
+                                else (
+                                    "No current internship/co-op postings; keep source enabled."
+                                    if status == "healthy_complete_no_internships"
+                                    else "Zero roles returned; verify pagination and parser completeness before treating as healthy."
+                                )
                             ),
                         )
                     )
@@ -1170,9 +1173,9 @@ class MultiCompanyClient:
                     status = getattr(exc, "category", "")
                     if not status:
                         status = (
-                            "invalid_board_identifier"
+                            "invalid_configuration"
                             if isinstance(exc, SourceUnavailable)
-                            else "parser_failure"
+                            else "parser_suspected_broken"
                         )
                     http_status = None
                     http_match = re.search(r"HTTP\s+(\d+)", str(getattr(exc, "error_code", "")) or str(exc))

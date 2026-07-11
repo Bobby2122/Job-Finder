@@ -62,25 +62,22 @@ Every run writes normalized source health to `reports/source_health.json` and a
 major-employer coverage table to `reports/source_coverage.md`. Health statuses
 are intentionally specific:
 
-- `healthy_with_internships`
-- `healthy_no_internships`
-- `healthy_no_matching_internships`
-- `temporary_network_failure`
+- `healthy_complete`
+- `healthy_complete_no_internships`
+- `partial_results`
 - `rate_limited`
-- `blocked_or_forbidden`
-- `invalid_board_identifier`
-- `ats_changed`
-- `official_page_unstructured`
-- `parser_failure`
-- `invalid_response`
+- `blocked`
+- `invalid_configuration`
+- `official_source_changed`
+- `parser_suspected_broken`
 - `disabled_intentionally`
-- `unsupported_source`
-- `unknown_failure`
 
-A source that is fetched successfully but has zero internships is counted as a
-successful source, not a crawler failure. Permanent 400/401/403/404-style
-configuration failures are not retried repeatedly; bounded retries are reserved
-for timeouts, 429s, and selected 5xx responses.
+A source that returns a non-empty complete feed but has zero internships is
+counted as `healthy_complete_no_internships`. A zero-role response is treated
+as `partial_results` until pagination and parser completeness are verified.
+Permanent 400/401/403/404-style configuration failures are not retried
+repeatedly; bounded retries are reserved for timeouts, 429s, and selected 5xx
+responses.
 
 ## Scoring and buckets
 
@@ -89,14 +86,18 @@ Hard filters run before ranking in this order:
 - explicit U.S. location, including U.S.-remote roles
 - explicit internship employment or title
 - no full-time, new-grad, or ambiguous employment
-- no Applied, Rejected, Not Interested, dismissed, previously recommended, or
-  likely duplicate jobs from `data/job_history.json` and `data/manual_jobs.json`
+- no Applied, Rejected, Not Interested, or dismissed jobs from
+  `data/job_history.json` and `data/manual_jobs.json`
 
 Timing, title phrasing, preferred qualifications, specific programming language
 requirements, previous-internship preferences, graduate-degree preferences, and
 company popularity are scoring factors rather than early hard filters. Roles
 clearly outside the technical/quantitative target path can still be rejected
 after scoring, but borderline roles are down-ranked instead of silently removed.
+Untouched previous `New` recommendations are cooled down for about 10 days, but
+can backfill the report as `PREVIOUSLY RECOMMENDED` when fewer than 15 fresh
+roles survive hard filters. `Viewed`, `Started`, and `Saved` are not permanent
+suppression states.
 
 Eligible roles receive a career relevance score:
 

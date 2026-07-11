@@ -149,11 +149,55 @@ class TrackerTests(unittest.TestCase):
                         run_root / "reports/latest.md"
                     ).read_text(encoding="utf-8")
 
-        self.assertIn("- **Roles selected:** 0", report)
-        self.assertIn(
-            "- 1 similar previous recommendations",
-            report,
-        )
+        self.assertIn("- **Roles selected:** 1", report)
+        self.assertIn("- **Application status:** PREVIOUSLY RECOMMENDED", report)
+
+    def test_viewed_started_and_saved_do_not_suppress_future_recommendations(self):
+        with tempfile.TemporaryDirectory() as directory:
+            tracker = ApplicationTracker(Path(directory) / "applications.json")
+            tracker.upsert_recommendations([(self.item, "Target")])
+
+            tracker.update_status(self.job.tracking_id, "Viewed")
+            self.assertIsNone(tracker.suppression_match(self.job, include_previous=True))
+
+            tracker.update_status(self.job.tracking_id, "Started")
+            self.assertIsNone(tracker.suppression_match(self.job, include_previous=True))
+
+            tracker.update_status(self.job.tracking_id, "Saved")
+            self.assertIsNone(tracker.suppression_match(self.job, include_previous=True))
+
+    def test_viewing_one_company_role_does_not_suppress_different_role(self):
+        with tempfile.TemporaryDirectory() as directory:
+            tracker = ApplicationTracker(Path(directory) / "applications.json")
+            tracker.add_manual_job(
+                company="Analytics Co",
+                title="Data Science Intern",
+                location="Atlanta, GA",
+                url="https://example.com/jobs/data-science",
+                status="Viewed",
+            )
+            future = Role.normalized(
+                id="future-product-analytics",
+                company="Analytics Co",
+                title="Product Analytics Intern",
+                location="Atlanta, GA",
+                employment_type="Internship",
+                url="https://example.com/jobs/product-analytics",
+                source="Official careers API",
+                description="Experimentation, forecasting, and causal inference.",
+                requirements="Undergraduate students preferred.",
+            )
+
+            self.assertIsNone(tracker.suppression_match(future, include_previous=True))
+
+    def test_recent_new_previous_recommendation_is_cooldown_match(self):
+        with tempfile.TemporaryDirectory() as directory:
+            tracker = ApplicationTracker(Path(directory) / "applications.json")
+            tracker.upsert_recommendations([(self.item, "Target")])
+
+            match = tracker.suppression_match(self.job, include_previous=True)
+
+        self.assertIsNotNone(match)
 
     def test_pipeline_suppresses_manual_applied_job_file(self):
         from jobfinder.cli import run

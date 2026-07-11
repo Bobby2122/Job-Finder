@@ -218,6 +218,63 @@ class MultiCompanyTests(unittest.TestCase):
         self.assertIn(fresh.job.id, reach_ids)
         self.assertNotIn(viewed.job.id, reach_ids)
 
+    def test_adjacent_bucket_fallback_fills_empty_buckets(self):
+        scored = [
+            replace(make_role(index, "Target", size_group="Mid"), score=replace(
+                make_role(index, "Target", size_group="Mid").score,
+                bucket="Target",
+                overall=7.0 - index / 100,
+            ))
+            for index in range(15)
+        ]
+        buckets = select_buckets(scored, floor=5.8, per_bucket=5)
+
+        self.assertEqual(len(buckets["Reach"].roles), 5)
+        self.assertEqual(len(buckets["Safe"].roles), 5)
+        self.assertGreater(
+            buckets["Reach"].diagnostics.adjacent_fallback_selected,
+            0,
+        )
+        self.assertTrue(
+            all(item.score.bucket == "Target" for item in buckets["Reach"].roles)
+        )
+
+    def test_adaptive_floor_recovers_relevant_roles_below_preferred_floor(self):
+        low_scored = [
+            replace(
+                item,
+                score=replace(item.score, overall=3.8),
+            )
+            for item in balanced_roles()
+        ]
+        buckets = select_buckets(low_scored, floor=4.5, per_bucket=5)
+        selected = [
+            item for selection in buckets.values() for item in selection.roles
+        ]
+
+        self.assertEqual(len(selected), 15)
+        self.assertEqual(buckets["Reach"].diagnostics.effective_floor, 3.5)
+
+    def test_company_cap_relaxes_when_only_three_companies_exist(self):
+        scored: list[ScoredJob] = []
+        for index, item in enumerate(balanced_roles()):
+            company = f"Only Co {index % 3}"
+            scored.append(replace(item, job=replace(item.job, company=company)))
+
+        buckets = select_buckets(scored, floor=5.8, per_bucket=5)
+        selected = [
+            item for selection in buckets.values() for item in selection.roles
+        ]
+
+        self.assertEqual(len(selected), 15)
+        self.assertGreater(
+            sum(
+                selection.diagnostics.company_cap_relaxed_selected
+                for selection in buckets.values()
+            ),
+            0,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -24,6 +24,10 @@
     ],
     "languages": ["English", "Mandarin Chinese"]
   },
+  "us_citizen": true,
+  "authorized_to_work_us": true,
+  "active_clearance": false,
+  "willing_eligible_clearance": true,
   "scope": {
     "graduation_date": "2026-12-15",
     "graduate_school_start": "2027-09-01",

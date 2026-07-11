@@ -117,9 +117,10 @@ class EndToEndSelectionTests(unittest.TestCase):
                 )
             reach_report = (run_root / "reports/latest.md").read_text(encoding="utf-8")
 
-        self.assertIn("Reach: selected 3 of 5", reach_report)
+        self.assertIn("Safe: selected 4 of 5", reach_report)
+        self.assertIn("- **Adjacent fallback recovered:** 1", reach_report)
+        self.assertIn("- **Application status:** PREVIOUSLY RECOMMENDED", reach_report)
         self.assertIn("timing hard reject", reach_report)
-        self.assertIn("tracker/history suppression", reach_report)
 
         with tempfile.TemporaryDirectory() as directory:
             run_root = Path(directory)
@@ -136,7 +137,7 @@ class EndToEndSelectionTests(unittest.TestCase):
                     0,
                 )
             cap_report = (run_root / "reports/latest.md").read_text(encoding="utf-8")
-        self.assertIn("two-role-per-company cap", cap_report)
+        self.assertIn("- **Company-cap relaxations:**", cap_report)
 
         with tempfile.TemporaryDirectory() as directory:
             run_root = Path(directory)

@@ -224,6 +224,23 @@ class ScoringTests(unittest.TestCase):
         self.assertEqual(score.primary_track, "Applied Math / Computational Math")
         self.assertGreaterEqual(score.applied_math_relevance_score, 15)
 
+    def test_applied_math_analytics_signals_are_relevant(self):
+        from dataclasses import replace
+
+        job = replace(
+            self.jobs["ml-intern-1"],
+            id="network-planning",
+            title="Network Planning Analytics Intern - Summer 2027",
+            description=(
+                "Build forecasting, decision support, supply chain analytics, "
+                "pricing analytics, and operations analytics models."
+            ),
+            requirement="Open to mathematics, economics, statistics, or operations research majors.",
+        )
+        score = score_job(job, self.profile)
+        self.assertTrue(score.relevant)
+        self.assertGreaterEqual(score.optimization_relevance_score, 10)
+
     def test_mba_only_internship_is_excluded(self):
         from dataclasses import replace
 
@@ -235,7 +252,89 @@ class ScoringTests(unittest.TestCase):
         )
         score = score_job(mba_role, self.profile)
         self.assertFalse(score.relevant)
-        self.assertIn("MBA or doctoral", score.rejection_reason)
+        self.assertIn("MBA-only", score.rejection_reason)
+
+    def test_mba_preferred_with_bachelors_path_is_kept(self):
+        from dataclasses import replace
+
+        mba_preferred = replace(
+            self.jobs["ml-intern-1"],
+            id="mba-preferred",
+            title="Data Science Intern - Strategy Analytics",
+            description=(
+                "Use experimentation, forecasting, causal inference, and "
+                "statistical modeling for product analytics."
+            ),
+            requirement=(
+                "Currently pursuing a bachelor's degree in math, statistics, "
+                "computer science, economics, or related field. MBA preferred."
+            ),
+        )
+        score = score_job(mba_preferred, self.profile)
+        self.assertTrue(score.relevant)
+        self.assertEqual(score.degree_status, "eligible")
+
+    def test_active_clearance_required_is_rejected(self):
+        from dataclasses import replace
+
+        cleared = replace(
+            self.jobs["ml-intern-1"],
+            id="active-clearance",
+            title="Operations Research Intern - Summer 2027",
+            description="Build simulation and optimization models.",
+            requirement="Candidates must have an active Secret clearance.",
+        )
+        score = score_job(cleared, self.profile)
+        self.assertFalse(score.relevant)
+        self.assertEqual(score.work_authorization_status, "blocked")
+        self.assertIn("active/current security clearance", score.rejection_reason)
+
+    def test_clearance_eligible_and_citizenship_required_is_retained(self):
+        from dataclasses import replace
+
+        eligible = replace(
+            self.jobs["ml-intern-1"],
+            id="clearance-eligible",
+            title="Modeling and Simulation Intern - Summer 2027",
+            description="Use numerical methods, simulation, and decision models.",
+            requirement=(
+                "U.S. citizenship is required. Must be able to obtain a security "
+                "clearance."
+            ),
+        )
+        score = score_job(eligible, self.profile)
+        self.assertTrue(score.relevant)
+        self.assertEqual(score.work_authorization_status, "concern")
+        self.assertIn("clearance", " ".join(score.concerns).lower())
+
+    def test_masters_only_description_is_rejected(self):
+        from dataclasses import replace
+
+        masters = replace(
+            self.jobs["ml-intern-1"],
+            id="masters-only",
+            title="Data Science Intern",
+            description="Forecasting and statistical modeling internship.",
+            requirement="Candidates must be enrolled in a master's program.",
+        )
+        score = score_job(masters, self.profile)
+        self.assertFalse(score.relevant)
+        self.assertIn("Master", score.rejection_reason)
+
+    def test_missing_description_plausible_title_is_manual_review_not_hard_reject(self):
+        from dataclasses import replace
+
+        job = replace(
+            self.jobs["ml-intern-1"],
+            id="missing-description",
+            title="Data Science Intern - Summer 2027",
+            description="",
+            requirement="",
+        )
+        score = score_job(job, self.profile)
+        self.assertTrue(score.relevant)
+        self.assertIn("manual review", " ".join(score.concerns).lower())
+
 
     def test_missing_internship_type_and_ambiguous_title_is_excluded(self):
         from dataclasses import replace

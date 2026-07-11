@@ -128,17 +128,44 @@ def _diagnostic(
     secondary_reasons: list[str] | None = None,
 ) -> dict[str, object]:
     score = item.score
+    snippet = " ".join(
+        part.strip()
+        for part in (
+            item.job.title,
+            item.job.description[:240],
+            item.job.requirement[:240],
+        )
+        if part.strip()
+    )
     return {
         "company": item.job.company,
         "title": item.job.title,
         "url": item.job.url,
+        "canonical_url": normalize_application_url(item.job.url),
+        "source": item.job.source,
+        "source_adapter": item.job.source,
         "stage": stage,
         "primary_reason": primary_reason,
         "secondary_reasons": secondary_reasons or [],
+        "snippet": snippet[:500],
         "timing_tier": score.timing_tier,
+        "timing_reason": score.timing_reason,
+        "degree_status": score.degree_status,
+        "degree_reason": score.degree_reason,
+        "work_authorization_status": score.work_authorization_status,
+        "work_authorization_reason": score.work_authorization_reason,
         "role_classification": score.role_classification,
         "relevance_score": score.relevance_total,
+        "relevance_components": {
+            "ai": score.ai_relevance_score,
+            "optimization": score.optimization_relevance_score,
+            "applied_math": score.applied_math_relevance_score,
+            "data": score.data_relevance_score,
+            "quant": score.quant_relevance_score,
+            "primary_track": score.primary_track,
+        },
         "overall_score": score.overall,
+        "tracking_status": item.tracking_status,
     }
 
 
@@ -307,6 +334,7 @@ def run(
     state = load_state(state_path)
     tracked_statuses = tracker.status_map()
     scored: list[ScoredJob] = []
+    cooldown_scored: list[ScoredJob] = []
     suppressed = 0
     inactive_suppressed = 0
     duplicate_suppressed = 0
@@ -362,19 +390,34 @@ def run(
         status = tracked_statuses.get(job.tracking_id, "New")
         if suppressing_record:
             status = str(suppressing_record.get("status", status))
-        if not show_history and (
-            status in SUPPRESSED_STATUSES or suppressing_record is not None
-        ):
+        if not show_history and status in SUPPRESSED_STATUSES:
             suppressed += 1
-            if status in SUPPRESSED_STATUSES:
-                inactive_suppressed += 1
-            else:
-                duplicate_suppressed += 1
+            inactive_suppressed += 1
             diagnostics.append(
                 _diagnostic(
                     ScoredJob(job, score, tracking_status=status),
                     stage="history_suppressed",
                     primary_reason=f"Suppressed by tracker/history status: {status}",
+                )
+            )
+            continue
+        if not show_history and suppressing_record is not None:
+            duplicate_suppressed += 1
+            cooldown_item = ScoredJob(
+                job,
+                score,
+                is_new=False,
+                tracking_status="PREVIOUSLY RECOMMENDED",
+            )
+            cooldown_scored.append(cooldown_item)
+            diagnostics.append(
+                _diagnostic(
+                    cooldown_item,
+                    stage="history_cooldown_hold",
+                    primary_reason=(
+                        "Held by previous-recommendation cooldown; eligible "
+                        "for backfill if fresh recommendations are scarce"
+                    ),
                 )
             )
             continue
@@ -392,8 +435,13 @@ def run(
     if suppressed:
         print(
             f"[HISTORY] Suppressed {suppressed} tracked job(s): "
-            f"{inactive_suppressed} inactive and {duplicate_suppressed} previous/duplicate. "
+            f"{inactive_suppressed} inactive. "
             "Use --show-history to include tracked history."
+        )
+    if cooldown_scored:
+        print(
+            f"[HISTORY] Held {len(cooldown_scored)} previous recommendation(s) "
+            "for cooldown backfill."
         )
     scored, duplicate_items = _deduplicate_scored_with_exclusions(scored)
     current_duplicate_excluded = len(duplicate_items)
@@ -407,7 +455,7 @@ def run(
         )
     print(f"[DEBUG] excluded_already_applied_or_inactive = {inactive_suppressed}")
     print(f"[DEBUG] excluded_duplicate_jobs = {current_duplicate_excluded}")
-    print(f"[DEBUG] excluded_similar_previous_recommendations = {duplicate_suppressed}")
+    print(f"[DEBUG] cooldown_previous_recommendations = {duplicate_suppressed}")
     print(f"[DEBUG] excluded_pure_swe = {pure_swe_excluded}")
     print(f"[DEBUG] excluded_low_career_relevance = {low_relevance_excluded}")
     print(f"[DEBUG] excluded_wrong_date = {wrong_date_excluded}")
@@ -428,6 +476,7 @@ def run(
     print(f"[FUNNEL] pure_swe_hard_rejected = {pure_swe_excluded}")
     print(f"[FUNNEL] low_relevance_hard_rejected = {low_relevance_excluded}")
     print(f"[FUNNEL] history_suppressed = {suppressed}")
+    print(f"[FUNNEL] cooldown_previous_recommendations = {duplicate_suppressed}")
     print(f"[FUNNEL] current_duplicates = {current_duplicate_excluded}")
     print(f"[FUNNEL] eligible_for_ranking = {len(scored)}")
     print(f"[FUNNEL] timing_tier_a_count = {timing_counts['A']}")
@@ -465,9 +514,48 @@ def run(
         suggestions.append("Shift more Target/Safe slots toward smaller companies, applied AI tools, and analytics-adjacent AI roles.")
     if "bad location" in reason_text:
         suggestions.append("Down-rank repeated locations the user rejects unless the role is remote U.S.")
+    buckets = select_buckets(scored, top_floor, per_bucket=per_bucket)
+    target_total = per_bucket * 3
+    initial_selected_count = sum(
+        len(selection.roles) for selection in buckets.values()
+    )
+    scored_for_report = scored
+    cooldown_backfilled = 0
+    if initial_selected_count < target_total and cooldown_scored:
+        scored_for_report, duplicate_items_after_backfill = (
+            _deduplicate_scored_with_exclusions([*scored, *cooldown_scored])
+        )
+        for item in duplicate_items_after_backfill:
+            if item not in duplicate_items:
+                diagnostics.append(
+                    _diagnostic(
+                        item,
+                        stage="current_duplicates",
+                        primary_reason=(
+                            "Duplicate or near-duplicate role after cooldown backfill"
+                        ),
+                    )
+                )
+        buckets = select_buckets(scored_for_report, top_floor, per_bucket=per_bucket)
+        selected_ids_after_backfill = {
+            item.job.tracking_id
+            for selection in buckets.values()
+            for item in selection.roles
+        }
+        cooldown_backfilled = sum(
+            1
+            for item in cooldown_scored
+            if item.job.tracking_id in selected_ids_after_backfill
+        )
+        if cooldown_backfilled:
+            print(
+                f"[HISTORY] Backfilled {cooldown_backfilled} still-open previous "
+                "recommendation(s)."
+            )
+    duplicate_history_excluded = max(0, duplicate_suppressed - cooldown_backfilled)
     correction_log = CorrectionLog(
         history_excluded=suppressed,
-        duplicate_history_excluded=duplicate_suppressed,
+        duplicate_history_excluded=duplicate_history_excluded,
         duplicate_jobs_excluded=current_duplicate_excluded,
         pure_swe_excluded=pure_swe_excluded,
         full_time_excluded=full_time_excluded,
@@ -480,7 +568,6 @@ def run(
         ),
         suggestions=tuple(suggestions),
     )
-    buckets = select_buckets(scored, top_floor, per_bucket=per_bucket)
     tracked_recommendations = [
         (item, bucket)
         for bucket in ("Reach", "Target", "Safe")
@@ -498,7 +585,7 @@ def run(
         f"{newly_qualified_recommendations}"
     )
     report = build_report(
-        scored,
+        scored_for_report,
         profile,
         now,
         stats,

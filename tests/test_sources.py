@@ -242,8 +242,8 @@ class SourceAdapterTests(unittest.TestCase):
 
         self.assertEqual(result.companies_succeeded, 1)
         statuses = {item.company: item.status for item in result.source_health}
-        self.assertEqual(statuses["Fixture Empty"], "healthy_no_internships")
-        self.assertEqual(statuses["Fixture Broken"], "unsupported_source")
+        self.assertEqual(statuses["Fixture Empty"], "partial_results")
+        self.assertEqual(statuses["Fixture Broken"], "invalid_configuration")
         broken = next(
             item for item in result.source_health if item.company == "Fixture Broken"
         )

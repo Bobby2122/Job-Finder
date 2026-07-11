@@ -343,14 +343,21 @@ def classify_career_relevance(job: Job) -> CareerRelevance:
             "operations research",
             "optimization intern",
             "decision science",
+            "decision support",
             "algorithm intern",
             "algorithm research",
             "simulation intern",
             "modeling and simulation",
             "supply chain optimization",
+            "supply chain analytics",
             "data science optimization",
             "energy modeling",
+            "grid analytics",
             "defense modeling",
+            "network planning",
+            "revenue management",
+            "pricing analytics",
+            "operations analytics",
         ),
         keywords=(
             "linear programming",
@@ -360,8 +367,15 @@ def classify_career_relevance(job: Job) -> CareerRelevance:
             "mathematical optimization",
             "forecasting",
             "decision models",
+            "decision science",
+            "decision support",
             "operations research",
+            "operations analytics",
             "probability models",
+            "network planning",
+            "energy modeling",
+            "grid analytics",
+            "supply chain analytics",
             "optimization",
         ),
         title_points=10.0,
@@ -378,6 +392,7 @@ def classify_career_relevance(job: Job) -> CareerRelevance:
             "scientific computing",
             "numerical analysis",
             "mathematical modeling",
+            "computational modeling",
             "modeling and simulation",
             "simulation research",
             "computational science",
@@ -389,10 +404,11 @@ def classify_career_relevance(job: Job) -> CareerRelevance:
             "ode",
             "numerical methods",
             "computational modeling",
+            "mathematical modeling",
             "simulation",
             "scientific computing",
+            "scientific machine learning",
             "dynamical systems",
-            "mathematical modeling",
             "optimization theory",
         ),
         title_points=9.0,
@@ -410,6 +426,10 @@ def classify_career_relevance(job: Job) -> CareerRelevance:
             "actuarial data analytics",
             "actuarial analytics",
             "quantitative analyst",
+            "data analyst intern",
+            "product analyst intern",
+            "product analytics",
+            "statistical research",
             "analytics scientist",
         ),
         keywords=(
@@ -421,7 +441,12 @@ def classify_career_relevance(job: Job) -> CareerRelevance:
             "feature store",
             "ml platform",
             "experimentation",
+            "causal inference",
             "predictive modeling",
+            "forecasting",
+            "statistical research",
+            "quantitative analysis",
+            "product analytics",
             "optimization",
             "statistical",
             "modeling",
@@ -437,6 +462,7 @@ def classify_career_relevance(job: Job) -> CareerRelevance:
             "quant research",
             "quantitative research",
             "quantitative analyst",
+            "quantitative analysis",
             "risk modeling",
             "financial modeling",
             "actuarial",
@@ -447,6 +473,9 @@ def classify_career_relevance(job: Job) -> CareerRelevance:
             "statistics",
             "machine learning",
             "optimization",
+            "forecasting",
+            "risk modeling",
+            "actuarial modeling",
             "risk",
         ),
         title_points=3.0,
@@ -478,6 +507,8 @@ def classify_career_relevance(job: Job) -> CareerRelevance:
             "algorithms",
             "simulation",
             "numerical",
+            "forecasting",
+            "causal inference",
         ),
     ):
         bonuses += 10.0
@@ -519,6 +550,11 @@ def classify_career_relevance(job: Job) -> CareerRelevance:
             "research",
             "simulation",
             "predictive",
+            "forecasting",
+            "experimentation",
+            "causal inference",
+            "statistical",
+            "quantitative",
         ),
     )
     penalties = 0.0
@@ -768,20 +804,160 @@ def _requirement_ease(job: Job, text: str) -> tuple[float, list[str], bool]:
     return _clamp(ease), concerns, phd_only
 
 
-def _work_authorization_blocked(text: str) -> bool:
-    return _contains(
+def _work_authorization_status(text: str, profile: dict[str, Any]) -> tuple[str, str]:
+    us_citizen = bool(profile.get("us_citizen"))
+    active_clearance = bool(profile.get("active_clearance"))
+    clearance_eligible = bool(profile.get("willing_eligible_clearance"))
+    citizenship_required = _contains(
         text,
         (
             "must be a u.s. citizen",
             "must be a us citizen",
             "u.s. citizenship is required",
             "us citizenship is required",
+            "u.s. citizen required",
+            "us citizen required",
+            "requires u.s. citizenship",
+            "requires us citizenship",
+        ),
+    )
+    active_clearance_required = _contains(
+        text,
+        (
             "active security clearance required",
             "requires an active security clearance",
             "current security clearance required",
             "existing security clearance required",
+            "must possess an active clearance",
+            "must have an active clearance",
+            "active secret clearance",
+            "active top secret clearance",
+            "active ts/sci",
+            "current secret clearance",
+            "current top secret clearance",
         ),
     )
+    clearance_ability_required = _contains(
+        text,
+        (
+            "ability to obtain a security clearance",
+            "able to obtain a security clearance",
+            "eligible to obtain a security clearance",
+            "must be able to obtain",
+            "clearance eligibility",
+        ),
+    )
+    if active_clearance_required and not active_clearance:
+        return "blocked", "Requires active/current security clearance"
+    if citizenship_required and not us_citizen:
+        return "blocked", "Requires U.S. citizenship"
+    if clearance_ability_required and not clearance_eligible:
+        return "concern", "May require eligibility to obtain a security clearance"
+    if clearance_ability_required:
+        return "concern", "Security clearance eligibility should be confirmed"
+    if citizenship_required:
+        return "accepted", "U.S. citizenship requirement is satisfied"
+    return "accepted", ""
+
+
+def _degree_eligibility_status(job: Job, text: str) -> tuple[str, str]:
+    title = job.title.lower()
+    has_bachelor_path = _contains(
+        text,
+        (
+            "bachelor",
+            "b.s.",
+            "bs/ms",
+            "undergraduate",
+            "undergrad",
+            "currently enrolled in a degree",
+            "pursuing a degree",
+            "students pursuing a degree",
+            "open to undergrad",
+        ),
+    )
+    optional_or_preferred = _contains(
+        text,
+        (
+            "preferred",
+            "preference",
+            "preferred qualifications",
+            "nice to have",
+            "or equivalent",
+            "bachelor's, master's, or phd",
+            "undergrad, master's, or phd",
+            "bs/ms",
+        ),
+    )
+    mba_only = (
+        _contains(title, ("mba intern", "mba internship"))
+        or bool(
+            re.search(
+                r"\b(?:currently\s+)?(?:pursuing|enrolled in|enrolled)\s+(?:an?\s+)?mba\b",
+                text,
+            )
+        )
+        or _contains(
+            text,
+            (
+                "must be enrolled in an mba",
+                "must be currently enrolled in an mba",
+                "first-year mba",
+                "rising second-year mba",
+                "mba class 2027",
+                "mba class of 2027",
+                "mba class 2028",
+                "mba class of 2028",
+            ),
+        )
+    )
+    jd_or_medical_only = bool(
+        re.search(r"\b(?:jd|j\.d\.|law school|medical school|md student)\b", text)
+    ) and not has_bachelor_path
+    doctoral_only = _contains(
+        title,
+        ("phd intern", "ph.d. intern", "doctoral intern"),
+    ) or _contains(
+        text,
+        (
+            "doctoral candidates only",
+            "doctoral candidate only",
+            "phd students only",
+            "ph.d. students only",
+            "phd candidates only",
+            "ph.d. candidates only",
+            "must be enrolled in a phd",
+            "must be enrolled in a ph.d",
+        ),
+    )
+    masters_only = (
+        _contains(
+            text,
+            (
+                "graduate students only",
+                "graduate student only",
+                "must be enrolled in a master's",
+                "must be enrolled in a masters",
+                "must be enrolled in a master",
+                "currently enrolled in a master's",
+                "currently enrolled in a masters",
+                "current master's student",
+                "current masters student",
+            ),
+        )
+        and not has_bachelor_path
+    )
+    if optional_or_preferred and has_bachelor_path:
+        return "eligible", "Bachelor's/undergraduate path remains eligible"
+    if mba_only:
+        return "blocked", "MBA-only internship"
+    if jd_or_medical_only:
+        return "blocked", "JD/medical-program-only internship"
+    if doctoral_only:
+        return "blocked", "Doctoral/PhD-only internship"
+    if masters_only:
+        return "blocked", "Master's/graduate-students-only internship"
+    return "eligible", ""
 
 
 def _practical_value(job: Job, text: str) -> float:
@@ -878,7 +1054,11 @@ def score_job(job: Job, profile: dict[str, Any]) -> Score:
     ai_score, ai_keywords, ai_focus, pure_swe_signal = _ai_focus(job)
     competition_ease, popularity_penalty = _competition_ease(job, text)
     requirement_ease, concerns, phd_only = _requirement_ease(job, text)
-    authorization_blocked = _work_authorization_blocked(text)
+    authorization_status, authorization_reason = _work_authorization_status(
+        text,
+        profile,
+    )
+    degree_status, degree_reason = _degree_eligibility_status(job, text)
     stability = 9.0 if "remote" in job.location.lower() else 10.0
     practical = _practical_value(job, text)
 
@@ -892,17 +1072,23 @@ def score_job(job: Job, profile: dict[str, Any]) -> Score:
             "administrative",
         ),
     )
-    graduate_only = _contains(
-        job.title.lower(),
+    title = job.title.lower()
+    missing_detail = not (job.description.strip() or job.requirement.strip())
+    plausible_title_only = missing_detail and _contains(
+        title,
         (
-            "mba intern",
-            "mba internship",
-            "phd intern",
-            "ph.d. intern",
-            "doctoral intern",
+            "data science intern",
+            "data scientist intern",
+            "machine learning intern",
+            "ai intern",
+            "analytics intern",
+            "analyst intern",
+            "operations research intern",
+            "optimization intern",
+            "quantitative analyst intern",
+            "research intern",
         ),
     )
-    title = job.title.lower()
     overall = round(
         0.50 * relevance
         + 0.18 * clarity
@@ -931,17 +1117,17 @@ def score_job(job: Job, profile: dict[str, Any]) -> Score:
         reason = "Not an explicit internship or is marked full-time/new-grad"
     elif not timing_eligible:
         reason = timing_concern or "Internship timing is outside Spring/Summer 2027 target"
-    elif authorization_blocked:
-        reason = "Requires U.S. citizenship or an active security clearance"
-    elif graduate_only:
-        reason = "Internship is restricted to MBA or doctoral candidates"
+    elif authorization_status == "blocked":
+        reason = authorization_reason
+    elif degree_status == "blocked":
+        reason = f"Internship is restricted to {degree_reason}"
     elif low_value:
         reason = "Role is outside the target analytical/technical path"
     elif career_relevance.business_dashboard_signal:
         reason = "Business analytics/dashboard-only role without modeling, ML, optimization, or research depth"
     elif role_classification.classification == "pure_swe" and career_relevance.total < 12.0:
         reason = "Pure SWE internship without AI/ML/optimization/modeling scope"
-    elif career_relevance.total < 12.0:
+    elif career_relevance.total < 12.0 and not plausible_title_only:
         reason = "Insufficient relevance to AI, applied science, OR/optimization, applied math, modeling, data science, or quant/risk"
     elif phd_only and requirement_ease <= 3.0:
         reason = "Internship is too PhD/publication-heavy for the current profile"
@@ -949,6 +1135,10 @@ def score_job(job: Job, profile: dict[str, Any]) -> Score:
         reason = ""
 
     relevant = not reason
+    if authorization_reason and authorization_status != "blocked":
+        concerns.append(authorization_reason)
+    if plausible_title_only and relevant:
+        concerns.append("Description or requirements missing; keep as low-confidence manual review")
     if timing_concern:
         concerns.append(timing_concern)
     if not concerns:
@@ -1010,4 +1200,8 @@ def score_job(job: Job, profile: dict[str, Any]) -> Score:
         role_classification=role_classification.classification,
         role_classification_reason=role_classification.reason,
         role_classification_confidence=role_classification.confidence,
+        work_authorization_status=authorization_status,
+        work_authorization_reason=authorization_reason,
+        degree_status=degree_status,
+        degree_reason=degree_reason,
     )

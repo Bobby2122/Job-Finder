@@ -1,7 +1,7 @@
 [
   {
     "adapter": "official_careers_page",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "OpenAI",
     "endpoint": "https://openai.com/careers/search/",
     "error_message": "https://openai.com/careers/search/: HTTP 403",
@@ -10,11 +10,11 @@
     "internship_roles_found": 0,
     "recommended_action": "Use an official API endpoint where available or classify the official page as unsupported.",
     "roles_found": 0,
-    "status": "blocked_or_forbidden"
+    "status": "blocked"
   },
   {
     "adapter": "official_careers_page",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Perplexity AI",
     "endpoint": "https://www.perplexity.ai/careers",
     "error_message": "https://www.perplexity.ai/careers: HTTP 403",
@@ -23,570 +23,11 @@
     "internship_roles_found": 0,
     "recommended_action": "Use an official API endpoint where available or classify the official page as unsupported.",
     "roles_found": 0,
-    "status": "blocked_or_forbidden"
-  },
-  {
-    "adapter": "ashby",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
-    "company": "Abridge",
-    "endpoint": "https://api.ashbyhq.com/posting-api/job-board/abridge",
-    "error_message": "",
-    "error_type": "",
-    "http_status": null,
-    "internship_roles_found": 0,
-    "recommended_action": "No current internship/co-op postings; keep source enabled.",
-    "roles_found": 45,
-    "status": "healthy_no_internships"
-  },
-  {
-    "adapter": "lever",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
-    "company": "Age of Learning",
-    "endpoint": "https://api.lever.co/v0/postings/aofl?mode=json",
-    "error_message": "",
-    "error_type": "",
-    "http_status": null,
-    "internship_roles_found": 0,
-    "recommended_action": "No current internship/co-op postings; keep source enabled.",
-    "roles_found": 0,
-    "status": "healthy_no_internships"
+    "status": "blocked"
   },
   {
     "adapter": "greenhouse",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
-    "company": "Airtable",
-    "endpoint": "https://boards-api.greenhouse.io/v1/boards/airtable/jobs?content=true",
-    "error_message": "",
-    "error_type": "",
-    "http_status": null,
-    "internship_roles_found": 0,
-    "recommended_action": "No current internship/co-op postings; keep source enabled.",
-    "roles_found": 38,
-    "status": "healthy_no_internships"
-  },
-  {
-    "adapter": "greenhouse",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
-    "company": "Akuna Capital",
-    "endpoint": "https://boards-api.greenhouse.io/v1/boards/akunacapital/jobs?content=true",
-    "error_message": "",
-    "error_type": "",
-    "http_status": null,
-    "internship_roles_found": 0,
-    "recommended_action": "No current internship/co-op postings; keep source enabled.",
-    "roles_found": 27,
-    "status": "healthy_no_internships"
-  },
-  {
-    "adapter": "ashby",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
-    "company": "Ambience Healthcare",
-    "endpoint": "https://api.ashbyhq.com/posting-api/job-board/ambiencehealthcare",
-    "error_message": "",
-    "error_type": "",
-    "http_status": null,
-    "internship_roles_found": 0,
-    "recommended_action": "No current internship/co-op postings; keep source enabled.",
-    "roles_found": 22,
-    "status": "healthy_no_internships"
-  },
-  {
-    "adapter": "greenhouse",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
-    "company": "Amplitude",
-    "endpoint": "https://boards-api.greenhouse.io/v1/boards/amplitude/jobs?content=true",
-    "error_message": "",
-    "error_type": "",
-    "http_status": null,
-    "internship_roles_found": 0,
-    "recommended_action": "No current internship/co-op postings; keep source enabled.",
-    "roles_found": 46,
-    "status": "healthy_no_internships"
-  },
-  {
-    "adapter": "ashby",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
-    "company": "Anyscale",
-    "endpoint": "https://api.ashbyhq.com/posting-api/job-board/anyscale",
-    "error_message": "",
-    "error_type": "",
-    "http_status": null,
-    "internship_roles_found": 0,
-    "recommended_action": "No current internship/co-op postings; keep source enabled.",
-    "roles_found": 15,
-    "status": "healthy_no_internships"
-  },
-  {
-    "adapter": "official_apple_careers",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
-    "company": "Apple",
-    "endpoint": "https://jobs.apple.com/en-us/search?search=intern&location=united-states-USA",
-    "error_message": "",
-    "error_type": "",
-    "http_status": null,
-    "internship_roles_found": 0,
-    "recommended_action": "No current internship/co-op postings; keep source enabled.",
-    "roles_found": 0,
-    "status": "healthy_no_internships"
-  },
-  {
-    "adapter": "greenhouse",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
-    "company": "Asana",
-    "endpoint": "https://boards-api.greenhouse.io/v1/boards/asana/jobs?content=true",
-    "error_message": "",
-    "error_type": "",
-    "http_status": null,
-    "internship_roles_found": 0,
-    "recommended_action": "No current internship/co-op postings; keep source enabled.",
-    "roles_found": 150,
-    "status": "healthy_no_internships"
-  },
-  {
-    "adapter": "ashby",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
-    "company": "Aurora Solar",
-    "endpoint": "https://api.ashbyhq.com/posting-api/job-board/aurorasolar",
-    "error_message": "",
-    "error_type": "",
-    "http_status": null,
-    "internship_roles_found": 0,
-    "recommended_action": "No current internship/co-op postings; keep source enabled.",
-    "roles_found": 8,
-    "status": "healthy_no_internships"
-  },
-  {
-    "adapter": "lever",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
-    "company": "Belvedere Trading",
-    "endpoint": "https://api.lever.co/v0/postings/belvederetrading?mode=json",
-    "error_message": "",
-    "error_type": "",
-    "http_status": null,
-    "internship_roles_found": 0,
-    "recommended_action": "No current internship/co-op postings; keep source enabled.",
-    "roles_found": 9,
-    "status": "healthy_no_internships"
-  },
-  {
-    "adapter": "greenhouse",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
-    "company": "Chime",
-    "endpoint": "https://boards-api.greenhouse.io/v1/boards/chime/jobs?content=true",
-    "error_message": "",
-    "error_type": "",
-    "http_status": null,
-    "internship_roles_found": 0,
-    "recommended_action": "No current internship/co-op postings; keep source enabled.",
-    "roles_found": 71,
-    "status": "healthy_no_internships"
-  },
-  {
-    "adapter": "ashby",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
-    "company": "Color Health",
-    "endpoint": "https://api.ashbyhq.com/posting-api/job-board/color-health",
-    "error_message": "",
-    "error_type": "",
-    "http_status": null,
-    "internship_roles_found": 0,
-    "recommended_action": "No current internship/co-op postings; keep source enabled.",
-    "roles_found": 11,
-    "status": "healthy_no_internships"
-  },
-  {
-    "adapter": "ashby",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
-    "company": "Cursor",
-    "endpoint": "https://api.ashbyhq.com/posting-api/job-board/cursor",
-    "error_message": "",
-    "error_type": "",
-    "http_status": null,
-    "internship_roles_found": 0,
-    "recommended_action": "No current internship/co-op postings; keep source enabled.",
-    "roles_found": 112,
-    "status": "healthy_no_internships"
-  },
-  {
-    "adapter": "greenhouse",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
-    "company": "Datadog",
-    "endpoint": "https://boards-api.greenhouse.io/v1/boards/datadog/jobs?content=true",
-    "error_message": "",
-    "error_type": "",
-    "http_status": null,
-    "internship_roles_found": 0,
-    "recommended_action": "No current internship/co-op postings; keep source enabled.",
-    "roles_found": 427,
-    "status": "healthy_no_internships"
-  },
-  {
-    "adapter": "greenhouse",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
-    "company": "Epirus",
-    "endpoint": "https://boards-api.greenhouse.io/v1/boards/epirus/jobs?content=true",
-    "error_message": "",
-    "error_type": "",
-    "http_status": null,
-    "internship_roles_found": 0,
-    "recommended_action": "No current internship/co-op postings; keep source enabled.",
-    "roles_found": 40,
-    "status": "healthy_no_internships"
-  },
-  {
-    "adapter": "ashby",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
-    "company": "Factory",
-    "endpoint": "https://api.ashbyhq.com/posting-api/job-board/factory",
-    "error_message": "",
-    "error_type": "",
-    "http_status": null,
-    "internship_roles_found": 0,
-    "recommended_action": "No current internship/co-op postings; keep source enabled.",
-    "roles_found": 37,
-    "status": "healthy_no_internships"
-  },
-  {
-    "adapter": "greenhouse",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
-    "company": "Fivetran",
-    "endpoint": "https://boards-api.greenhouse.io/v1/boards/fivetran/jobs?content=true",
-    "error_message": "",
-    "error_type": "",
-    "http_status": null,
-    "internship_roles_found": 0,
-    "recommended_action": "No current internship/co-op postings; keep source enabled.",
-    "roles_found": 123,
-    "status": "healthy_no_internships"
-  },
-  {
-    "adapter": "greenhouse",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
-    "company": "Flatiron Health",
-    "endpoint": "https://boards-api.greenhouse.io/v1/boards/flatironhealth/jobs?content=true",
-    "error_message": "",
-    "error_type": "",
-    "http_status": null,
-    "internship_roles_found": 0,
-    "recommended_action": "No current internship/co-op postings; keep source enabled.",
-    "roles_found": 26,
-    "status": "healthy_no_internships"
-  },
-  {
-    "adapter": "greenhouse",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
-    "company": "Flexport",
-    "endpoint": "https://boards-api.greenhouse.io/v1/boards/flexport/jobs?content=true",
-    "error_message": "",
-    "error_type": "",
-    "http_status": null,
-    "internship_roles_found": 0,
-    "recommended_action": "No current internship/co-op postings; keep source enabled.",
-    "roles_found": 143,
-    "status": "healthy_no_internships"
-  },
-  {
-    "adapter": "greenhouse",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
-    "company": "Freenome",
-    "endpoint": "https://boards-api.greenhouse.io/v1/boards/freenome/jobs?content=true",
-    "error_message": "",
-    "error_type": "",
-    "http_status": null,
-    "internship_roles_found": 0,
-    "recommended_action": "No current internship/co-op postings; keep source enabled.",
-    "roles_found": 19,
-    "status": "healthy_no_internships"
-  },
-  {
-    "adapter": "ashby",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
-    "company": "Hex",
-    "endpoint": "https://api.ashbyhq.com/posting-api/job-board/hex",
-    "error_message": "",
-    "error_type": "",
-    "http_status": null,
-    "internship_roles_found": 0,
-    "recommended_action": "No current internship/co-op postings; keep source enabled.",
-    "roles_found": 0,
-    "status": "healthy_no_internships"
-  },
-  {
-    "adapter": "ashby",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
-    "company": "Hudson River Trading",
-    "endpoint": "https://api.ashbyhq.com/posting-api/job-board/hrt",
-    "error_message": "",
-    "error_type": "",
-    "http_status": null,
-    "internship_roles_found": 0,
-    "recommended_action": "No current internship/co-op postings; keep source enabled.",
-    "roles_found": 0,
-    "status": "healthy_no_internships"
-  },
-  {
-    "adapter": "greenhouse",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
-    "company": "Kodiak Robotics",
-    "endpoint": "https://boards-api.greenhouse.io/v1/boards/kodiak/jobs?content=true",
-    "error_message": "",
-    "error_type": "",
-    "http_status": null,
-    "internship_roles_found": 0,
-    "recommended_action": "No current internship/co-op postings; keep source enabled.",
-    "roles_found": 69,
-    "status": "healthy_no_internships"
-  },
-  {
-    "adapter": "greenhouse",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
-    "company": "Komodo Health",
-    "endpoint": "https://boards-api.greenhouse.io/v1/boards/komodohealth/jobs?content=true",
-    "error_message": "",
-    "error_type": "",
-    "http_status": null,
-    "internship_roles_found": 0,
-    "recommended_action": "No current internship/co-op postings; keep source enabled.",
-    "roles_found": 40,
-    "status": "healthy_no_internships"
-  },
-  {
-    "adapter": "ashby",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
-    "company": "Mercury",
-    "endpoint": "https://api.ashbyhq.com/posting-api/job-board/mercury",
-    "error_message": "",
-    "error_type": "",
-    "http_status": null,
-    "internship_roles_found": 0,
-    "recommended_action": "No current internship/co-op postings; keep source enabled.",
-    "roles_found": 0,
-    "status": "healthy_no_internships"
-  },
-  {
-    "adapter": "greenhouse",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
-    "company": "Mixpanel",
-    "endpoint": "https://boards-api.greenhouse.io/v1/boards/mixpanel/jobs?content=true",
-    "error_message": "",
-    "error_type": "",
-    "http_status": null,
-    "internship_roles_found": 0,
-    "recommended_action": "No current internship/co-op postings; keep source enabled.",
-    "roles_found": 41,
-    "status": "healthy_no_internships"
-  },
-  {
-    "adapter": "ashby",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
-    "company": "Modal",
-    "endpoint": "https://api.ashbyhq.com/posting-api/job-board/modal",
-    "error_message": "",
-    "error_type": "",
-    "http_status": null,
-    "internship_roles_found": 0,
-    "recommended_action": "No current internship/co-op postings; keep source enabled.",
-    "roles_found": 33,
-    "status": "healthy_no_internships"
-  },
-  {
-    "adapter": "greenhouse",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
-    "company": "Motive",
-    "endpoint": "https://boards-api.greenhouse.io/v1/boards/gomotive/jobs?content=true",
-    "error_message": "",
-    "error_type": "",
-    "http_status": null,
-    "internship_roles_found": 0,
-    "recommended_action": "No current internship/co-op postings; keep source enabled.",
-    "roles_found": 78,
-    "status": "healthy_no_internships"
-  },
-  {
-    "adapter": "lever",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
-    "company": "Nielsen",
-    "endpoint": "https://api.lever.co/v0/postings/nielsen?mode=json",
-    "error_message": "",
-    "error_type": "",
-    "http_status": null,
-    "internship_roles_found": 0,
-    "recommended_action": "No current internship/co-op postings; keep source enabled.",
-    "roles_found": 0,
-    "status": "healthy_no_internships"
-  },
-  {
-    "adapter": "ashby",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
-    "company": "OnePay",
-    "endpoint": "https://api.ashbyhq.com/posting-api/job-board/oneapp",
-    "error_message": "",
-    "error_type": "",
-    "http_status": null,
-    "internship_roles_found": 0,
-    "recommended_action": "No current internship/co-op postings; keep source enabled.",
-    "roles_found": 30,
-    "status": "healthy_no_internships"
-  },
-  {
-    "adapter": "lever",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
-    "company": "Plaid",
-    "endpoint": "https://api.lever.co/v0/postings/plaid?mode=json",
-    "error_message": "",
-    "error_type": "",
-    "http_status": null,
-    "internship_roles_found": 0,
-    "recommended_action": "No current internship/co-op postings; keep source enabled.",
-    "roles_found": 0,
-    "status": "healthy_no_internships"
-  },
-  {
-    "adapter": "greenhouse",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
-    "company": "Redwood Materials",
-    "endpoint": "https://boards-api.greenhouse.io/v1/boards/redwoodmaterials/jobs?content=true",
-    "error_message": "",
-    "error_type": "",
-    "http_status": null,
-    "internship_roles_found": 0,
-    "recommended_action": "No current internship/co-op postings; keep source enabled.",
-    "roles_found": 92,
-    "status": "healthy_no_internships"
-  },
-  {
-    "adapter": "ashby",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
-    "company": "Runway",
-    "endpoint": "https://api.ashbyhq.com/posting-api/job-board/runway",
-    "error_message": "",
-    "error_type": "",
-    "http_status": null,
-    "internship_roles_found": 0,
-    "recommended_action": "No current internship/co-op postings; keep source enabled.",
-    "roles_found": 4,
-    "status": "healthy_no_internships"
-  },
-  {
-    "adapter": "greenhouse",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
-    "company": "Samsara",
-    "endpoint": "https://boards-api.greenhouse.io/v1/boards/samsara/jobs?content=true",
-    "error_message": "",
-    "error_type": "",
-    "http_status": null,
-    "internship_roles_found": 0,
-    "recommended_action": "No current internship/co-op postings; keep source enabled.",
-    "roles_found": 318,
-    "status": "healthy_no_internships"
-  },
-  {
-    "adapter": "ashby",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
-    "company": "Shield AI",
-    "endpoint": "https://api.ashbyhq.com/posting-api/job-board/shield-ai",
-    "error_message": "",
-    "error_type": "",
-    "http_status": null,
-    "internship_roles_found": 0,
-    "recommended_action": "No current internship/co-op postings; keep source enabled.",
-    "roles_found": 0,
-    "status": "healthy_no_internships"
-  },
-  {
-    "adapter": "greenhouse",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
-    "company": "Sigma Computing",
-    "endpoint": "https://boards-api.greenhouse.io/v1/boards/sigmacomputing/jobs?content=true",
-    "error_message": "",
-    "error_type": "",
-    "http_status": null,
-    "internship_roles_found": 0,
-    "recommended_action": "No current internship/co-op postings; keep source enabled.",
-    "roles_found": 69,
-    "status": "healthy_no_internships"
-  },
-  {
-    "adapter": "lever",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
-    "company": "Tecton",
-    "endpoint": "https://api.lever.co/v0/postings/tecton?mode=json",
-    "error_message": "",
-    "error_type": "",
-    "http_status": null,
-    "internship_roles_found": 0,
-    "recommended_action": "No current internship/co-op postings; keep source enabled.",
-    "roles_found": 0,
-    "status": "healthy_no_internships"
-  },
-  {
-    "adapter": "lever",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
-    "company": "The Voleon Group",
-    "endpoint": "https://api.lever.co/v0/postings/voleon?mode=json",
-    "error_message": "",
-    "error_type": "",
-    "http_status": null,
-    "internship_roles_found": 0,
-    "recommended_action": "No current internship/co-op postings; keep source enabled.",
-    "roles_found": 0,
-    "status": "healthy_no_internships"
-  },
-  {
-    "adapter": "lever",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
-    "company": "Voltus",
-    "endpoint": "https://api.lever.co/v0/postings/voltus?mode=json",
-    "error_message": "",
-    "error_type": "",
-    "http_status": null,
-    "internship_roles_found": 0,
-    "recommended_action": "No current internship/co-op postings; keep source enabled.",
-    "roles_found": 14,
-    "status": "healthy_no_internships"
-  },
-  {
-    "adapter": "greenhouse",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
-    "company": "Zipline",
-    "endpoint": "https://boards-api.greenhouse.io/v1/boards/flyzipline/jobs?content=true",
-    "error_message": "",
-    "error_type": "",
-    "http_status": null,
-    "internship_roles_found": 0,
-    "recommended_action": "No current internship/co-op postings; keep source enabled.",
-    "roles_found": 14,
-    "status": "healthy_no_internships"
-  },
-  {
-    "adapter": "greenhouse",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
-    "company": "dbt Labs",
-    "endpoint": "https://boards-api.greenhouse.io/v1/boards/dbtlabsinc/jobs?content=true",
-    "error_message": "",
-    "error_type": "",
-    "http_status": null,
-    "internship_roles_found": 0,
-    "recommended_action": "No current internship/co-op postings; keep source enabled.",
-    "roles_found": 0,
-    "status": "healthy_no_internships"
-  },
-  {
-    "adapter": "greenhouse",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
-    "company": "project44",
-    "endpoint": "https://boards-api.greenhouse.io/v1/boards/project44/jobs?content=true",
-    "error_message": "",
-    "error_type": "",
-    "http_status": null,
-    "internship_roles_found": 0,
-    "recommended_action": "No current internship/co-op postings; keep source enabled.",
-    "roles_found": 28,
-    "status": "healthy_no_internships"
-  },
-  {
-    "adapter": "greenhouse",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Affirm",
     "endpoint": "https://boards-api.greenhouse.io/v1/boards/affirm/jobs?content=true",
     "error_message": "",
@@ -594,12 +35,12 @@
     "http_status": null,
     "internship_roles_found": 2,
     "recommended_action": "No action needed.",
-    "roles_found": 175,
-    "status": "healthy_with_internships"
+    "roles_found": 177,
+    "status": "healthy_complete"
   },
   {
     "adapter": "lever",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Aledade",
     "endpoint": "https://api.lever.co/v0/postings/aledade?mode=json",
     "error_message": "",
@@ -607,12 +48,12 @@
     "http_status": null,
     "internship_roles_found": 1,
     "recommended_action": "No action needed.",
-    "roles_found": 46,
-    "status": "healthy_with_internships"
+    "roles_found": 47,
+    "status": "healthy_complete"
   },
   {
     "adapter": "greenhouse",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Anduril",
     "endpoint": "https://boards-api.greenhouse.io/v1/boards/andurilindustries/jobs?content=true",
     "error_message": "",
@@ -620,12 +61,12 @@
     "http_status": null,
     "internship_roles_found": 18,
     "recommended_action": "No action needed.",
-    "roles_found": 2156,
-    "status": "healthy_with_internships"
+    "roles_found": 2169,
+    "status": "healthy_complete"
   },
   {
     "adapter": "greenhouse",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Brex",
     "endpoint": "https://boards-api.greenhouse.io/v1/boards/brex/jobs?content=true",
     "error_message": "",
@@ -633,25 +74,25 @@
     "http_status": null,
     "internship_roles_found": 2,
     "recommended_action": "No action needed.",
-    "roles_found": 267,
-    "status": "healthy_with_internships"
+    "roles_found": 264,
+    "status": "healthy_complete"
   },
   {
     "adapter": "bytedance",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "ByteDance / TikTok",
     "endpoint": "bytedance",
     "error_message": "",
     "error_type": "",
     "http_status": null,
-    "internship_roles_found": 139,
+    "internship_roles_found": 137,
     "recommended_action": "No action needed.",
-    "roles_found": 249,
-    "status": "healthy_with_internships"
+    "roles_found": 246,
+    "status": "healthy_complete"
   },
   {
     "adapter": "ashby",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Cohere",
     "endpoint": "https://api.ashbyhq.com/posting-api/job-board/cohere",
     "error_message": "",
@@ -660,11 +101,11 @@
     "internship_roles_found": 3,
     "recommended_action": "No action needed.",
     "roles_found": 130,
-    "status": "healthy_with_internships"
+    "status": "healthy_complete"
   },
   {
     "adapter": "lever",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Crest Industries",
     "endpoint": "https://api.lever.co/v0/postings/crestoperations?mode=json",
     "error_message": "",
@@ -672,12 +113,12 @@
     "http_status": null,
     "internship_roles_found": 10,
     "recommended_action": "No action needed.",
-    "roles_found": 106,
-    "status": "healthy_with_internships"
+    "roles_found": 108,
+    "status": "healthy_complete"
   },
   {
     "adapter": "greenhouse",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Databricks",
     "endpoint": "https://boards-api.greenhouse.io/v1/boards/databricks/jobs?content=true",
     "error_message": "",
@@ -685,12 +126,12 @@
     "http_status": null,
     "internship_roles_found": 8,
     "recommended_action": "No action needed.",
-    "roles_found": 787,
-    "status": "healthy_with_internships"
+    "roles_found": 786,
+    "status": "healthy_complete"
   },
   {
     "adapter": "greenhouse",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "DoorDash",
     "endpoint": "https://boards-api.greenhouse.io/v1/boards/doordashusa/jobs?content=true",
     "error_message": "",
@@ -698,12 +139,12 @@
     "http_status": null,
     "internship_roles_found": 2,
     "recommended_action": "No action needed.",
-    "roles_found": 453,
-    "status": "healthy_with_internships"
+    "roles_found": 455,
+    "status": "healthy_complete"
   },
   {
     "adapter": "lever",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "EV Realty",
     "endpoint": "https://api.lever.co/v0/postings/evrealty-us?mode=json",
     "error_message": "",
@@ -712,11 +153,11 @@
     "internship_roles_found": 1,
     "recommended_action": "No action needed.",
     "roles_found": 1,
-    "status": "healthy_with_internships"
+    "status": "healthy_complete"
   },
   {
     "adapter": "greenhouse",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "EnergyHub",
     "endpoint": "https://boards-api.greenhouse.io/v1/boards/energyhub/jobs?content=true",
     "error_message": "",
@@ -725,11 +166,11 @@
     "internship_roles_found": 2,
     "recommended_action": "No action needed.",
     "roles_found": 16,
-    "status": "healthy_with_internships"
+    "status": "healthy_complete"
   },
   {
     "adapter": "greenhouse",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Esri",
     "endpoint": "https://boards-api.greenhouse.io/v1/boards/esri/jobs?content=true",
     "error_message": "",
@@ -737,12 +178,12 @@
     "http_status": null,
     "internship_roles_found": 1,
     "recommended_action": "No action needed.",
-    "roles_found": 444,
-    "status": "healthy_with_internships"
+    "roles_found": 442,
+    "status": "healthy_complete"
   },
   {
     "adapter": "greenhouse",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Faire",
     "endpoint": "https://boards-api.greenhouse.io/v1/boards/faire/jobs?content=true",
     "error_message": "",
@@ -751,11 +192,11 @@
     "internship_roles_found": 1,
     "recommended_action": "No action needed.",
     "roles_found": 74,
-    "status": "healthy_with_internships"
+    "status": "healthy_complete"
   },
   {
     "adapter": "greenhouse",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Figma",
     "endpoint": "https://boards-api.greenhouse.io/v1/boards/figma/jobs?content=true",
     "error_message": "",
@@ -763,12 +204,12 @@
     "http_status": null,
     "internship_roles_found": 2,
     "recommended_action": "No action needed.",
-    "roles_found": 169,
-    "status": "healthy_with_internships"
+    "roles_found": 170,
+    "status": "healthy_complete"
   },
   {
     "adapter": "greenhouse",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "FourKites",
     "endpoint": "https://boards-api.greenhouse.io/v1/boards/fourkites/jobs?content=true",
     "error_message": "",
@@ -777,11 +218,11 @@
     "internship_roles_found": 1,
     "recommended_action": "No action needed.",
     "roles_found": 10,
-    "status": "healthy_with_internships"
+    "status": "healthy_complete"
   },
   {
     "adapter": "greenhouse",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Glean",
     "endpoint": "https://boards-api.greenhouse.io/v1/boards/gleanwork/jobs?content=true",
     "error_message": "",
@@ -789,12 +230,12 @@
     "http_status": null,
     "internship_roles_found": 1,
     "recommended_action": "No action needed.",
-    "roles_found": 132,
-    "status": "healthy_with_internships"
+    "roles_found": 131,
+    "status": "healthy_complete"
   },
   {
     "adapter": "official_google_careers",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Google",
     "endpoint": "https://www.google.com/about/careers/applications/jobs/results/?q=intern&location=United%20States",
     "error_message": "",
@@ -803,11 +244,11 @@
     "internship_roles_found": 2,
     "recommended_action": "No action needed.",
     "roles_found": 2,
-    "status": "healthy_with_internships"
+    "status": "healthy_complete"
   },
   {
     "adapter": "ashby",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Harvey",
     "endpoint": "https://api.ashbyhq.com/posting-api/job-board/harvey",
     "error_message": "",
@@ -815,12 +256,12 @@
     "http_status": null,
     "internship_roles_found": 1,
     "recommended_action": "No action needed.",
-    "roles_found": 337,
-    "status": "healthy_with_internships"
+    "roles_found": 340,
+    "status": "healthy_complete"
   },
   {
     "adapter": "greenhouse",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Instacart",
     "endpoint": "https://boards-api.greenhouse.io/v1/boards/instacart/jobs?content=true",
     "error_message": "",
@@ -829,11 +270,11 @@
     "internship_roles_found": 4,
     "recommended_action": "No action needed.",
     "roles_found": 141,
-    "status": "healthy_with_internships"
+    "status": "healthy_complete"
   },
   {
     "adapter": "greenhouse",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Lucid Motors",
     "endpoint": "https://boards-api.greenhouse.io/v1/boards/lucidmotors/jobs?content=true",
     "error_message": "",
@@ -841,12 +282,12 @@
     "http_status": null,
     "internship_roles_found": 9,
     "recommended_action": "No action needed.",
-    "roles_found": 241,
-    "status": "healthy_with_internships"
+    "roles_found": 240,
+    "status": "healthy_complete"
   },
   {
     "adapter": "greenhouse",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "MongoDB",
     "endpoint": "https://boards-api.greenhouse.io/v1/boards/mongodb/jobs?content=true",
     "error_message": "",
@@ -854,12 +295,12 @@
     "http_status": null,
     "internship_roles_found": 6,
     "recommended_action": "No action needed.",
-    "roles_found": 389,
-    "status": "healthy_with_internships"
+    "roles_found": 388,
+    "status": "healthy_complete"
   },
   {
     "adapter": "ashby",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Notion",
     "endpoint": "https://api.ashbyhq.com/posting-api/job-board/notion",
     "error_message": "",
@@ -867,12 +308,12 @@
     "http_status": null,
     "internship_roles_found": 4,
     "recommended_action": "No action needed.",
-    "roles_found": 143,
-    "status": "healthy_with_internships"
+    "roles_found": 142,
+    "status": "healthy_complete"
   },
   {
     "adapter": "greenhouse",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Nuro",
     "endpoint": "https://boards-api.greenhouse.io/v1/boards/nuro/jobs?content=true",
     "error_message": "",
@@ -881,11 +322,11 @@
     "internship_roles_found": 3,
     "recommended_action": "No action needed.",
     "roles_found": 93,
-    "status": "healthy_with_internships"
+    "status": "healthy_complete"
   },
   {
     "adapter": "greenhouse",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Oscar Health",
     "endpoint": "https://boards-api.greenhouse.io/v1/boards/oscar/jobs?content=true",
     "error_message": "",
@@ -894,11 +335,11 @@
     "internship_roles_found": 5,
     "recommended_action": "No action needed.",
     "roles_found": 253,
-    "status": "healthy_with_internships"
+    "status": "healthy_complete"
   },
   {
     "adapter": "lever",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Palantir",
     "endpoint": "https://api.lever.co/v0/postings/palantir?mode=json",
     "error_message": "",
@@ -906,12 +347,12 @@
     "http_status": null,
     "internship_roles_found": 31,
     "recommended_action": "No action needed.",
-    "roles_found": 270,
-    "status": "healthy_with_internships"
+    "roles_found": 268,
+    "status": "healthy_complete"
   },
   {
     "adapter": "greenhouse",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "PathAI",
     "endpoint": "https://boards-api.greenhouse.io/v1/boards/pathai/jobs?content=true",
     "error_message": "",
@@ -920,11 +361,11 @@
     "internship_roles_found": 1,
     "recommended_action": "No action needed.",
     "roles_found": 8,
-    "status": "healthy_with_internships"
+    "status": "healthy_complete"
   },
   {
     "adapter": "greenhouse",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Point72",
     "endpoint": "https://boards-api.greenhouse.io/v1/boards/point72/jobs?content=true",
     "error_message": "",
@@ -932,12 +373,12 @@
     "http_status": null,
     "internship_roles_found": 22,
     "recommended_action": "No action needed.",
-    "roles_found": 238,
-    "status": "healthy_with_internships"
+    "roles_found": 237,
+    "status": "healthy_complete"
   },
   {
     "adapter": "ashby",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Ramp",
     "endpoint": "https://api.ashbyhq.com/posting-api/job-board/ramp",
     "error_message": "",
@@ -945,12 +386,12 @@
     "http_status": null,
     "internship_roles_found": 3,
     "recommended_action": "No action needed.",
-    "roles_found": 126,
-    "status": "healthy_with_internships"
+    "roles_found": 127,
+    "status": "healthy_complete"
   },
   {
     "adapter": "greenhouse",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Roblox",
     "endpoint": "https://boards-api.greenhouse.io/v1/boards/roblox/jobs?content=true",
     "error_message": "",
@@ -959,11 +400,11 @@
     "internship_roles_found": 2,
     "recommended_action": "No action needed.",
     "roles_found": 230,
-    "status": "healthy_with_internships"
+    "status": "healthy_complete"
   },
   {
     "adapter": "greenhouse",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Scale AI",
     "endpoint": "https://boards-api.greenhouse.io/v1/boards/scaleai/jobs?content=true",
     "error_message": "",
@@ -972,11 +413,11 @@
     "internship_roles_found": 2,
     "recommended_action": "No action needed.",
     "roles_found": 183,
-    "status": "healthy_with_internships"
+    "status": "healthy_complete"
   },
   {
     "adapter": "greenhouse",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Sila Nanotechnologies",
     "endpoint": "https://boards-api.greenhouse.io/v1/boards/silananotechnologies/jobs?content=true",
     "error_message": "",
@@ -985,11 +426,11 @@
     "internship_roles_found": 1,
     "recommended_action": "No action needed.",
     "roles_found": 29,
-    "status": "healthy_with_internships"
+    "status": "healthy_complete"
   },
   {
     "adapter": "ashby",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Skydio",
     "endpoint": "https://api.ashbyhq.com/posting-api/job-board/skydio",
     "error_message": "",
@@ -998,11 +439,11 @@
     "internship_roles_found": 2,
     "recommended_action": "No action needed.",
     "roles_found": 113,
-    "status": "healthy_with_internships"
+    "status": "healthy_complete"
   },
   {
     "adapter": "greenhouse",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Stripe",
     "endpoint": "https://boards-api.greenhouse.io/v1/boards/stripe/jobs?content=true",
     "error_message": "",
@@ -1010,12 +451,12 @@
     "http_status": null,
     "internship_roles_found": 13,
     "recommended_action": "No action needed.",
-    "roles_found": 510,
-    "status": "healthy_with_internships"
+    "roles_found": 511,
+    "status": "healthy_complete"
   },
   {
     "adapter": "workday",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "The Hartford",
     "endpoint": "https://thehartford.wd5.myworkdayjobs.com/wday/cxs/thehartford/Careers_External/jobs",
     "error_message": "",
@@ -1023,12 +464,12 @@
     "http_status": null,
     "internship_roles_found": 1,
     "recommended_action": "No action needed.",
-    "roles_found": 147,
-    "status": "healthy_with_internships"
+    "roles_found": 146,
+    "status": "healthy_complete"
   },
   {
     "adapter": "greenhouse",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "The Trade Desk",
     "endpoint": "https://boards-api.greenhouse.io/v1/boards/thetradedesk/jobs?content=true",
     "error_message": "",
@@ -1036,12 +477,12 @@
     "http_status": null,
     "internship_roles_found": 1,
     "recommended_action": "No action needed.",
-    "roles_found": 197,
-    "status": "healthy_with_internships"
+    "roles_found": 196,
+    "status": "healthy_complete"
   },
   {
     "adapter": "greenhouse",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Toast",
     "endpoint": "https://boards-api.greenhouse.io/v1/boards/toast/jobs?content=true",
     "error_message": "",
@@ -1049,12 +490,12 @@
     "http_status": null,
     "internship_roles_found": 7,
     "recommended_action": "No action needed.",
-    "roles_found": 298,
-    "status": "healthy_with_internships"
+    "roles_found": 302,
+    "status": "healthy_complete"
   },
   {
     "adapter": "greenhouse",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Together AI",
     "endpoint": "https://boards-api.greenhouse.io/v1/boards/togetherai/jobs?content=true",
     "error_message": "",
@@ -1063,11 +504,11 @@
     "internship_roles_found": 5,
     "recommended_action": "No action needed.",
     "roles_found": 60,
-    "status": "healthy_with_internships"
+    "status": "healthy_complete"
   },
   {
     "adapter": "workday",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Travelers",
     "endpoint": "https://travelers.wd5.myworkdayjobs.com/wday/cxs/travelers/External/jobs",
     "error_message": "",
@@ -1075,12 +516,12 @@
     "http_status": null,
     "internship_roles_found": 9,
     "recommended_action": "No action needed.",
-    "roles_found": 158,
-    "status": "healthy_with_internships"
+    "roles_found": 160,
+    "status": "healthy_complete"
   },
   {
     "adapter": "greenhouse",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Vannevar Labs",
     "endpoint": "https://boards-api.greenhouse.io/v1/boards/vannevarlabs/jobs?content=true",
     "error_message": "",
@@ -1089,11 +530,11 @@
     "internship_roles_found": 4,
     "recommended_action": "No action needed.",
     "roles_found": 34,
-    "status": "healthy_with_internships"
+    "status": "healthy_complete"
   },
   {
     "adapter": "greenhouse",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Verkada",
     "endpoint": "https://boards-api.greenhouse.io/v1/boards/verkada/jobs?content=true",
     "error_message": "",
@@ -1101,12 +542,12 @@
     "http_status": null,
     "internship_roles_found": 4,
     "recommended_action": "No action needed.",
-    "roles_found": 293,
-    "status": "healthy_with_internships"
+    "roles_found": 291,
+    "status": "healthy_complete"
   },
   {
     "adapter": "ashby",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Zettabyte",
     "endpoint": "https://api.ashbyhq.com/posting-api/job-board/zettabyte-space",
     "error_message": "",
@@ -1115,11 +556,11 @@
     "internship_roles_found": 2,
     "recommended_action": "No action needed.",
     "roles_found": 9,
-    "status": "healthy_with_internships"
+    "status": "healthy_complete"
   },
   {
     "adapter": "greenhouse",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Zocdoc",
     "endpoint": "https://boards-api.greenhouse.io/v1/boards/zocdoc/jobs?content=true",
     "error_message": "",
@@ -1128,24 +569,427 @@
     "internship_roles_found": 1,
     "recommended_action": "No action needed.",
     "roles_found": 49,
-    "status": "healthy_with_internships"
+    "status": "healthy_complete"
   },
   {
-    "adapter": "official_careers_page",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
-    "company": "Datavant",
-    "endpoint": "https://www.datavant.com/careers",
-    "error_message": "https://www.datavant.com/careers: HTTP 404",
-    "error_type": "SourceUnavailable",
-    "http_status": 404,
+    "adapter": "ashby",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
+    "company": "Abridge",
+    "endpoint": "https://api.ashbyhq.com/posting-api/job-board/abridge",
+    "error_message": "",
+    "error_type": "",
+    "http_status": null,
     "internship_roles_found": 0,
-    "recommended_action": "Verify the ATS provider and board slug against the official careers page.",
-    "roles_found": 0,
-    "status": "invalid_board_identifier"
+    "recommended_action": "No current internship/co-op postings; keep source enabled.",
+    "roles_found": 45,
+    "status": "healthy_complete_no_internships"
+  },
+  {
+    "adapter": "greenhouse",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
+    "company": "Airtable",
+    "endpoint": "https://boards-api.greenhouse.io/v1/boards/airtable/jobs?content=true",
+    "error_message": "",
+    "error_type": "",
+    "http_status": null,
+    "internship_roles_found": 0,
+    "recommended_action": "No current internship/co-op postings; keep source enabled.",
+    "roles_found": 38,
+    "status": "healthy_complete_no_internships"
+  },
+  {
+    "adapter": "greenhouse",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
+    "company": "Akuna Capital",
+    "endpoint": "https://boards-api.greenhouse.io/v1/boards/akunacapital/jobs?content=true",
+    "error_message": "",
+    "error_type": "",
+    "http_status": null,
+    "internship_roles_found": 0,
+    "recommended_action": "No current internship/co-op postings; keep source enabled.",
+    "roles_found": 27,
+    "status": "healthy_complete_no_internships"
+  },
+  {
+    "adapter": "ashby",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
+    "company": "Ambience Healthcare",
+    "endpoint": "https://api.ashbyhq.com/posting-api/job-board/ambiencehealthcare",
+    "error_message": "",
+    "error_type": "",
+    "http_status": null,
+    "internship_roles_found": 0,
+    "recommended_action": "No current internship/co-op postings; keep source enabled.",
+    "roles_found": 22,
+    "status": "healthy_complete_no_internships"
+  },
+  {
+    "adapter": "greenhouse",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
+    "company": "Amplitude",
+    "endpoint": "https://boards-api.greenhouse.io/v1/boards/amplitude/jobs?content=true",
+    "error_message": "",
+    "error_type": "",
+    "http_status": null,
+    "internship_roles_found": 0,
+    "recommended_action": "No current internship/co-op postings; keep source enabled.",
+    "roles_found": 46,
+    "status": "healthy_complete_no_internships"
+  },
+  {
+    "adapter": "ashby",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
+    "company": "Anyscale",
+    "endpoint": "https://api.ashbyhq.com/posting-api/job-board/anyscale",
+    "error_message": "",
+    "error_type": "",
+    "http_status": null,
+    "internship_roles_found": 0,
+    "recommended_action": "No current internship/co-op postings; keep source enabled.",
+    "roles_found": 15,
+    "status": "healthy_complete_no_internships"
+  },
+  {
+    "adapter": "greenhouse",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
+    "company": "Asana",
+    "endpoint": "https://boards-api.greenhouse.io/v1/boards/asana/jobs?content=true",
+    "error_message": "",
+    "error_type": "",
+    "http_status": null,
+    "internship_roles_found": 0,
+    "recommended_action": "No current internship/co-op postings; keep source enabled.",
+    "roles_found": 149,
+    "status": "healthy_complete_no_internships"
+  },
+  {
+    "adapter": "ashby",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
+    "company": "Aurora Solar",
+    "endpoint": "https://api.ashbyhq.com/posting-api/job-board/aurorasolar",
+    "error_message": "",
+    "error_type": "",
+    "http_status": null,
+    "internship_roles_found": 0,
+    "recommended_action": "No current internship/co-op postings; keep source enabled.",
+    "roles_found": 8,
+    "status": "healthy_complete_no_internships"
+  },
+  {
+    "adapter": "lever",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
+    "company": "Belvedere Trading",
+    "endpoint": "https://api.lever.co/v0/postings/belvederetrading?mode=json",
+    "error_message": "",
+    "error_type": "",
+    "http_status": null,
+    "internship_roles_found": 0,
+    "recommended_action": "No current internship/co-op postings; keep source enabled.",
+    "roles_found": 9,
+    "status": "healthy_complete_no_internships"
+  },
+  {
+    "adapter": "greenhouse",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
+    "company": "Chime",
+    "endpoint": "https://boards-api.greenhouse.io/v1/boards/chime/jobs?content=true",
+    "error_message": "",
+    "error_type": "",
+    "http_status": null,
+    "internship_roles_found": 0,
+    "recommended_action": "No current internship/co-op postings; keep source enabled.",
+    "roles_found": 71,
+    "status": "healthy_complete_no_internships"
+  },
+  {
+    "adapter": "ashby",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
+    "company": "Color Health",
+    "endpoint": "https://api.ashbyhq.com/posting-api/job-board/color-health",
+    "error_message": "",
+    "error_type": "",
+    "http_status": null,
+    "internship_roles_found": 0,
+    "recommended_action": "No current internship/co-op postings; keep source enabled.",
+    "roles_found": 11,
+    "status": "healthy_complete_no_internships"
+  },
+  {
+    "adapter": "ashby",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
+    "company": "Cursor",
+    "endpoint": "https://api.ashbyhq.com/posting-api/job-board/cursor",
+    "error_message": "",
+    "error_type": "",
+    "http_status": null,
+    "internship_roles_found": 0,
+    "recommended_action": "No current internship/co-op postings; keep source enabled.",
+    "roles_found": 112,
+    "status": "healthy_complete_no_internships"
+  },
+  {
+    "adapter": "greenhouse",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
+    "company": "Datadog",
+    "endpoint": "https://boards-api.greenhouse.io/v1/boards/datadog/jobs?content=true",
+    "error_message": "",
+    "error_type": "",
+    "http_status": null,
+    "internship_roles_found": 0,
+    "recommended_action": "No current internship/co-op postings; keep source enabled.",
+    "roles_found": 424,
+    "status": "healthy_complete_no_internships"
+  },
+  {
+    "adapter": "greenhouse",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
+    "company": "Epirus",
+    "endpoint": "https://boards-api.greenhouse.io/v1/boards/epirus/jobs?content=true",
+    "error_message": "",
+    "error_type": "",
+    "http_status": null,
+    "internship_roles_found": 0,
+    "recommended_action": "No current internship/co-op postings; keep source enabled.",
+    "roles_found": 40,
+    "status": "healthy_complete_no_internships"
+  },
+  {
+    "adapter": "ashby",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
+    "company": "Factory",
+    "endpoint": "https://api.ashbyhq.com/posting-api/job-board/factory",
+    "error_message": "",
+    "error_type": "",
+    "http_status": null,
+    "internship_roles_found": 0,
+    "recommended_action": "No current internship/co-op postings; keep source enabled.",
+    "roles_found": 37,
+    "status": "healthy_complete_no_internships"
+  },
+  {
+    "adapter": "greenhouse",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
+    "company": "Fivetran",
+    "endpoint": "https://boards-api.greenhouse.io/v1/boards/fivetran/jobs?content=true",
+    "error_message": "",
+    "error_type": "",
+    "http_status": null,
+    "internship_roles_found": 0,
+    "recommended_action": "No current internship/co-op postings; keep source enabled.",
+    "roles_found": 126,
+    "status": "healthy_complete_no_internships"
+  },
+  {
+    "adapter": "greenhouse",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
+    "company": "Flatiron Health",
+    "endpoint": "https://boards-api.greenhouse.io/v1/boards/flatironhealth/jobs?content=true",
+    "error_message": "",
+    "error_type": "",
+    "http_status": null,
+    "internship_roles_found": 0,
+    "recommended_action": "No current internship/co-op postings; keep source enabled.",
+    "roles_found": 25,
+    "status": "healthy_complete_no_internships"
+  },
+  {
+    "adapter": "greenhouse",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
+    "company": "Flexport",
+    "endpoint": "https://boards-api.greenhouse.io/v1/boards/flexport/jobs?content=true",
+    "error_message": "",
+    "error_type": "",
+    "http_status": null,
+    "internship_roles_found": 0,
+    "recommended_action": "No current internship/co-op postings; keep source enabled.",
+    "roles_found": 144,
+    "status": "healthy_complete_no_internships"
+  },
+  {
+    "adapter": "greenhouse",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
+    "company": "Freenome",
+    "endpoint": "https://boards-api.greenhouse.io/v1/boards/freenome/jobs?content=true",
+    "error_message": "",
+    "error_type": "",
+    "http_status": null,
+    "internship_roles_found": 0,
+    "recommended_action": "No current internship/co-op postings; keep source enabled.",
+    "roles_found": 19,
+    "status": "healthy_complete_no_internships"
+  },
+  {
+    "adapter": "greenhouse",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
+    "company": "Kodiak Robotics",
+    "endpoint": "https://boards-api.greenhouse.io/v1/boards/kodiak/jobs?content=true",
+    "error_message": "",
+    "error_type": "",
+    "http_status": null,
+    "internship_roles_found": 0,
+    "recommended_action": "No current internship/co-op postings; keep source enabled.",
+    "roles_found": 69,
+    "status": "healthy_complete_no_internships"
+  },
+  {
+    "adapter": "greenhouse",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
+    "company": "Komodo Health",
+    "endpoint": "https://boards-api.greenhouse.io/v1/boards/komodohealth/jobs?content=true",
+    "error_message": "",
+    "error_type": "",
+    "http_status": null,
+    "internship_roles_found": 0,
+    "recommended_action": "No current internship/co-op postings; keep source enabled.",
+    "roles_found": 40,
+    "status": "healthy_complete_no_internships"
+  },
+  {
+    "adapter": "greenhouse",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
+    "company": "Mixpanel",
+    "endpoint": "https://boards-api.greenhouse.io/v1/boards/mixpanel/jobs?content=true",
+    "error_message": "",
+    "error_type": "",
+    "http_status": null,
+    "internship_roles_found": 0,
+    "recommended_action": "No current internship/co-op postings; keep source enabled.",
+    "roles_found": 41,
+    "status": "healthy_complete_no_internships"
+  },
+  {
+    "adapter": "ashby",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
+    "company": "Modal",
+    "endpoint": "https://api.ashbyhq.com/posting-api/job-board/modal",
+    "error_message": "",
+    "error_type": "",
+    "http_status": null,
+    "internship_roles_found": 0,
+    "recommended_action": "No current internship/co-op postings; keep source enabled.",
+    "roles_found": 33,
+    "status": "healthy_complete_no_internships"
+  },
+  {
+    "adapter": "greenhouse",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
+    "company": "Motive",
+    "endpoint": "https://boards-api.greenhouse.io/v1/boards/gomotive/jobs?content=true",
+    "error_message": "",
+    "error_type": "",
+    "http_status": null,
+    "internship_roles_found": 0,
+    "recommended_action": "No current internship/co-op postings; keep source enabled.",
+    "roles_found": 78,
+    "status": "healthy_complete_no_internships"
+  },
+  {
+    "adapter": "ashby",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
+    "company": "OnePay",
+    "endpoint": "https://api.ashbyhq.com/posting-api/job-board/oneapp",
+    "error_message": "",
+    "error_type": "",
+    "http_status": null,
+    "internship_roles_found": 0,
+    "recommended_action": "No current internship/co-op postings; keep source enabled.",
+    "roles_found": 30,
+    "status": "healthy_complete_no_internships"
+  },
+  {
+    "adapter": "greenhouse",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
+    "company": "Redwood Materials",
+    "endpoint": "https://boards-api.greenhouse.io/v1/boards/redwoodmaterials/jobs?content=true",
+    "error_message": "",
+    "error_type": "",
+    "http_status": null,
+    "internship_roles_found": 0,
+    "recommended_action": "No current internship/co-op postings; keep source enabled.",
+    "roles_found": 92,
+    "status": "healthy_complete_no_internships"
+  },
+  {
+    "adapter": "ashby",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
+    "company": "Runway",
+    "endpoint": "https://api.ashbyhq.com/posting-api/job-board/runway",
+    "error_message": "",
+    "error_type": "",
+    "http_status": null,
+    "internship_roles_found": 0,
+    "recommended_action": "No current internship/co-op postings; keep source enabled.",
+    "roles_found": 4,
+    "status": "healthy_complete_no_internships"
+  },
+  {
+    "adapter": "greenhouse",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
+    "company": "Samsara",
+    "endpoint": "https://boards-api.greenhouse.io/v1/boards/samsara/jobs?content=true",
+    "error_message": "",
+    "error_type": "",
+    "http_status": null,
+    "internship_roles_found": 0,
+    "recommended_action": "No current internship/co-op postings; keep source enabled.",
+    "roles_found": 316,
+    "status": "healthy_complete_no_internships"
+  },
+  {
+    "adapter": "greenhouse",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
+    "company": "Sigma Computing",
+    "endpoint": "https://boards-api.greenhouse.io/v1/boards/sigmacomputing/jobs?content=true",
+    "error_message": "",
+    "error_type": "",
+    "http_status": null,
+    "internship_roles_found": 0,
+    "recommended_action": "No current internship/co-op postings; keep source enabled.",
+    "roles_found": 69,
+    "status": "healthy_complete_no_internships"
+  },
+  {
+    "adapter": "lever",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
+    "company": "Voltus",
+    "endpoint": "https://api.lever.co/v0/postings/voltus?mode=json",
+    "error_message": "",
+    "error_type": "",
+    "http_status": null,
+    "internship_roles_found": 0,
+    "recommended_action": "No current internship/co-op postings; keep source enabled.",
+    "roles_found": 14,
+    "status": "healthy_complete_no_internships"
+  },
+  {
+    "adapter": "greenhouse",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
+    "company": "Zipline",
+    "endpoint": "https://boards-api.greenhouse.io/v1/boards/flyzipline/jobs?content=true",
+    "error_message": "",
+    "error_type": "",
+    "http_status": null,
+    "internship_roles_found": 0,
+    "recommended_action": "No current internship/co-op postings; keep source enabled.",
+    "roles_found": 15,
+    "status": "healthy_complete_no_internships"
+  },
+  {
+    "adapter": "greenhouse",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
+    "company": "project44",
+    "endpoint": "https://boards-api.greenhouse.io/v1/boards/project44/jobs?content=true",
+    "error_message": "",
+    "error_type": "",
+    "http_status": null,
+    "internship_roles_found": 0,
+    "recommended_action": "No current internship/co-op postings; keep source enabled.",
+    "roles_found": 28,
+    "status": "healthy_complete_no_internships"
   },
   {
     "adapter": "official_careers_page",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Baseten",
     "endpoint": "https://www.baseten.co/careers/",
     "error_message": "https://www.baseten.co/careers/: HTTP 308",
@@ -1154,11 +998,11 @@
     "internship_roles_found": 0,
     "recommended_action": "Replace the endpoint with the current canonical official careers URL.",
     "roles_found": 0,
-    "status": "invalid_response"
+    "status": "invalid_configuration"
   },
   {
     "adapter": "workday",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Chubb",
     "endpoint": "https://chubb.wd1.myworkdayjobs.com/wday/cxs/chubb/External/jobs",
     "error_message": "https://chubb.wd1.myworkdayjobs.com/wday/cxs/chubb/External/jobs: HTTP 422",
@@ -1167,11 +1011,11 @@
     "internship_roles_found": 0,
     "recommended_action": "Verify request body, tenant, site, and pagination parameters.",
     "roles_found": 0,
-    "status": "invalid_response"
+    "status": "invalid_configuration"
   },
   {
     "adapter": "official_careers_page",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "DRW",
     "endpoint": "https://drw.com/work-at-drw/listings/",
     "error_message": "https://drw.com/work-at-drw/listings/: HTTP 308",
@@ -1180,11 +1024,24 @@
     "internship_roles_found": 0,
     "recommended_action": "Replace the endpoint with the current canonical official careers URL.",
     "roles_found": 0,
-    "status": "invalid_response"
+    "status": "invalid_configuration"
   },
   {
     "adapter": "official_careers_page",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
+    "company": "Datavant",
+    "endpoint": "https://www.datavant.com/careers",
+    "error_message": "https://www.datavant.com/careers: HTTP 404",
+    "error_type": "SourceUnavailable",
+    "http_status": 404,
+    "internship_roles_found": 0,
+    "recommended_action": "Verify the ATS provider and board slug against the official careers page.",
+    "roles_found": 0,
+    "status": "invalid_configuration"
+  },
+  {
+    "adapter": "official_careers_page",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Fractal",
     "endpoint": "https://fractal.ai/careers/",
     "error_message": "https://fractal.ai/careers/: HTTP 308",
@@ -1193,11 +1050,11 @@
     "internship_roles_found": 0,
     "recommended_action": "Replace the endpoint with the current canonical official careers URL.",
     "roles_found": 0,
-    "status": "invalid_response"
+    "status": "invalid_configuration"
   },
   {
     "adapter": "official_careers_page",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Gatik",
     "endpoint": "https://gatik.ai/careers/",
     "error_message": "https://gatik.ai/careers/: HTTP 308",
@@ -1206,11 +1063,11 @@
     "internship_roles_found": 0,
     "recommended_action": "Replace the endpoint with the current canonical official careers URL.",
     "roles_found": 0,
-    "status": "invalid_response"
+    "status": "invalid_configuration"
   },
   {
     "adapter": "official_careers_page",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Ibotta",
     "endpoint": "https://ibotta.com/careers",
     "error_message": "https://ibotta.com/careers: HTTP 308",
@@ -1219,11 +1076,11 @@
     "internship_roles_found": 0,
     "recommended_action": "Replace the endpoint with the current canonical official careers URL.",
     "roles_found": 0,
-    "status": "invalid_response"
+    "status": "invalid_configuration"
   },
   {
     "adapter": "workday",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Liberty Mutual",
     "endpoint": "https://libertymutual.wd5.myworkdayjobs.com/wday/cxs/libertymutual/Liberty_Mutual_Careers/jobs",
     "error_message": "https://libertymutual.wd5.myworkdayjobs.com/wday/cxs/libertymutual/Liberty_Mutual_Careers/jobs: HTTP 422",
@@ -1232,11 +1089,11 @@
     "internship_roles_found": 0,
     "recommended_action": "Verify request body, tenant, site, and pagination parameters.",
     "roles_found": 0,
-    "status": "invalid_response"
+    "status": "invalid_configuration"
   },
   {
     "adapter": "official_careers_page",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Anthropic",
     "endpoint": "https://www.anthropic.com/careers",
     "error_message": "https://www.anthropic.com/careers: no JobPosting structured data found",
@@ -1245,11 +1102,11 @@
     "internship_roles_found": 0,
     "recommended_action": "Add a dedicated adapter for this official careers page or replace it with a stable ATS API.",
     "roles_found": 0,
-    "status": "official_page_unstructured"
+    "status": "parser_suspected_broken"
   },
   {
     "adapter": "official_careers_page",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Applied Intuition",
     "endpoint": "https://www.appliedintuition.com/careers",
     "error_message": "https://www.appliedintuition.com/careers: no JobPosting structured data found",
@@ -1258,11 +1115,11 @@
     "internship_roles_found": 0,
     "recommended_action": "Add a dedicated adapter for this official careers page or replace it with a stable ATS API.",
     "roles_found": 0,
-    "status": "official_page_unstructured"
+    "status": "parser_suspected_broken"
   },
   {
     "adapter": "official_careers_page",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Astronomer",
     "endpoint": "https://www.astronomer.io/careers/",
     "error_message": "https://www.astronomer.io/careers/: no JobPosting structured data found",
@@ -1271,11 +1128,11 @@
     "internship_roles_found": 0,
     "recommended_action": "Add a dedicated adapter for this official careers page or replace it with a stable ATS API.",
     "roles_found": 0,
-    "status": "official_page_unstructured"
+    "status": "parser_suspected_broken"
   },
   {
     "adapter": "official_careers_page",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Aurora",
     "endpoint": "https://aurora.tech/careers",
     "error_message": "https://aurora.tech/careers: no JobPosting structured data found",
@@ -1284,11 +1141,11 @@
     "internship_roles_found": 0,
     "recommended_action": "Add a dedicated adapter for this official careers page or replace it with a stable ATS API.",
     "roles_found": 0,
-    "status": "official_page_unstructured"
+    "status": "parser_suspected_broken"
   },
   {
     "adapter": "official_careers_page",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Benchling",
     "endpoint": "https://www.benchling.com/careers",
     "error_message": "https://www.benchling.com/careers: no JobPosting structured data found",
@@ -1297,11 +1154,11 @@
     "internship_roles_found": 0,
     "recommended_action": "Add a dedicated adapter for this official careers page or replace it with a stable ATS API.",
     "roles_found": 0,
-    "status": "official_page_unstructured"
+    "status": "parser_suspected_broken"
   },
   {
     "adapter": "official_careers_page",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Cerebras",
     "endpoint": "https://www.cerebras.ai/careers",
     "error_message": "https://www.cerebras.ai/careers: no JobPosting structured data found",
@@ -1310,11 +1167,11 @@
     "internship_roles_found": 0,
     "recommended_action": "Add a dedicated adapter for this official careers page or replace it with a stable ATS API.",
     "roles_found": 0,
-    "status": "official_page_unstructured"
+    "status": "parser_suspected_broken"
   },
   {
     "adapter": "official_careers_page",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Flock Safety",
     "endpoint": "https://www.flocksafety.com/careers",
     "error_message": "https://www.flocksafety.com/careers: no JobPosting structured data found",
@@ -1323,11 +1180,11 @@
     "internship_roles_found": 0,
     "recommended_action": "Add a dedicated adapter for this official careers page or replace it with a stable ATS API.",
     "roles_found": 0,
-    "status": "official_page_unstructured"
+    "status": "parser_suspected_broken"
   },
   {
     "adapter": "official_careers_page",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Form Energy",
     "endpoint": "https://formenergy.com/careers/",
     "error_message": "https://formenergy.com/careers/: no JobPosting structured data found",
@@ -1336,11 +1193,11 @@
     "internship_roles_found": 0,
     "recommended_action": "Add a dedicated adapter for this official careers page or replace it with a stable ATS API.",
     "roles_found": 0,
-    "status": "official_page_unstructured"
+    "status": "parser_suspected_broken"
   },
   {
     "adapter": "official_careers_page",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "GRAIL",
     "endpoint": "https://www.grail.com/careers/",
     "error_message": "https://www.grail.com/careers/: no JobPosting structured data found",
@@ -1349,11 +1206,11 @@
     "internship_roles_found": 0,
     "recommended_action": "Add a dedicated adapter for this official careers page or replace it with a stable ATS API.",
     "roles_found": 0,
-    "status": "official_page_unstructured"
+    "status": "parser_suspected_broken"
   },
   {
     "adapter": "official_careers_page",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Gecko Robotics",
     "endpoint": "https://www.geckorobotics.com/careers",
     "error_message": "https://www.geckorobotics.com/careers: no JobPosting structured data found",
@@ -1362,11 +1219,11 @@
     "internship_roles_found": 0,
     "recommended_action": "Add a dedicated adapter for this official careers page or replace it with a stable ATS API.",
     "roles_found": 0,
-    "status": "official_page_unstructured"
+    "status": "parser_suspected_broken"
   },
   {
     "adapter": "official_careers_page",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Gridware",
     "endpoint": "https://gridware.io/careers",
     "error_message": "https://gridware.io/careers: no JobPosting structured data found",
@@ -1375,11 +1232,11 @@
     "internship_roles_found": 0,
     "recommended_action": "Add a dedicated adapter for this official careers page or replace it with a stable ATS API.",
     "roles_found": 0,
-    "status": "official_page_unstructured"
+    "status": "parser_suspected_broken"
   },
   {
     "adapter": "official_careers_page",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Headlands Technologies",
     "endpoint": "https://www.headlandstech.com/careers/",
     "error_message": "https://www.headlandstech.com/careers/: no JobPosting structured data found",
@@ -1388,11 +1245,11 @@
     "internship_roles_found": 0,
     "recommended_action": "Add a dedicated adapter for this official careers page or replace it with a stable ATS API.",
     "roles_found": 0,
-    "status": "official_page_unstructured"
+    "status": "parser_suspected_broken"
   },
   {
     "adapter": "official_careers_page",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Hugging Face",
     "endpoint": "https://huggingface.co/jobs",
     "error_message": "https://huggingface.co/jobs: no JobPosting structured data found",
@@ -1401,11 +1258,11 @@
     "internship_roles_found": 0,
     "recommended_action": "Add a dedicated adapter for this official careers page or replace it with a stable ATS API.",
     "roles_found": 0,
-    "status": "official_page_unstructured"
+    "status": "parser_suspected_broken"
   },
   {
     "adapter": "official_careers_page",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Included Health",
     "endpoint": "https://includedhealth.com/careers/",
     "error_message": "https://includedhealth.com/careers/: no JobPosting structured data found",
@@ -1414,11 +1271,11 @@
     "internship_roles_found": 0,
     "recommended_action": "Add a dedicated adapter for this official careers page or replace it with a stable ATS API.",
     "roles_found": 0,
-    "status": "official_page_unstructured"
+    "status": "parser_suspected_broken"
   },
   {
     "adapter": "official_careers_page",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Insitro",
     "endpoint": "https://www.insitro.com/careers",
     "error_message": "https://www.insitro.com/careers: no JobPosting structured data found",
@@ -1427,11 +1284,11 @@
     "internship_roles_found": 0,
     "recommended_action": "Add a dedicated adapter for this official careers page or replace it with a stable ATS API.",
     "roles_found": 0,
-    "status": "official_page_unstructured"
+    "status": "parser_suspected_broken"
   },
   {
     "adapter": "official_careers_page",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "LangChain",
     "endpoint": "https://www.langchain.com/careers",
     "error_message": "https://www.langchain.com/careers: no JobPosting structured data found",
@@ -1440,11 +1297,11 @@
     "internship_roles_found": 0,
     "recommended_action": "Add a dedicated adapter for this official careers page or replace it with a stable ATS API.",
     "roles_found": 0,
-    "status": "official_page_unstructured"
+    "status": "parser_suspected_broken"
   },
   {
     "adapter": "official_careers_page",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Recursion",
     "endpoint": "https://www.recursion.com/careers",
     "error_message": "https://www.recursion.com/careers: no JobPosting structured data found",
@@ -1453,11 +1310,11 @@
     "internship_roles_found": 0,
     "recommended_action": "Add a dedicated adapter for this official careers page or replace it with a stable ATS API.",
     "roles_found": 0,
-    "status": "official_page_unstructured"
+    "status": "parser_suspected_broken"
   },
   {
     "adapter": "official_careers_page",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Retool",
     "endpoint": "https://retool.com/careers",
     "error_message": "https://retool.com/careers: no JobPosting structured data found",
@@ -1466,11 +1323,11 @@
     "internship_roles_found": 0,
     "recommended_action": "Add a dedicated adapter for this official careers page or replace it with a stable ATS API.",
     "roles_found": 0,
-    "status": "official_page_unstructured"
+    "status": "parser_suspected_broken"
   },
   {
     "adapter": "official_careers_page",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Rivian",
     "endpoint": "https://careers.rivian.com/careers-home/jobs",
     "error_message": "https://careers.rivian.com/careers-home/jobs: no JobPosting structured data found",
@@ -1479,11 +1336,11 @@
     "internship_roles_found": 0,
     "recommended_action": "Add a dedicated adapter for this official careers page or replace it with a stable ATS API.",
     "roles_found": 0,
-    "status": "official_page_unstructured"
+    "status": "parser_suspected_broken"
   },
   {
     "adapter": "official_careers_page",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Ro",
     "endpoint": "https://ro.co/careers/",
     "error_message": "https://ro.co/careers/: no JobPosting structured data found",
@@ -1492,11 +1349,11 @@
     "internship_roles_found": 0,
     "recommended_action": "Add a dedicated adapter for this official careers page or replace it with a stable ATS API.",
     "roles_found": 0,
-    "status": "official_page_unstructured"
+    "status": "parser_suspected_broken"
   },
   {
     "adapter": "official_careers_page",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Saildrone",
     "endpoint": "https://www.saildrone.com/careers",
     "error_message": "https://www.saildrone.com/careers: no JobPosting structured data found",
@@ -1505,11 +1362,11 @@
     "internship_roles_found": 0,
     "recommended_action": "Add a dedicated adapter for this official careers page or replace it with a stable ATS API.",
     "roles_found": 0,
-    "status": "official_page_unstructured"
+    "status": "parser_suspected_broken"
   },
   {
     "adapter": "official_careers_page",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Sierra",
     "endpoint": "https://sierra.ai/careers",
     "error_message": "https://sierra.ai/careers: no JobPosting structured data found",
@@ -1518,11 +1375,11 @@
     "internship_roles_found": 0,
     "recommended_action": "Add a dedicated adapter for this official careers page or replace it with a stable ATS API.",
     "roles_found": 0,
-    "status": "official_page_unstructured"
+    "status": "parser_suspected_broken"
   },
   {
     "adapter": "official_careers_page",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Snowflake",
     "endpoint": "https://careers.snowflake.com/us/en/search-results",
     "error_message": "https://careers.snowflake.com/us/en/search-results: no JobPosting structured data found",
@@ -1531,11 +1388,11 @@
     "internship_roles_found": 0,
     "recommended_action": "Add a dedicated adapter for this official careers page or replace it with a stable ATS API.",
     "roles_found": 0,
-    "status": "official_page_unstructured"
+    "status": "parser_suspected_broken"
   },
   {
     "adapter": "official_careers_page",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Verisk",
     "endpoint": "https://www.verisk.com/careers/",
     "error_message": "https://www.verisk.com/careers/: no JobPosting structured data found",
@@ -1544,11 +1401,11 @@
     "internship_roles_found": 0,
     "recommended_action": "Add a dedicated adapter for this official careers page or replace it with a stable ATS API.",
     "roles_found": 0,
-    "status": "official_page_unstructured"
+    "status": "parser_suspected_broken"
   },
   {
     "adapter": "official_careers_page",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Weights & Biases",
     "endpoint": "https://wandb.ai/site/careers/",
     "error_message": "https://wandb.ai/site/careers/: no JobPosting structured data found",
@@ -1557,11 +1414,11 @@
     "internship_roles_found": 0,
     "recommended_action": "Add a dedicated adapter for this official careers page or replace it with a stable ATS API.",
     "roles_found": 0,
-    "status": "official_page_unstructured"
+    "status": "parser_suspected_broken"
   },
   {
     "adapter": "official_careers_page",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Windsurf",
     "endpoint": "https://windsurf.com/careers",
     "error_message": "https://windsurf.com/careers: no JobPosting structured data found",
@@ -1570,11 +1427,11 @@
     "internship_roles_found": 0,
     "recommended_action": "Add a dedicated adapter for this official careers page or replace it with a stable ATS API.",
     "roles_found": 0,
-    "status": "official_page_unstructured"
+    "status": "parser_suspected_broken"
   },
   {
     "adapter": "official_careers_page",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Zoox",
     "endpoint": "https://zoox.com/careers/",
     "error_message": "https://zoox.com/careers/: no JobPosting structured data found",
@@ -1583,11 +1440,154 @@
     "internship_roles_found": 0,
     "recommended_action": "Add a dedicated adapter for this official careers page or replace it with a stable ATS API.",
     "roles_found": 0,
-    "status": "official_page_unstructured"
+    "status": "parser_suspected_broken"
+  },
+  {
+    "adapter": "lever",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
+    "company": "Age of Learning",
+    "endpoint": "https://api.lever.co/v0/postings/aofl?mode=json",
+    "error_message": "",
+    "error_type": "",
+    "http_status": null,
+    "internship_roles_found": 0,
+    "recommended_action": "Zero roles returned; verify pagination and parser completeness before treating as healthy.",
+    "roles_found": 0,
+    "status": "partial_results"
+  },
+  {
+    "adapter": "official_apple_careers",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
+    "company": "Apple",
+    "endpoint": "https://jobs.apple.com/en-us/search?search=intern&location=united-states-USA",
+    "error_message": "",
+    "error_type": "",
+    "http_status": null,
+    "internship_roles_found": 0,
+    "recommended_action": "Zero roles returned; verify pagination and parser completeness before treating as healthy.",
+    "roles_found": 0,
+    "status": "partial_results"
+  },
+  {
+    "adapter": "ashby",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
+    "company": "Hex",
+    "endpoint": "https://api.ashbyhq.com/posting-api/job-board/hex",
+    "error_message": "",
+    "error_type": "",
+    "http_status": null,
+    "internship_roles_found": 0,
+    "recommended_action": "Zero roles returned; verify pagination and parser completeness before treating as healthy.",
+    "roles_found": 0,
+    "status": "partial_results"
+  },
+  {
+    "adapter": "ashby",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
+    "company": "Hudson River Trading",
+    "endpoint": "https://api.ashbyhq.com/posting-api/job-board/hrt",
+    "error_message": "",
+    "error_type": "",
+    "http_status": null,
+    "internship_roles_found": 0,
+    "recommended_action": "Zero roles returned; verify pagination and parser completeness before treating as healthy.",
+    "roles_found": 0,
+    "status": "partial_results"
+  },
+  {
+    "adapter": "ashby",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
+    "company": "Mercury",
+    "endpoint": "https://api.ashbyhq.com/posting-api/job-board/mercury",
+    "error_message": "",
+    "error_type": "",
+    "http_status": null,
+    "internship_roles_found": 0,
+    "recommended_action": "Zero roles returned; verify pagination and parser completeness before treating as healthy.",
+    "roles_found": 0,
+    "status": "partial_results"
+  },
+  {
+    "adapter": "lever",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
+    "company": "Nielsen",
+    "endpoint": "https://api.lever.co/v0/postings/nielsen?mode=json",
+    "error_message": "",
+    "error_type": "",
+    "http_status": null,
+    "internship_roles_found": 0,
+    "recommended_action": "Zero roles returned; verify pagination and parser completeness before treating as healthy.",
+    "roles_found": 0,
+    "status": "partial_results"
+  },
+  {
+    "adapter": "lever",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
+    "company": "Plaid",
+    "endpoint": "https://api.lever.co/v0/postings/plaid?mode=json",
+    "error_message": "",
+    "error_type": "",
+    "http_status": null,
+    "internship_roles_found": 0,
+    "recommended_action": "Zero roles returned; verify pagination and parser completeness before treating as healthy.",
+    "roles_found": 0,
+    "status": "partial_results"
+  },
+  {
+    "adapter": "ashby",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
+    "company": "Shield AI",
+    "endpoint": "https://api.ashbyhq.com/posting-api/job-board/shield-ai",
+    "error_message": "",
+    "error_type": "",
+    "http_status": null,
+    "internship_roles_found": 0,
+    "recommended_action": "Zero roles returned; verify pagination and parser completeness before treating as healthy.",
+    "roles_found": 0,
+    "status": "partial_results"
+  },
+  {
+    "adapter": "lever",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
+    "company": "Tecton",
+    "endpoint": "https://api.lever.co/v0/postings/tecton?mode=json",
+    "error_message": "",
+    "error_type": "",
+    "http_status": null,
+    "internship_roles_found": 0,
+    "recommended_action": "Zero roles returned; verify pagination and parser completeness before treating as healthy.",
+    "roles_found": 0,
+    "status": "partial_results"
+  },
+  {
+    "adapter": "lever",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
+    "company": "The Voleon Group",
+    "endpoint": "https://api.lever.co/v0/postings/voleon?mode=json",
+    "error_message": "",
+    "error_type": "",
+    "http_status": null,
+    "internship_roles_found": 0,
+    "recommended_action": "Zero roles returned; verify pagination and parser completeness before treating as healthy.",
+    "roles_found": 0,
+    "status": "partial_results"
+  },
+  {
+    "adapter": "greenhouse",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
+    "company": "dbt Labs",
+    "endpoint": "https://boards-api.greenhouse.io/v1/boards/dbtlabsinc/jobs?content=true",
+    "error_message": "",
+    "error_type": "",
+    "http_status": null,
+    "internship_roles_found": 0,
+    "recommended_action": "Zero roles returned; verify pagination and parser completeness before treating as healthy.",
+    "roles_found": 0,
+    "status": "partial_results"
   },
   {
     "adapter": "official_careers_page",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Confluent",
     "endpoint": "https://www.confluent.io/careers/",
     "error_message": "https://www.confluent.io/careers/: HTTP 429",
@@ -1600,7 +1600,7 @@
   },
   {
     "adapter": "official_careers_page",
-    "checked_at": "2026-07-10T10:08:25.987468+00:00",
+    "checked_at": "2026-07-10T16:34:59.791891+00:00",
     "company": "Tempus",
     "endpoint": "https://www.tempus.com/careers/",
     "error_message": "https://www.tempus.com/careers/: HTTP 429",
